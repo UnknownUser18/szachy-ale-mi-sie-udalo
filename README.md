@@ -6,4 +6,4 @@ nie mowimy o motoroli
 wege ~~pomykaj hyżo~~
 #### zasada trzecia
 selct gwiazdka z tabela
-jestem mistrzem esiqela
+jestem mistrzem eskjuela
