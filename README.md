@@ -3,7 +3,7 @@
 ## zasada pierwsza
 nie mowimy o motoroli
 ### zasada druga
-wege spierdalaj
+wege ~~pomykaj hyżo~~
 #### zasada trzecia
 selct gwiazdka z tabela
 jestem mistrzem esiqela
