@@ -8,3 +8,5 @@ wege ~~pomykaj hyżo~~
 selct gwiazdka z tabela
 jestem mistrzem eskjuela
 [Rozplanowanie](https://docs.google.com/document/d/1hfm5uHyPwKYlPi0SGCqi-0uO0Ze2ZI_FG-IOHkKgcNw/edit?tab=t.0#heading=h.6tki4327jb93)
+##### zasada czwarta
+jackowi nie odpowiada się na bzz bzz 🐝🐝🐝🐝🐝🐝🐝🐝
