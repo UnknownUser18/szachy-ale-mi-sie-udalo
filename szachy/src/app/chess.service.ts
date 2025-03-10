@@ -250,11 +250,11 @@ export class ChessService {
   * Metoda
   * Nazwa: calculateLegalMoves
   * Pola:
-  * from: Position - pozycją, z której chcemy symulować ruch
-  * to: Position - końcowa pozycją, na której chcemy wylądować
-  * board: (ChessPiece | null)[][] = this.board - szachownica, na której chcemy symulować - domyślnie używana jest globalna aktualna szachownica
+  * from: Position — pozycją, z której chcemy symulować ruch
+  * to: Position — końcową pozycją, na której chcemy wylądować
+  * board: (ChessPiece | null)[][] = this.board — szachownica, na której chcemy symulować — domyślnie używana jest globalna aktualna szachownica
   * Działanie:
-  * Na skopiowanej szachownicy wykonujemy posunięcie bez sprawdzenia czy jest legalne
+  * Na skopiowanej szachownicy wykonujemy posunięcie bez sprawdzenia, czy jest legalne
   * Jest ona kluczowa do sprawdzania szachowania króla
   * Zwracana wartość:
   * (ChessPiece | null)[][] - zwraca skopiowaną szachownicę
@@ -281,10 +281,10 @@ export class ChessService {
   * Metoda
   * Nazwa: calculatePawnMoves
   * Pola:
-  * piece: ChessPiece - pionek, dla którego chcemy sprawdzać legalne ruchy
+  * piece: ChessPiece — pionek, dla którego chcemy sprawdzać legalne ruchy
   * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
   * Działanie:
-  * Sprawdza wszystkie ruchy do przodu, na skos - zbicie, i specjalny ruch - en passant
+  * Sprawdza wszystkie ruchy do przodu, na skos — zbicie, i specjalny ruch — en passant
   * Zwracana wartość:
   * legalMove[][] - zwraca dwuwymiarową tablicę legalnych ruchów
   * */
@@ -329,7 +329,7 @@ export class ChessService {
   * Metoda
   * Nazwa: logLegalMoves
   * Pola:
-  * piece: ChessPiece - bierka, dla której chcemy wypisać legalne ruchy do konsoli
+  * piece: ChessPiece — bierka, dla której chcemy wypisać legalne ruchy do konsoli
   * moves: legalMove[][] - obliczone legalne ruchy dla konkretnej bierki
   * Działanie:
   * Wypisuje 'typ bierki legal moves: legalne ruchy' w konsoli dla danych podanych pól
@@ -364,7 +364,7 @@ export class ChessService {
   * Metoda
   * Nazwa: calculateKnightMoves
   * Pola:
-  * piece: ChessPiece - skoczek, dla którego chcemy obliczyć legalne ruchy
+  * piece: ChessPiece — skoczek, dla którego chcemy obliczyć legalne ruchy
   * board: (ChessPiece | null)[][] - szachowanica, na której chcemy sprawdzać legalne ruchy
   * Działanie:
   * Sprawdza dla każdego możliwego ruchu skoczka, ruchy legalne
@@ -400,7 +400,7 @@ export class ChessService {
   * Metoda
   * Nazwa: calculateBishopMoves
   * Pola:
-  * piece: ChessPiece - goniec, dla którego chcemy obliczyć legalne ruchy
+  * piece: ChessPiece — goniec, dla którego chcemy obliczyć legalne ruchy
   * board: (ChessPiece | null)[][] - szachowanica, na której chcemy sprawdzać legalne ruchy
   * Działanie:
   * Sprawdza dla każdego możliwego ruchu gońca, ruchy legalne
@@ -443,12 +443,12 @@ export class ChessService {
   * Metoda
   * Nazwa: calculateRookMoves
   * Pola:
-  * piece: ChessPiece - wierza, dla której chcemy obliczyć legalne ruchy
-  * board: (ChessPiece | null)[][] - szachowanica, na której chcemy sprawdzać legalne ruchy
+  * piece: ChessPiece — wieża, dla której chcemy obliczyć legalne ruchy
+  * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
   * Działanie:
-  * Sprawdza dla każdego możliwego ruchu wierzy, ruchy legalne
+  * Sprawdza, dla każdego możliwego ruchu wierzy, ruchy legalne
   * Zwracana wartość:
-  * legalMove[][] - zwraca legalne ruchy podanej wierzy
+  * legalMove[][] - zwraca legalne ruchy podanej wieży
   * */
   private calculateRookMoves(
     piece: ChessPiece,
@@ -486,10 +486,10 @@ export class ChessService {
   * Metoda
   * Nazwa: calculateQueenMoves
   * Pola:
-  * piece: ChessPiece - hetman, dla którego chcemy obliczyć legalne ruchy
+  * piece: ChessPiece — hetman, dla którego chcemy obliczyć legalne ruchy
   * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
   * Działanie:
-  * Dodaje legalne ruchy wierzy i gońca z pozycji hetmana
+  * Dodaje, legalne ruchy wierzy i gońca z pozycji hetmana
   * Zwracana wartość:
   * legalMove[][] - zwraca legalne ruchy podanego hetmana
   * */
@@ -516,7 +516,7 @@ export class ChessService {
   * Metoda
   * Nazwa: calculateKingMoves
   * Pola:
-  * piece: ChessPiece - król, dla którego chcemy obliczyć legalne ruchy
+  * piece: ChessPiece — król, dla którego chcemy obliczyć legalne ruchy
   * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
   * Działanie:
   * Sprawdza dla każdego możliwego ruchu króla, ruchy legalne oraz roszady
@@ -560,12 +560,12 @@ export class ChessService {
   * Metoda
   * Nazwa: isKingInCheck
   * Pola:
-  * color: PieceColor - kolor króla, dla którego chcemy sprawdzić czy jest on szachowany
+  * color: PieceColor — kolor króla, dla którego chcemy sprawdzić czy jest on szachowany
   * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
   * Działanie:
-  * Sprawdza czy z perspektywy przeciwnika mógłby legalnie zbić króla
+  * Sprawdza, czy z perspektywy przeciwnika mógłby legalnie zbić króla
   * Zwracana wartość:
-  * boolean - zwraca prawda/fałsz w zależności od spełnienia warunków
+  * boolean — zwraca prawda/fałsz w zależności od spełnienia warunków
   * */
   public isKingInCheck(
     color: PieceColor,
@@ -606,11 +606,11 @@ export class ChessService {
   * Metoda
   * Nazwa: checkEnemyKingInCheck
   * Pola:
-  * movingPiece: ChessPiece - pobranie poruszonej bierki, aby określić kolor przeciwnego króla
+  * movingPiece: ChessPiece — pobranie poruszonej bierki, aby określić kolor przeciwnego króla
   * Działanie:
-  * Sprawdza czy z perspektywy przeciwnika mógłby legalnie zbić króla
+  * Sprawdza, czy z perspektywy przeciwnika mógłby legalnie zbić króla
   * Zwracana wartość:
-  * boolean - zwraca prawda/fałsz w zależności od spełnienia warunków
+  * boolean — zwraca prawda/fałsz w zależności od spełnienia warunków
   * */
   private checkEnemyKingInCheck(movingPiece: ChessPiece): void {
     const enemyColor: PieceColor = movingPiece.color === 'white' ? 'black' : 'white';
@@ -623,14 +623,14 @@ export class ChessService {
   * Metoda
   * Nazwa: moveLeavesKingInCheck
   * Pola:
-  * piece: ChessPiece - pobranie ruszanej bierki
-  * from: Position - pozycja startowa bierki
-  * to: Position - pozycja końcowa bierki
+  * piece: ChessPiece — pobranie ruszanej bierki
+  * from: Position — pozycja startowa bierki
+  * to: Position — pozycja końcowa bierki
   * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
   * Działanie:
-  * Sprawdza czy po zasymulowanym ruchu, własny król byłby zaszachowany
+  * Sprawdza, czy po zasymulowanym ruchu, własny król byłby zaszachowany
   * Zwracana wartość:
-  * boolean - zwraca prawda/fałsz w zależności od spełnienia warunków
+  * boolean — zwraca prawda/fałsz w zależności od spełnienia warunków
   * */
   private moveLeavesKingInCheck(
     piece: ChessPiece,
@@ -646,13 +646,13 @@ export class ChessService {
   * Metoda
   * Nazwa: filterMovesByKingSafety
   * Pola:
-  * piece: ChessPiece - pobranie ruszanej bierki
+  * piece: ChessPiece — pobranie ruszanej bierki
   * moves: legalMove[][] - obliczone wcześniej 'legalne' ruchy, dla których się sprawdza czy nie pozostawią króla w szachu po ruchu
   * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
   * Działanie:
-  * Sprawdza czy po zasymulowanym ruchów po całej szachownicy, własny król byłby zaszachowany dla jakiegokolwiek przypadku, wtedy zachodzi anulowanie legalności ruchu
+  * Sprawdza, czy po zasymulowanym ruchów po całej szachownicy, własny król byłby zaszachowany dla jakiegokolwiek przypadku, wtedy zachodzi anulowanie legalności ruchu
   * Zwracana wartość:
-  * boolean - zwraca prawda/fałsz w zależności od spełnienia warunków
+  * boolean — zwraca prawda/fałsz w zależności od spełnienia warunków
   * */
   private filterMovesByKingSafety(
     piece: ChessPiece,
@@ -677,7 +677,7 @@ export class ChessService {
   * Metoda
   * Nazwa: getLegalMovesForColor
   * Pola:
-  * color: PieceColor - kolor, dla którego chcemy pobrać legalne ruchy
+  * color: PieceColor — kolor, dla którego chcemy pobrać legalne ruchy
   * Działanie:
   * Oblicza wszystkie legalne ruchy dla każdej bierki podanego koloru
   * Zwracana wartość:
@@ -705,11 +705,11 @@ export class ChessService {
   * Metoda
   * Nazwa: tryMove
   * Pola:
-  * moveAttempt: MoveAttempt - próba ruchu przez gracza
+  * moveAttempt: MoveAttempt — próba ruchu przez gracza
   * Działanie:
   * Sprawdza różne warunki, dla których gracz nie mógłby wykonać ruchu
   * Zwracana wartość:
-  * boolean - zwaraca prawda/fałsz w zależności czy może wykonać ruch, czy też nie
+  * boolean — zawraca prawda/fałsz w zależności czy może wykonać ruch, czy też nie
   * */
   public tryMove(moveAttempt: MoveAttempt): boolean {
     if (!this.isValidPosition(moveAttempt.from) || !this.isValidPosition(moveAttempt.to)) {
@@ -750,10 +750,10 @@ export class ChessService {
   * Metoda
   * Nazwa: executeCastle
   * Pola:
-  * piece: ChessPiece - pobranie ruszanego króla
-  * atributes:CastleAtributes - atrybuty roszady - gdzie miałaby znajdować się wieża oraz o ile miałby poruszyć się król podczas roszady
+  * piece: ChessPiece — pobranie ruszanego króla
+  * atributes: CastleAtributes — atrybuty roszady — gdzie miałaby znajdować się wieża oraz o ile miałby poruszyć się król podczas roszady
   * Działanie:
-  * Sprawdza czy król i potencjalna wieża się już ruszyły, jeśli nie próbuje wykonać roszadę.
+  * Sprawdza, czy król i potencjalna wieża się już ruszyły, jeśli nie próbuje wykonać roszadę.
   * Obsługuje krótkie i długie roszady w zależności od atributes
   * Zwracana wartość:
   * Nie zwraca żadnych wartości
@@ -789,7 +789,7 @@ export class ChessService {
   * Metoda
   * Nazwa: executeEnpassant
   * Pola:
-  * piece: ChessPiece - pobranie ruszanego pionka
+  * piece: ChessPiece — pobranie ruszanego pionka
   * Działanie:
   * Sprawdza, czy legalnie został przypisany legalny ruch en passant, jeśli tak szuka sąsiedniego pionka, na którym gracz może wykonać bicie w przelocie i go zbija
   * Zwracana wartość:
@@ -830,8 +830,8 @@ export class ChessService {
   * Metoda
   * Nazwa: executeStandardMove
   * Pola:
-  * piece: ChessPiece - pobranie ruszanego króla
-  * moveAttempt: MoveAttempt - dokładne opisanie próby ruchu
+  * piece: ChessPiece — pobranie ruszanego króla
+  * moveAttempt: MoveAttempt — dokładne opisanie próby ruchu
   * Działanie:
   * Wykonuje posunięcie
   * Zwracana wartość:
@@ -899,10 +899,10 @@ export class ChessService {
   * Metoda
   * Nazwa: isMate
   * Pola:
-  * color: PieceColor - sprawdzenie mata, dla konkretnego koloru
+  * color: PieceColor — sprawdzenie mata, dla konkretnego koloru
   * Działanie:
-  * Sprawdza czy król jest w szachu
-  * Jeśli jest wtedy sprawdza legalne ruchy
+  * Sprawdza, czy król jest w szachu
+  * Jeśli jest, wtedy sprawdza legalne ruchy
   * Jeśli nie znajdzie legalnych ruchów, wtedy jest mat
   * Zwracana wartość:
   * Nie zwraca żadnych wartości
@@ -923,7 +923,7 @@ export class ChessService {
         }
       }
     }
-    // Nie znaleziono legalnego ruchu - jest mat!
+    // Nie znaleziono legalnego ruchu — jest mat!
     return true;
   }
 
