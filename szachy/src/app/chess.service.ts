@@ -88,6 +88,7 @@ export class ChessService {
   previousBoard: (ChessPiece | null)[][] = []
   canUndo: boolean = false;
   constructor() {
+    console.log('ChessService constructor called');
     this.initializeChessBoard()
     this.logChessBoard()
     console.log(this.getLegalMovesForColor('white'))
@@ -140,6 +141,33 @@ export class ChessService {
     // Pokazanie w konsoli ustawienia szachownicy
   }
 
+  /*
+  * Metoda
+  * Nazwa: getPieceFromPosition
+  * Pola:
+  * position: Position - pozycja, z której chcemy znaleźć bierkę
+  * Działanie:
+  * Znajduje bierkę lub wartość null w danej pozycji na szachownicy
+  * Zwracana wartość:
+  * ChessPiece | null - w zależności czy znajdzie się tam bierka, zwróci ją lub null
+  * */
+  public getPiece(row: number, col: number): ChessPiece | null{
+    return this.board[row][col];
+  }
+
+  /*
+  * Metoda
+  * Nazwa: getPieceFromPosition
+  * Pola:
+  * position: Position - pozycja, z której chcemy znaleźć bierkę
+  * Działanie:
+  * Znajduje bierkę lub wartość null w danej pozycji na szachownicy
+  * Zwracana wartość:
+  * ChessPiece | null - w zależności czy znajdzie się tam bierka, zwróci ją lub null
+  * */
+  public getPieceFromPosition(position: Position): ChessPiece | null{
+    return this.board[position.row][position.col];
+  }
 
   /*
   * Metoda
@@ -545,7 +573,16 @@ export class ChessService {
       for (let possibleRookCol of [{col: 0, deltaCol: -2, special: 'O-O-O' as SpecialMove}, {col: 7, deltaCol: 2, special: 'O-O' as SpecialMove}])
       {
         const newPos: Position = { row: piece.position.row, col: possibleRookCol.col };
-        if(this.isValidPosition(newPos))
+        let col = piece.position.col;
+        let possibleTarget: ChessPiece | null = null;
+        while(col !== newPos.col)
+        {
+          const target = board[newPos.row][col];
+          if(target)
+            possibleTarget = target;
+          col += newPos.col - col;
+        }
+        if(this.isValidPosition(newPos) && !possibleTarget)
         {
           const target = board[newPos.row][newPos.col];
           if(target?.type === 'rook' && target?.color === piece.color && !target.hasMoved)
