@@ -749,11 +749,14 @@ export class ChessService {
   * boolean — zawraca prawda/fałsz w zależności czy może wykonać ruch, czy też nie
   * */
   public tryMove(moveAttempt: MoveAttempt): boolean {
+    console.log('Czy jest bierka?', moveAttempt.to.row, moveAttempt.to.col);
     if (!this.isValidPosition(moveAttempt.from) || !this.isValidPosition(moveAttempt.to)) {
       console.error('Pozycja poza planszą.');
       return false;
     }
     const piece = this.board[moveAttempt.from.row][moveAttempt.from.col];
+    console.log(piece)
+    console.log(this.board)
     if (!piece) {
       console.error('Brak bierki na pozycji startowej.');
       return false;

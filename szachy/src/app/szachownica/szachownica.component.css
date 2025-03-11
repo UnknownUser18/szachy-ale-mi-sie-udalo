@@ -1,0 +1,51 @@
+main {
+  display: grid;
+  grid-template-rows: 20px repeat(auto-fill, minmax(100px, 1fr));
+}
+main > div {
+  display: grid;
+  grid-template-columns: 20px repeat(auto-fill, minmax(100px, 1fr));
+  justify-items: end;
+}
+main > div > div {
+  width: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  background-repeat: no-repeat;
+  background-size: 75% 75%;
+  background-position: center;
+}
+main > div:first-child > div:first-child {
+  opacity: 0;
+}
+main > div:first-child {
+  align-self: end;
+}
+main > div:first-child > div {
+  height: 20px;
+  background-color: transparent !important;
+}
+main > div > div:first-child {
+  width: 20px;
+  background-color: transparent !important;
+}
+main > div:nth-child(odd) > div:nth-child(odd) {
+  background-color: #f0f0f0;
+}
+main > div:nth-child(odd) > div:nth-child(even) {
+  background-color: #a0a0a0;
+}
+main > div:nth-child(even) > div:nth-child(odd) {
+  background-color: #a0a0a0;
+}
+main > div:nth-child(even) > div:nth-child(even) {
+  background-color: #f0f0f0;
+}
+.active {
+  background-color: green !important;
+}
+.valid {
+  background-color: yellow !important;
+}
