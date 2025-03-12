@@ -837,7 +837,7 @@ export class ChessService {
   * */
   private executeEnpassant(piece: ChessPiece) {
     let enPassantPiece: ChessPiece | null = null;
-    const direction = piece.color === 'white' ? -1 : 1;
+    const direction = piece.color === 'black' ? -1 : 1;
     for (const deltaCol of [-1, 1]){
       let adjacentPiece: ChessPiece | null = this.board[piece.position.row][piece.position.col + deltaCol];
       if(adjacentPiece?.moveTurn && adjacentPiece.color !== piece.color)
