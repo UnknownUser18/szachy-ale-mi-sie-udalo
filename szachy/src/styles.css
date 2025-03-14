@@ -1,8 +1,20 @@
+:root {
+  --background-color: #E6E8E6;
+  --third-color: #CED0CE;
+  --secondary-color: #9FB8AD;
+  --primary-color: #475841;
+  --border-color: #3F403F;
+  --gray-text-color: #898988;
+  --white-text-color: #efefef;
+  --black-text-color: #212121;
+}
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 body {
+  background-color: var(--background-color);
+  color: var(--black-text-color);
   font-family: 'Inter', sans-serif;
 }

@@ -1,0 +1,32 @@
+nav {
+  max-height: 80px;
+  padding: 10px;
+  align-items: center;
+  display: flex;
+  background-color: var(--primary-color);
+  color: var(--white-text-color);
+}
+h1 {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease-in-out;
+  will-change: color;
+}
+h1:hover {
+  color: var(--gray-text-color);
+}
+nav + div {
+  display: flex;
+  justify-content: space-between;
+  padding-right: 25%; /* prosze później zmienić gdy się doda więcej elementów */
+}
+main {
+  margin-top: 2%;
+}
+app-menu {
+  display: block;
+  width: 10%;
+  max-width: 300px;
+  background-color: var(--primary-color);
+  height: calc(100vh - 68px);
+}

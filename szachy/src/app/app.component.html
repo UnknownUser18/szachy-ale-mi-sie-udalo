@@ -1,3 +1,11 @@
-<main>
-  <app-szachownica></app-szachownica>
-</main>
+<nav>
+  <img ngSrc="../assets/bp.svg" alt="Logo szachów, biały pionek" height="48" width="48">
+  <h1 (click)="convert_name()">Szachy</h1>
+</nav>
+<div>
+  <app-menu></app-menu>
+  <main>
+    <app-zegar [color]="black" [time]="black_time"></app-zegar>
+    <app-szachownica></app-szachownica>
+  </main>
+</div>

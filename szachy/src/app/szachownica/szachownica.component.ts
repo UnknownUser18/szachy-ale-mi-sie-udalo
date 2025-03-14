@@ -14,6 +14,7 @@ export class SzachownicaComponent implements OnInit {
   focusedChessPiece : ChessPiece | null = null;
   focusedLegalMoves : legalMove[][] = [];
   focusedColor: PieceColor = 'white';
+
   loadBoard() : void {
     let board : HTMLElement = this.element.nativeElement.querySelector('main');
     (board.childNodes as NodeListOf<HTMLElement>).forEach((row : HTMLElement) : void => {
@@ -35,157 +36,136 @@ export class SzachownicaComponent implements OnInit {
           'black_king': `assets/ck.svg`,
           'white_king': `assets/bk.svg`
         };
-        const pieceType = this.chessService.board[row][column]?.type.toString();
-        const pieceColor = this.chessService.board[row][column]?.color.toString();
+        const pieceType : string | undefined = this.chessService.board[row][column]?.type.toString();
+        const pieceColor : string | undefined = this.chessService.board[row][column]?.color.toString();
         if (pieceType && pieceColor) {
-          cell.style.backgroundImage = `url(${pieces[pieceColor + '_' + pieceType]})`;
+          let img : HTMLImageElement = this.renderer.createElement('img');
+          img.src = pieces[pieceColor + '_' + pieceType];
+          cell.appendChild(img);
+          cell.classList.add('piece');
+          cell.setAttribute('draggable', 'true');
         }
-        else
-          cell.style.backgroundImage = '';
+        else if(cell.classList.contains('piece')) {
+          cell.innerHTML = '';
+          cell.classList.remove('piece');
+          cell.removeAttribute('draggable');
+          if(cell.childNodes && cell.childNodes.length > 0) cell.removeChild(cell.querySelector('img')!);
+        }
       })
     })
   }
 
-  logFocused()
-  {
-    console.log(this.focusedPiece, this.focusedColor, this.focusedChessPiece, this.focusedLegalMoves)
-  }
-
 
   styleLegalMoves(board: HTMLElement): void {
-    for(let index_row = 0; index_row < 8; index_row++)
-      for(let index_column = 0; index_column < 8; index_column++) {
+    for(let index_row : number = 0; index_row < 8; index_row++)
+      for(let index_column : number = 0; index_column < 8; index_column++) {
         if(!this.focusedLegalMoves[index_row]){
-          board.querySelectorAll('.valid').forEach((cell : Element) => {cell.classList.remove('valid')});
+          board.querySelectorAll('.valid').forEach((cell : Element) : void => {cell.classList.remove('valid')});
           break;
         }
         this.focusedLegalMoves[index_row][index_column].isLegal ? board.querySelector(`div[data-row="${index_row}"][data-column="${index_column}"]`)!.classList.add('valid') :  board.querySelector(`div[data-row="${index_row}"][data-column="${index_column}"]`)!.classList.remove('valid');
       }
-    board.querySelectorAll('.active').forEach((cell: Element) => {cell.classList.remove('active')})
+    board.querySelectorAll('.active').forEach((cell: Element) : void => {cell.classList.remove('active')})
     if(this.focusedChessPiece) this.focusedPiece!.classList.add('active');
   }
 
   ngOnInit() : void {
     let board : HTMLElement = this.element.nativeElement.querySelector('main');
     board.innerHTML = '';
-    for (let i : number = 9 ; i > 0 ; i--) {
+    for(let i : number = 8 ; i > 0 ; i--) {
       let row : HTMLElement = this.renderer.createElement('div');
-      for(let j : number = 0 ; j < 9 ; j++) {
+      for(let j : number = 0 ; j < 8 ; j++) {
         let element : HTMLElement = this.renderer.createElement('div');
-        if(i === 9) {
-          element.textContent = String.fromCharCode(64 + j);
-        } else {
-          if(j == 0) {
-            element.textContent = String(i);
-          } else {
-            element.setAttribute('data-row', String(i-1));
-            element.setAttribute('data-column', String(j-1));
-            element.addEventListener('click', (event) : void => {
-              let position: Position = {row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!)}
-              let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
-              console.log(piece, position);
-              if(piece && piece.color === this.focusedColor) {
-                this.focusedChessPiece = piece;
-                this.focusedPiece = element;
-                let legalMoves = this.chessService.getLegalMovesForColor(piece.color).find((distinctPieceLegalMoves: { piece: ChessPiece, legalMoves: legalMove[][] }) => distinctPieceLegalMoves.piece === piece)?.legalMoves
-                if(!(legalMoves && legalMoves.length > 0))
-                {
-                  console.log(legalMoves)
-                  return;
-                }
-                this.chessService.logChessBoard()
-                console.log(legalMoves)
-                this.focusedLegalMoves = legalMoves;
-                this.styleLegalMoves(board)
-                return;
-              }
-              console.log(this.focusedPiece, piece, position);
-              this.logFocused()
-              let target = this.chessService.getPieceFromPosition(position);
-              if(!this.focusedLegalMoves[position.row]) return;
-              if(!this.focusedLegalMoves[position.row][position.col].isLegal)
-              {
-                this.focusedPiece = null;
-                this.focusedChessPiece = null;
-                this.focusedLegalMoves = [];
-                this.logFocused()
-                this.styleLegalMoves(board)
-                console.error('Próba zrobienia ruchu poza legalnymi ruchami!')
-                return
-              }
-
-              this.logFocused()
-              if(!(target === null || target.color !== this.focusedChessPiece?.color)) return;
-
-              let moveAttempt: MoveAttempt = {from: {...this.focusedChessPiece!.position}, to: {...position}}
-              console.log(target, moveAttempt)
-              let attempt: boolean = this.chessService.tryMove(moveAttempt)
-              this.focusedColor = attempt? (this.focusedColor === 'black' ? 'white' : 'black') : this.focusedColor;
-              if(attempt) {
-                this.focusedPiece = null;
-                this.focusedChessPiece = null;
-                this.focusedLegalMoves = [];
-              }
-              this.loadBoard();
-              this.styleLegalMoves(board)
-              // if (this.focusedPiece) {
-              //   console.log(this.focusedPiece)
-              //   this.focusedPiece.classList.remove('active');
-              //   this.focusedPiece = null;
-              //   let validCells: NodeListOf<HTMLElement> = this.element.nativeElement.querySelectorAll('.valid');
-              //   validCells.forEach((cell: HTMLElement): void => {
-              //     cell.classList.remove('valid');
-              //   })
-              // }
-              // element.classList.toggle('active');
-              // this.focusedPiece = element;
-
-              // let piece: ChessPiece | null = this.chessService.board[parseInt(element.getAttribute('data-row')!)][parseInt(element.getAttribute('data-column')!)];
-              // if (!piece) return;
-              // console.log(this.focusedPiece)
-              // console.log(piece);
-              // let legalMoves: legalMove[][] = this.chessService.calculateLegalMoves(piece);
-              // legalMoves.forEach((row_moves: Array<legalMove>, index_row: number): void => {
-              //   row_moves.forEach((column_moves: legalMove, index_column: number): void => {
-              //     if (!column_moves.isLegal) return;
-              //     let validCell: HTMLElement = this.element.nativeElement.querySelector(`div[data-row="${index_row}"][data-column="${index_column}"]`);
-              //     validCell.classList.add('valid');
-              //   })
-              // })
-              // let validCells: NodeListOf<HTMLElement> = this.element.nativeElement.querySelectorAll('.valid');
-              // validCells.forEach((cell: HTMLElement): void => {
-              //   cell.addEventListener('click', (): void => {
-              //     let row: number = parseInt(cell.getAttribute('data-row')!);
-              //     let column: number = parseInt(cell.getAttribute('data-column')!);
-              //     let moveAttempt: MoveAttempt = {
-              //       from: {
-              //         row: piece.position.row,
-              //         col: piece.position.col,
-              //       },
-              //       to: {
-              //         row: row,
-              //         col: column,
-              //       },
-              //     }
-              //     console.log(moveAttempt, this.focusedPiece)
-              //     this.chessService.tryMove(moveAttempt);
-              //     this.loadBoard();
-              //     this.chessService.logChessBoard()
-              //     this.focusedPiece?.classList.remove('active');
-              //     this.focusedPiece = null;
-              //     let validCells: NodeListOf<HTMLElement> = this.element.nativeElement.querySelectorAll('.valid');
-              //     validCells.forEach((cell: HTMLElement): void => {
-              //       cell.classList.remove('valid');
-              //     })
-              //   });
-              // })
-            })
-          }
+        element.setAttribute('data-row', String(i-1));
+        if(i === 1 && j === 0) {
+          let span : HTMLElement = this.renderer.createElement('span');
+          span.textContent = '1';
+          span.classList.add('number');
+          this.renderer.appendChild(element, span);
+          span = this.renderer.createElement('span');
+          span.textContent = 'a';
+          span.classList.add('letter');
+          this.renderer.appendChild(element, span);
+          element.classList.add('start');
+        } else if(i === 1) {
+          element.textContent = String.fromCharCode(65 + j).toLowerCase();
+          element.classList.add('letter');
+        } else if(j === 0) {
+          element.textContent = String(i);
+          element.classList.add('number');
         }
+        element.setAttribute('data-column', String(j));
+        element.addEventListener('dragstart', (event: DragEvent) : void => {
+          let row : number = parseInt(element.getAttribute('data-row')!);
+          let col : number = parseInt(element.getAttribute('data-column')!);
+          if(this.chessService.board[row][col]?.color !== this.focusedColor) return;
+          event.dataTransfer?.setData('text/plain', JSON.stringify({
+            row: row,
+            column: col
+          }));
+          this.focusedPiece = element;
+          let position: Position = {row: row, col: col};
+          this.focusedChessPiece = this.chessService.getPieceFromPosition(position);
+          this.focusedLegalMoves = this.chessService.getLegalMovesForColor(this.focusedChessPiece!.color).find((distinctPieceLegalMoves: { piece: ChessPiece, legalMoves: legalMove[][] }) => distinctPieceLegalMoves.piece === this.focusedChessPiece)?.legalMoves || [];
+          this.styleLegalMoves(this.element.nativeElement.querySelector('main'));
+        });
+        element.addEventListener('dragover', (event: DragEvent) : void => {
+          event.preventDefault();
+        });
+        element.addEventListener('drop', (event: DragEvent) : void => {
+          console.log("Event drop", event.dataTransfer!.getData('text/plain'));
+          if(event.dataTransfer!.getData('text/plain').match('http://')) return; // jeżeli chłopie próbujesz wykonać ruch w nie swojej turze to wysyła się http://[link_do_obrazka]
+
+          event.preventDefault();
+          const data = JSON.parse(event.dataTransfer?.getData('text/plain')!);
+          const fromPosition: Position = {row: parseInt(data.row), col: parseInt(data.column)};
+          const toPosition: Position = {row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!)};
+          this.movePiece(fromPosition, toPosition);
+        });
+        element.addEventListener('click', () : void => {
+          this.onClick(element, board);
+        });
         this.renderer.appendChild(row, element);
       }
       this.renderer.appendChild(board, row);
     }
     this.loadBoard();
+  }
+
+  onClick(element: HTMLElement, board: HTMLElement): void {
+    let position: Position = {row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!)};
+    let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
+    if(piece && piece.color === this.focusedColor) {
+      this.focusedChessPiece = piece;
+      this.focusedPiece = element;
+      let legalMoves = this.chessService.getLegalMovesForColor(piece.color).find((distinctPieceLegalMoves: { piece: ChessPiece, legalMoves: legalMove[][] }) => distinctPieceLegalMoves.piece === piece)?.legalMoves;
+      if(!(legalMoves && legalMoves.length > 0)) return;
+      this.focusedLegalMoves = legalMoves;
+      this.styleLegalMoves(board);
+      return;
+    }
+    if(this.focusedChessPiece)
+      this.movePiece(this.focusedChessPiece!.position, position);
+  }
+
+  movePiece(from: Position, to: Position): void {
+    if(!this.focusedLegalMoves[to.row] || !this.focusedLegalMoves[to.row][to.col].isLegal) {
+      this.resetFocus();
+      return;
+    }
+    let moveAttempt: MoveAttempt = {from: {...from}, to: {...to}};
+    let attempt: boolean = this.chessService.tryMove(moveAttempt);
+    this.focusedColor = attempt ? (this.focusedColor === 'black' ? 'white' : 'black') : this.focusedColor;
+    if(attempt) {
+      this.resetFocus();
+    }
+    this.loadBoard();
+    this.styleLegalMoves(this.element.nativeElement.querySelector('main'));
+  }
+
+  resetFocus(): void {
+    this.focusedPiece = null;
+    this.focusedChessPiece = null;
+    this.focusedLegalMoves = [];
   }
 }
