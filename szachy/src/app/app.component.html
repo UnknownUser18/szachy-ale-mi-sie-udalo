@@ -5,7 +5,12 @@
 <div>
   <app-menu></app-menu>
   <main>
-    <app-zegar [color]="black" [time]="black_time"></app-zegar>
+    <div>
+      <app-zegar [color]="black" [time]="black_time"></app-zegar>
+    </div>
     <app-szachownica></app-szachownica>
+    <div>
+      <app-zegar [color]="white" [time]="white_time"></app-zegar>
+    </div>
   </main>
 </div>

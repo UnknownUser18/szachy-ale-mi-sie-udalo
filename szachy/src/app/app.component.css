@@ -22,6 +22,12 @@ nav + div {
 }
 main {
   margin-top: 2%;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+}
+main > div {
+  margin: 10px;
 }
 app-menu {
   display: block;

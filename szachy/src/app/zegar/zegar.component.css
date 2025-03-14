@@ -1,0 +1,19 @@
+div {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  width: fit-content;
+  padding: 10px;
+  column-gap: 20px;
+  border-radius: 10px;
+  font-size: 0.9em;
+  color: var(--white-text-color);
+  background-color: var(--primary-color);
+  border: 1px solid var(--border-color);
+}
+img {
+  filter: invert(1);
+}
+h2 {
+  font-weight: 500;
+}
