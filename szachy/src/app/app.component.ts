@@ -1,24 +1,21 @@
-import { Component, Renderer2, ElementRef } from '@angular/core';
-import { SzachownicaComponent } from './szachownica/szachownica.component';
-import { NgOptimizedImage } from '@angular/common';
-import {MenuComponent} from './menu/menu.component';
-import {ZegarComponent} from './zegar/zegar.component';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import {SzachownicaComponent} from './szachownica/szachownica.component';
+import { ChessService } from './chess.service';
+import { ChessAiService } from './chess-ai.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [SzachownicaComponent, NgOptimizedImage, MenuComponent, ZegarComponent],
+  imports: [RouterOutlet, SzachownicaComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  black : string = 'black';
-  white : string = 'white';
-  white_time : number = 0;
-  black_time : number = 0;
-  constructor(private renderer : Renderer2, private element : ElementRef) {}
-  convert_name() : void {
-    let h1 : HTMLElement = this.element.nativeElement.querySelector('h1');
-    h1.textContent === 'szachy-ale-mi-sie-udalo' ? h1.textContent = 'Szachy' : h1.textContent = 'szachy-ale-mi-sie-udalo';
+  constructor(
+    private chessService: ChessService,
+    private chessAiService: ChessAiService
+  ) {
+    this.chessService.setAiService(this.chessAiService);
   }
 }

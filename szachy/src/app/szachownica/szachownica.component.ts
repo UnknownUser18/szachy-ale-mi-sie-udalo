@@ -1,5 +1,6 @@
-import {Component, ElementRef, OnInit, Renderer2} from '@angular/core';
-import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position} from '../chess.service';
+import { Component, OnInit, Renderer2, ElementRef } from '@angular/core';
+import { ChessPiece, legalMove, MoveAttempt, PieceColor, Position } from '../chess.service';
+import { ChessService } from '../chess.service';
 
 @Component({
   selector: 'app-szachownica',
@@ -36,8 +37,8 @@ export class SzachownicaComponent implements OnInit {
           'black_king': `assets/ck.svg`,
           'white_king': `assets/bk.svg`
         };
-        const pieceType : string | undefined = this.chessService.board[row][column]?.type.toString();
-        const pieceColor : string | undefined = this.chessService.board[row][column]?.color.toString();
+        const pieceType = this.chessService.board[row][column]?.type.toString();
+        const pieceColor = this.chessService.board[row][column]?.color.toString();
         if (pieceType && pieceColor) {
           let img : HTMLImageElement = this.renderer.createElement('img');
           img.src = pieces[pieceColor + '_' + pieceType];
