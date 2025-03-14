@@ -1,5 +1,6 @@
-import {Component, ElementRef, OnInit, Renderer2} from '@angular/core';
-import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position} from '../chess.service';
+import { Component, OnInit, Renderer2, ElementRef } from '@angular/core';
+import { ChessPiece, legalMove, MoveAttempt, PieceColor, Position } from '../chess.model';
+import { ChessService } from '../chess.service';
 
 @Component({
   selector: 'app-szachownica',
@@ -121,10 +122,13 @@ export class SzachownicaComponent implements OnInit {
               console.log(target, moveAttempt)
               let attempt: boolean = this.chessService.tryMove(moveAttempt)
               this.focusedColor = attempt? (this.focusedColor === 'black' ? 'white' : 'black') : this.focusedColor;
-              if(attempt) {
+              const movedPieceColor = this.focusedChessPiece!.color;
+              this.focusedColor = attempt ? (this.focusedColor === 'black' ? 'white' : 'black') : this.focusedColor;
+              if (attempt) {
                 this.focusedPiece = null;
                 this.focusedChessPiece = null;
                 this.focusedLegalMoves = [];
+                this.chessService.attemptAiMove(movedPieceColor === 'white' ? 'black' : 'white');
               }
               this.loadBoard();
               this.styleLegalMoves(board)

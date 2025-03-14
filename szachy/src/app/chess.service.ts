@@ -1,103 +1,34 @@
 ﻿import { Injectable } from '@angular/core';
-
-// Typ wyróżniający każdy typ bierki występujący w standardowych szachach
-export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
-
-// Typ wyróżniający przeciwne kolory graczy na szachownicy - biały i czarny
-export type PieceColor = 'white' | 'black';
-
-// Typ wyróżniający specjalne ruchy w grze
-export type SpecialMove = 'enpassant' | 'O-O' | 'O-O-O';
-
-/*
-* Interfejs Danych
-* Nazwa: legalMove
-* Pola:
-* isLegal: boolean - stan ruchu - wartość warunku czy konkretny ruch jest legalny
-* special?: SpecialMove - jeżeli dany ruch zwiera się w ruchach specjalnych, wtedy występuje atrybut zmieniający działanie wykonywania ruchu
-*/
-export interface legalMove{
-  isLegal: boolean;
-  special?: SpecialMove;
-}
-
-/*
-* Interfejs Danych
-* Nazwa: Position
-* Pola:
-* row: number - wiersz liczony od góry, w którym jest dana bierka - Indeksy 0-7 ( np. indeks 0 oznacza 8-my wiersz w notacji algebraicznej czyli startowy wiersz czarnych, 7 analogicznie oznacza 1-wszy wiersz, czyli startowy wiersz białych
-* col: number - kolumna liczona od lewej, w którym jest dana bierka - Indeksy 0-7 ( np. indeks 0 oznacza pierwszą kolumnę od lewej - standardowo oznaczaną literą 'a' ; indeks 7 oznacza ostatnią kolumnę od lewej - standardowo oznaczoną literą 'h'
-*/
-export interface Position{
-  row: number;
-  col: number;
-}
-
-/*
-* Interfejs Danych
-* Nazwa: MoveAttempt
-* Pola:
-* from: Position - Pozycja startowa z której występuja próba ruchu
-* to: Position - Pozycja końcowa na której miałaby się znajdować bierka
-*/
-export interface MoveAttempt {
-  from: Position;
-  to: Position;
-}
-
-/*
-* Interfejs Danych
-* Nazwa: CastleAtributes
-* Pola:
-* col: number - kolumna na której powinna znajdować się wierza do konkretnej roszady
-* deltaCol: number - zmiana, czyli przesunięcie króla po kolumnach w stronę wierzy
-* special: SpecialMove - określenie czy jest to krótka roszada, czy też długa
-*/
-export interface CastleAtributes {
-  col: number;
-  deltaCol: number;
-  special: SpecialMove;
-}
-
-
-/*
-* Interfejs Danych
-* Nazwa: ChessPiece
-* Pola:
-* type: PieceType - oznaczenie jakiego typu jest dana bierka
-* color: PieceColor - rozróżnienie, którego gracza jest dana bierka w zależności od koloru bierki
-* position: Position - aktualna pozycja bierki na szachownicy
-* lastPosition: Position - pozycja bierki przed ostatnim ruchem na szachownicy - szczególnie przydatne do notacji szachowej i cofania ruchu
-* hasMoved?: boolean - stan bierki - czy została poruszona - szczególnie przydatne do sprawdzania legalnści roszady podczas gry
-* moveTurn?: boolean - stan bierki - czy została poruszona w ostatnim ruchu - szczególnie przydatne przy implementacji en passant
-* */
-export interface ChessPiece{
-  type: PieceType;
-  color: PieceColor;
-  position: Position;
-  lastPosition: Position;
-  hasMoved?: boolean;
-  moveTurn?: boolean;
-}
+import { ChessPiece, PieceColor, MoveAttempt, Position, legalMove, CastleAtributes, PieceType, SpecialMove } from './chess.model';
+import {ChessAiService} from './chess-ai.service';
+// import { ChessAiService } from './chess-ai.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChessService {
-  board: (ChessPiece | null)[][] = []
-  previousBoard: (ChessPiece | null)[][] = []
-  canUndo: boolean = false;
+  public board: (ChessPiece | null)[][] = []; // Initialize the board as needed
+  private previousBoard: (ChessPiece | null)[][] = [];
+  public canUndo: boolean = false;
+  private chessAiService: any;
+
   constructor() {
+
     console.log('ChessService constructor called');
-    this.initializeChessBoard()
-    this.logChessBoard()
-    console.log(this.getLegalMovesForColor('white'))
-    console.log(this.getLegalMovesForColor('black'))
-    this.tryMove({from: { row: 1, col: 3}, to: { row: 3, col: 3 }})
-    this.undoMove()
-    this.tryMove({from: { row: 1, col: 3}, to: { row: 2, col: 3 }})
-    this.restartChessBoard()
+    this.initializeChessBoard();
+    this.logChessBoard();
+    console.log(this.getLegalMovesForColor('white'));
+    console.log(this.getLegalMovesForColor('black'));
+    this.tryMove({ from: { row: 1, col: 3 }, to: { row: 3, col: 3 } });
+    this.undoMove();
+    this.tryMove({ from: { row: 1, col: 3 }, to: { row: 2, col: 3 } });
+    this.restartChessBoard();
   }
+
+  public setAiService(aiService: ChessAiService): void {
+    this.chessAiService = aiService;
+  }
+
 
   /*
   * Metoda
@@ -236,7 +167,7 @@ export class ChessService {
   * Zwracana wartość:
   * (ChessPiece | null)[][] - zwraca skopiowaną szachownicę
   * */
-  private cloneBoard(board: (ChessPiece | null)[][]): (ChessPiece | null)[][] {
+  cloneBoard(board: (ChessPiece | null)[][]): (ChessPiece | null)[][] {
     return board.map(row => row.map(piece => piece ? { ...piece, position: { ...piece.position } } : null));
   }
 
@@ -253,7 +184,7 @@ export class ChessService {
   * Zwracana wartość:
   * (ChessPiece | null)[][] - zwraca skopiowaną szachownicę
   * */
-  private simulateMove(
+  simulateMove(
     from: Position,
     to: Position,
     board: (ChessPiece | null)[][] = this.board
@@ -783,6 +714,7 @@ export class ChessService {
         specialExecutes[`${currentLegalMove.special}`]();
     }
     console.log('Czy jest mat?', this.isMate(piece.color === 'white' ? 'black' : 'white'));
+
     return true;
   }
 
@@ -879,19 +811,23 @@ export class ChessService {
   * */
   private executeStandardMove(moveAttempt: MoveAttempt, piece: ChessPiece) {
     this.previousBoard = this.copyChessBoard(this.board);
-    this.board.map((distinctRow: (ChessPiece | null)[]) => {distinctRow.map((distinctSquare: (ChessPiece | null)) => {
-      if(distinctSquare)
-        distinctSquare.moveTurn = false;
-    })})
+    this.board.map((distinctRow: (ChessPiece | null)[]) => {
+      distinctRow.map((distinctSquare: (ChessPiece | null)) => {
+        if (distinctSquare) distinctSquare.moveTurn = false;
+      });
+    });
     this.board[moveAttempt.to.row][moveAttempt.to.col] = piece;
     this.board[moveAttempt.from.row][moveAttempt.from.col] = null;
     piece.lastPosition = { ...moveAttempt.from };
     piece.position = { ...moveAttempt.to };
     piece.moveTurn = true;
     piece.hasMoved = true;
-    this.logChessBoard()
+    this.logChessBoard();
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
+
+
+    // console.warn(this.chessAiService.findBestMove(piece.color === 'white' ? 'black' : 'white', 3));
   }
 
   /*
@@ -904,7 +840,7 @@ export class ChessService {
   * Zwracana wartość:
   * (ChessPiece | null)[][] - zwraca skopiowaną tabelę
   * */
-  private copyChessBoard(board: (ChessPiece | null)[][]): (ChessPiece | null)[][] {
+  public copyChessBoard(board: (ChessPiece | null)[][]): (ChessPiece | null)[][] {
     return board.map(row => row.map(piece => {
       if (piece) {
         return {
@@ -966,5 +902,18 @@ export class ChessService {
     // Nie znaleziono legalnego ruchu — jest mat!
     return true;
   }
+  public attemptAiMove(color: PieceColor): void{
+    if (!this.chessAiService) {
+      console.warn(`AI service not set yet.`);
+      return;
+    }
+    const bestMove = this.chessAiService.findBestMove(color, 4)
+    if (bestMove){
+      this.tryMove(bestMove);
+      console.warn(bestMove);
+
+    }
+  }
 
 }
+
