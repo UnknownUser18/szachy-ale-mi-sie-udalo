@@ -1,7 +1,39 @@
 ﻿import { Injectable } from '@angular/core';
-import { ChessPiece, PieceColor, MoveAttempt, Position, legalMove, CastleAtributes, PieceType, SpecialMove } from './chess.model';
 import {ChessAiService} from './chess-ai.service';
-// import { ChessAiService } from './chess-ai.service';
+
+export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
+export type PieceColor = 'white' | 'black';
+export type SpecialMove = 'enpassant' | 'O-O' | 'O-O-O';
+
+export interface legalMove {
+  isLegal: boolean;
+  special?: SpecialMove;
+}
+
+export interface Position {
+  row: number;
+  col: number;
+}
+
+export interface MoveAttempt {
+  from: Position;
+  to: Position;
+}
+
+export interface CastleAtributes {
+  col: number;
+  deltaCol: number;
+  special: SpecialMove;
+}
+
+export interface ChessPiece {
+  type: PieceType;
+  color: PieceColor;
+  position: Position;
+  lastPosition: Position;
+  hasMoved?: boolean;
+  moveTurn?: boolean;
+}
 
 @Injectable({
   providedIn: 'root'

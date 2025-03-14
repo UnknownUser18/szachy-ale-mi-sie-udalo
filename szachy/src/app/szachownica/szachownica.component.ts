@@ -1,5 +1,5 @@
 import { Component, OnInit, Renderer2, ElementRef } from '@angular/core';
-import { ChessPiece, legalMove, MoveAttempt, PieceColor, Position } from '../chess.model';
+import { ChessPiece, legalMove, MoveAttempt, PieceColor, Position } from '../chess.service';
 import { ChessService } from '../chess.service';
 
 @Component({
