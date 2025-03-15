@@ -1,5 +1,4 @@
 import { Component, ElementRef, Renderer2 } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
 import {SzachownicaComponent} from './szachownica/szachownica.component';
 import { ChessService } from './chess.service';
 import { ChessAiService } from './chess-ai.service';
@@ -10,7 +9,7 @@ import {NgOptimizedImage} from '@angular/common';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage],
+  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

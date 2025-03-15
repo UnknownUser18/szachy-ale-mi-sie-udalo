@@ -1,38 +1,97 @@
-﻿import { Injectable } from '@angular/core';
+﻿import {Injectable, output} from '@angular/core';
+import { PawnPromotionComponent } from './pawn-promotion/pawn-promotion.component';
+import {MatDialog} from '@angular/material/dialog';
+import EventEmitter from 'node:events';
+import {Subject} from 'rxjs';
 import {ChessAiService} from './chess-ai.service';
 
+// Typ wyróżniający każdy typ bierki występujący w standardowych szachach
 export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
+
+// Typ wyróżniający przeciwne kolory graczy na szachownicy - biały i czarny
 export type PieceColor = 'white' | 'black';
+
+// Typ wyróżniający specjalne ruchy w grze
 export type SpecialMove = 'enpassant' | 'O-O' | 'O-O-O';
 
-export interface legalMove {
+//Typ wyróżniający możliwe zakończenia gry
+export type GameEndType = 'none' | 'check' | 'mate' | 'stalemate' | 'draw-repetition' | 'draw-50-moves';
+
+/*
+* Interfejs Danych
+* Nazwa: legalMove
+* Pola:
+* isLegal: boolean - stan ruchu - wartość warunku czy konkretny ruch jest legalny
+* special?: SpecialMove - jeżeli dany ruch zwiera się w ruchach specjalnych, wtedy występuje atrybut zmieniający działanie wykonywania ruchu
+*/
+export interface legalMove{
   isLegal: boolean;
   special?: SpecialMove;
 }
 
-export interface Position {
+/*
+* Interfejs Danych
+* Nazwa: Position
+* Pola:
+* row: number - wiersz liczony od góry, w którym jest dana bierka - Indeksy 0-7 ( np. indeks 0 oznacza 8-my wiersz w notacji algebraicznej czyli startowy wiersz czarnych, 7 analogicznie oznacza 1-wszy wiersz, czyli startowy wiersz białych
+* col: number - kolumna liczona od lewej, w którym jest dana bierka - Indeksy 0-7 ( np. indeks 0 oznacza pierwszą kolumnę od lewej - standardowo oznaczaną literą 'a' ; indeks 7 oznacza ostatnią kolumnę od lewej - standardowo oznaczoną literą 'h'
+*/
+export interface Position{
   row: number;
   col: number;
 }
 
+/*
+* Interfejs Danych
+* Nazwa: MoveAttempt
+* Pola:
+* from: Position - Pozycja startowa z której występuja próba ruchu
+* to: Position - Pozycja końcowa na której miałaby się znajdować bierka
+*/
 export interface MoveAttempt {
   from: Position;
   to: Position;
 }
 
+/*
+* Interfejs Danych
+* Nazwa: CastleAtributes
+* Pola:
+* col: number - kolumna na której powinna znajdować się wierza do konkretnej roszady
+* deltaCol: number - zmiana, czyli przesunięcie króla po kolumnach w stronę wierzy
+* special: SpecialMove - określenie czy jest to krótka roszada, czy też długa
+*/
 export interface CastleAtributes {
   col: number;
   deltaCol: number;
   special: SpecialMove;
 }
 
-export interface ChessPiece {
+
+/*
+* Interfejs Danych
+* Nazwa: ChessPiece
+* Pola:
+* type: PieceType - oznaczenie jakiego typu jest dana bierka
+* color: PieceColor - rozróżnienie, którego gracza jest dana bierka w zależności od koloru bierki
+* position: Position - aktualna pozycja bierki na szachownicy
+* lastPosition: Position - pozycja bierki przed ostatnim ruchem na szachownicy - szczególnie przydatne do notacji szachowej i cofania ruchu
+* hasMoved?: boolean - stan bierki - czy została poruszona - szczególnie przydatne do sprawdzania legalnści roszady podczas gry
+* moveTurn?: boolean - stan bierki - czy została poruszona w ostatnim ruchu - szczególnie przydatne przy implementacji en passant
+* */
+export interface ChessPiece{
   type: PieceType;
   color: PieceColor;
   position: Position;
   lastPosition: Position;
   hasMoved?: boolean;
   moveTurn?: boolean;
+}
+
+export interface LowEffortChessPiece{
+  type: PieceType;
+  color: PieceColor;
+  position: Position;
 }
 
 @Injectable({
@@ -43,9 +102,10 @@ export class ChessService {
   private previousBoard: (ChessPiece | null)[][] = [];
   public canUndo: boolean = false;
   private chessAiService: any;
+  public lowEffortBoards: (LowEffortChessPiece | null)[][][] = [];
+  public updateBoard = new Subject<(ChessPiece | null)[][]>()
 
-  constructor() {
-
+  constructor(private dialog: MatDialog) {
     console.log('ChessService constructor called');
     this.initializeChessBoard();
     this.logChessBoard();
@@ -91,16 +151,10 @@ export class ChessService {
       this.board[7][col] = {type: orderOfPieces[col], color: 'black', position: { row: 7, col }, lastPosition: { row: 0, col: 0 }, moveTurn: false, hasMoved: false };
     }
 
-    // Ustawienie do testów mata
-    // this.board[0][4] = {type: 'king', color: 'black', position: { row: 0, col: 4 }, lastPosition: { row: 0, col: 0 }, moveTurn: false, hasMoved: false }
-    // this.board[7][4] = {type: 'king', color: 'white', position: { row: 7, col: 4 }, lastPosition: { row: 0, col: 0 }, moveTurn: false, hasMoved: false }
-    //
-    // this.board[0][0] = {type: 'rook', color: 'black', position: { row: 0, col: 0 }, lastPosition: { row: 0, col: 0 }, moveTurn: false, hasMoved: false }
-    // this.board[0][7] = {type: 'rook', color: 'black', position: { row: 0, col: 7 }, lastPosition: { row: 0, col: 0 }, moveTurn: false, hasMoved: false }
-    // this.board[7][7] = {type: 'rook', color: 'white', position: { row: 7, col: 7 }, lastPosition: { row: 0, col: 0 }, moveTurn: false, hasMoved: false }
-
     console.log(this.board);
     this.previousBoard = this.copyChessBoard(this.board);
+    this.lowEffortBoards.push(this.copyChessBoardLowEffort(this.board))
+    console.log(this.lowEffortBoards)
     // Pokazanie w konsoli ustawienia szachownicy
   }
 
@@ -746,9 +800,51 @@ export class ChessService {
         specialExecutes[`${currentLegalMove.special}`]();
     }
     console.log('Czy jest mat?', this.isMate(piece.color === 'white' ? 'black' : 'white'));
-
+    console.warn(this.countChessPieces());
+    console.log(this.lowEffortBoards)
+    this.checkForDraw();
     return true;
   }
+
+
+  private promotePawn(piece: ChessPiece){
+    let selectedPiece: PieceType = 'pawn';
+
+    const dialogRef = this.dialog.open(PawnPromotionComponent, {
+      width: '650px',
+      disableClose: true,
+      data: { color: piece.color },
+      panelClass: 'promotion-dialog-container'
+    });
+
+    dialogRef.afterClosed().subscribe((result: PieceType) => {
+      if (result) {
+        piece.type = result;
+        console.warn(selectedPiece)
+        this.updateBoard.next(this.board);
+      }
+    });
+  }
+
+
+  checkForDraw(): GameEndType
+  {
+    if(this.lowEffortBoards.length >= 50) return 'draw-50-moves';
+    let isDraw: GameEndType = 'none';
+    // this.lowEffortBoards.forEach((distinctBoard: (LowEffortChessPiece | null)[][]) => {
+    //   if(this.lowEffortBoards.filter((distinctItem: (LowEffortChessPiece | null)[][]) => {if(this.compareBoardsLowEffort(distinctItem, distinctBoard)) isDraw = 'draw-repetition'}).length >= 3) isDraw = 'draw-repetition';
+    // })
+    return isDraw;
+  }
+
+  compareBoardsLowEffort(board1:(LowEffortChessPiece|null)[][], board2: (LowEffortChessPiece | null)[][]): boolean
+  {
+    for(let row = 0 ; row < 8 ; row++)
+      for(let col = 0 ; col < 8; col++)
+        if(board1[row][col] !== board2[row][col]) return false;
+    return true;
+  }
+
 
   /*
   * Metoda
@@ -828,6 +924,7 @@ export class ChessService {
     this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
+    this.lowEffortBoards = [];
   }
 
   /*
@@ -842,12 +939,12 @@ export class ChessService {
   * Nie zwraca żadnych wartości
   * */
   private executeStandardMove(moveAttempt: MoveAttempt, piece: ChessPiece) {
+    let numberOfPieces = this.countChessPieces(this.board);
     this.previousBoard = this.copyChessBoard(this.board);
-    this.board.map((distinctRow: (ChessPiece | null)[]) => {
-      distinctRow.map((distinctSquare: (ChessPiece | null)) => {
-        if (distinctSquare) distinctSquare.moveTurn = false;
-      });
-    });
+    this.board.map((distinctRow: (ChessPiece | null)[]) => {distinctRow.map((distinctSquare: (ChessPiece | null)) => {
+      if(distinctSquare)
+        distinctSquare.moveTurn = false;
+    })})
     this.board[moveAttempt.to.row][moveAttempt.to.col] = piece;
     this.board[moveAttempt.from.row][moveAttempt.from.col] = null;
     piece.lastPosition = { ...moveAttempt.from };
@@ -855,11 +952,14 @@ export class ChessService {
     piece.moveTurn = true;
     piece.hasMoved = true;
     this.logChessBoard();
+    if(piece.type === 'pawn' && (piece.position.row === 0 || piece.position.row === 7)) this.promotePawn(piece);
+    this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
-
-
-    // console.warn(this.chessAiService.findBestMove(piece.color === 'white' ? 'black' : 'white', 3));
+    if(piece.type !== "pawn" && numberOfPieces === this.countChessPieces(this.board))
+      this.lowEffortBoards.push(this.copyChessBoardLowEffort(this.previousBoard));
+    else
+      this.lowEffortBoards = [];
   }
 
   /*
@@ -887,6 +987,30 @@ export class ChessService {
 
   /*
   * Metoda
+  * Nazwa: copyChessBoardLowEffort
+  * Pola:
+  * board: (ChessPiece | null)[][] - szachownica, którą chcemy kopiować
+  * Działanie:
+  * Głeboko kopiuje każdą wartość z pierwszej tabeli to drugiej
+  * Zwracana wartość:
+  * (LowEffortChessPiece | null)[][] - zwraca skopiowaną ograniczoną tabelę
+  * */
+  private copyChessBoardLowEffort(board: (ChessPiece | null)[][] | (LowEffortChessPiece | null)[][]): (LowEffortChessPiece | null)[][] {
+    return board.map(row => row.map(piece => {
+      if (piece) {
+        return {
+          type: piece.type,
+          color: piece.color,
+          position: piece.position
+        };
+      }
+      return null;
+    }));
+  }
+
+
+  /*
+  * Metoda
   * Nazwa: undoMove
   * Pola:
   * Nie pobiera żadnych pól
@@ -895,12 +1019,14 @@ export class ChessService {
   * Zwracana wartość:
   * Nie zwraca żadnej wartości
   * */
-  public undoMove(){
+  public undoMove(): boolean{
+    console.warn(`Can undo: ${this.canUndo}`);
     if(!this.canUndo)
-      return;
+      return false;
     this.board = this.copyChessBoard(this.previousBoard);
     this.logChessBoard()
     console.log(this.board)
+    return true
   }
 
   /*
@@ -909,30 +1035,40 @@ export class ChessService {
   * Pola:
   * color: PieceColor — sprawdzenie mata, dla konkretnego koloru
   * Działanie:
+  * Sprawdza czy ma legalne ruchy, możliwe są dwie opcję: nic się nie stało albo jest szach
+  * Jeśli nie znajdzie legalnych ruchów, wtedy jest mat albo pat
+  * Zwracana wartość:
+  * Nie zwraca żadnych wartości
+  * */
+  public isMate(color: PieceColor): GameEndType {
+    // Pobieramy wszystkie legalne ruchy dla danego koloru.
+    if(this.checkForDraw() !== 'none') return this.checkForDraw()
+    const legalMovesForColor = this.getLegalMovesForColor(color);
+    for (const { legalMoves } of legalMovesForColor)
+      for (let row = 0; row < 8; row++)
+        for (let col = 0; col < 8; col++)
+          if (legalMoves[row][col].isLegal) return this.isKingInCheck(color) ? 'check' : 'none'; // Znaleziono legalny ruch – nie jest to mat, ale może być pat.
+    // Nie znaleziono legalnego ruchu — jest mat albo pat!
+    return this.isKingInCheck(color) ? 'mate' : 'stalemate';
+  }
+  /*
+  * Metoda
+  * Nazwa: countChessPieces
+  * Pola:
+  * board: (ChessPiece | null)[][] — pobierana szachownica
+  * Działanie:
   * Sprawdza, czy król jest w szachu
   * Jeśli jest, wtedy sprawdza legalne ruchy
   * Jeśli nie znajdzie legalnych ruchów, wtedy jest mat
   * Zwracana wartość:
-  * Nie zwraca żadnych wartości
+  * number - zwraca ile jest bierek na szachownicy
   * */
-  public isMate(color: PieceColor): boolean {
-    // Jeśli król nie jest w szachu, nie może być mata.
-    if (!this.isKingInCheck(color)) {
-      return false;
-    }
-    // Pobieramy wszystkie legalne ruchy dla danego koloru.
-    const legalMovesForColor = this.getLegalMovesForColor(color);
-    for (const { legalMoves } of legalMovesForColor) {
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-          if (legalMoves[row][col].isLegal) {
-            return false; // Znaleziono legalny ruch – nie jest to mat.
-          }
-        }
-      }
-    }
-    // Nie znaleziono legalnego ruchu — jest mat!
-    return true;
+  public countChessPieces(board: (ChessPiece | null)[][] = this.board): number{
+    let count: number = 0;
+    for (let row = 0; row < 8; row++)
+      for (let col = 0; col < 8; col++)
+        if(board[row][col]) count++;
+    return count;
   }
   public attemptAiMove(color: PieceColor): void{
     if (!this.chessAiService) {

@@ -1,6 +1,14 @@
-import { Component, OnInit, Renderer2, ElementRef } from '@angular/core';
-import { ChessPiece, legalMove, MoveAttempt, PieceColor, Position } from '../chess.service';
-import { ChessService } from '../chess.service';
+import {Component, ElementRef, OnInit, Renderer2} from '@angular/core';
+import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position, GameEndType, SpecialMove} from '../chess.service';
+
+export type GameType = 'GraczVsGracz' | 'GraczVsSiec' | 'GraczVsAi' | 'GraczVsGrandmaster';
+
+export interface Game {
+  type: GameType;
+  duration: number;
+  mainPlayerColor: PieceColor;
+}
+
 
 @Component({
   selector: 'app-szachownica',
@@ -10,7 +18,9 @@ import { ChessService } from '../chess.service';
   styleUrl: './szachownica.component.css'
 })
 export class SzachownicaComponent implements OnInit {
-  constructor(private chessService: ChessService, private renderer : Renderer2, private element : ElementRef) { }
+  constructor(protected chessService: ChessService, private renderer : Renderer2, private element : ElementRef) {
+    this.chessService.updateBoard.subscribe(board => this.loadBoard())
+  }
   focusedPiece : HTMLElement | null = null;
   focusedChessPiece : ChessPiece | null = null;
   focusedLegalMoves : legalMove[][] = [];
@@ -40,6 +50,10 @@ export class SzachownicaComponent implements OnInit {
         const pieceType = this.chessService.board[row][column]?.type.toString();
         const pieceColor = this.chessService.board[row][column]?.color.toString();
         if (pieceType && pieceColor) {
+          let childNodes = cell.childNodes as NodeListOf<HTMLElement>;
+          childNodes.forEach((cellNode : HTMLElement) : void => {
+            if(cellNode.tagName === 'IMG') cell.removeChild(cellNode);
+          })
           let img : HTMLImageElement = this.renderer.createElement('img');
           img.src = pieces[pieceColor + '_' + pieceType];
           cell.appendChild(img);
@@ -58,19 +72,28 @@ export class SzachownicaComponent implements OnInit {
 
 
   styleLegalMoves(board: HTMLElement): void {
+    board.querySelectorAll('.moved').forEach((cell : Element) : void => {cell.classList.remove('moved')});
     for(let index_row : number = 0; index_row < 8; index_row++)
       for(let index_column : number = 0; index_column < 8; index_column++) {
+        this.chessService.board[index_row][index_row]?.moveTurn ? (() => {board.querySelector(`div[data-row="${index_row}"][data-column="${index_column}"]`)!.classList.add('moved'); board.querySelector(`div[data-row="${this.chessService.board[index_row][index_row]!.lastPosition.row}"][data-column="${this.chessService.board[index_row][index_row]!.lastPosition.col}"]`)!.classList.add('moved')})() : '';
         if(!this.focusedLegalMoves[index_row]){
           board.querySelectorAll('.valid').forEach((cell : Element) : void => {cell.classList.remove('valid')});
           break;
         }
         this.focusedLegalMoves[index_row][index_column].isLegal ? board.querySelector(`div[data-row="${index_row}"][data-column="${index_column}"]`)!.classList.add('valid') :  board.querySelector(`div[data-row="${index_row}"][data-column="${index_column}"]`)!.classList.remove('valid');
+        //
       }
     board.querySelectorAll('.active').forEach((cell: Element) : void => {cell.classList.remove('active')})
     if(this.focusedChessPiece) this.focusedPiece!.classList.add('active');
   }
 
   ngOnInit() : void {
+    this.loadBoard();
+    this.startGame({type: 'GraczVsGracz', duration: 600, mainPlayerColor: 'white'})
+    // this.initializeChessBoard()
+  }
+
+  initializeChessBoard(gameAtributes: Game) : void {
     let board : HTMLElement = this.element.nativeElement.querySelector('main');
     board.innerHTML = '';
     for(let i : number = 8 ; i > 0 ; i--) {
@@ -124,7 +147,7 @@ export class SzachownicaComponent implements OnInit {
           this.movePiece(fromPosition, toPosition);
         });
         element.addEventListener('click', () : void => {
-          this.onClick(element, board);
+          this.PlayerVsPlayerLocal(element, board);
         });
         this.renderer.appendChild(row, element);
       }
@@ -133,7 +156,7 @@ export class SzachownicaComponent implements OnInit {
     this.loadBoard();
   }
 
-  onClick(element: HTMLElement, board: HTMLElement): void {
+  PlayerVsPlayerLocal(element: HTMLElement, board: HTMLElement): void {
     let position: Position = {row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!)};
     let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
     if(piece && piece.color === this.focusedColor) {
@@ -160,13 +183,26 @@ export class SzachownicaComponent implements OnInit {
     if(attempt) {
       this.resetFocus();
     }
+
     this.loadBoard();
     this.styleLegalMoves(this.element.nativeElement.querySelector('main'));
   }
 
-  resetFocus(): void {
+  resetFocus(board: HTMLElement = this.element.nativeElement.querySelector('main')): void {
     this.focusedPiece = null;
     this.focusedChessPiece = null;
     this.focusedLegalMoves = [];
+    if(board) this.styleLegalMoves(board);
   }
+
+  public startGame(gameAtributes: Game): void{
+    this.initializeChessBoard(gameAtributes);
+  }
+
+  public undoMove(): void
+  {
+    if(this.chessService.undoMove()) this.focusedColor = this.focusedColor === 'white' ? 'black' : 'white';
+    this.loadBoard();
+  }
+
 }

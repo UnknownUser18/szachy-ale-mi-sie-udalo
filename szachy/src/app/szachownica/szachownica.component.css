@@ -93,3 +93,6 @@ main > div:nth-child(odd) > div:nth-child(even).valid, div:nth-child(even) > div
 main > div:nth-child(odd) > div:nth-child(odd).valid, div:nth-child(even) > div:nth-child(even).valid {
   background-image: url('../../assets/circle_dark.svg');
 }
+.moved {
+  background-color: #3a3a3a;
+}
