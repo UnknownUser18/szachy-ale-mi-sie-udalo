@@ -1,5 +1,6 @@
 import { Injectable, forwardRef, Inject } from '@angular/core';
-import { ChessService, ChessPiece, MoveAttempt, PieceColor} from './chess.service';
+import { ChessService, ChessPiece, MoveAttempt, PieceColor } from './chess.service';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -9,18 +10,32 @@ export class ChessAiService {
     private chessService: ChessService
   ) {}
 
+  private memo: Map<string, number> = new Map();
 
   public findBestMove(color: PieceColor, depth: number): MoveAttempt | null {
+    // Clear memo between moves.
+    this.memo.clear();
     const board = this.chessService.copyChessBoard(this.chessService.board);
     const legalMoves = this.getAllLegalMoves(board, color);
-
     if (legalMoves.length === 0) {
       console.warn('No legal moves available.');
       return null;
     }
-
-    const bestMove = this.minimax(board, depth, -Infinity, Infinity, color === 'white', color);
-    return bestMove.move;
+    let bestMove: MoveAttempt | null = null;
+    const isMaximizing = color === 'white';
+    let bestEval = isMaximizing ? -Infinity : Infinity;
+    for (const move of legalMoves) {
+      const newBoard = this.simulateMove(move.from, move.to, board);
+      const evalScore = this.minimax(newBoard, depth - 1, -Infinity, Infinity, !isMaximizing, color);
+      if (isMaximizing && evalScore > bestEval) {
+        bestEval = evalScore;
+        bestMove = move;
+      } else if (!isMaximizing && evalScore < bestEval) {
+        bestEval = evalScore;
+        bestMove = move;
+      }
+    }
+    return bestMove;
   }
 
   private minimax(
@@ -29,89 +44,112 @@ export class ChessAiService {
     alpha: number,
     beta: number,
     isMaximizingPlayer: boolean,
-    color: PieceColor
-  ): { score: number, move: MoveAttempt | null } {
-    if (depth === 0 || this.chessService.isMate(color)) {
-      return { score: this.evaluateBoard(board, color), move: null };
+    currentColor: PieceColor
+  ): number {
+    const key = this.generateBoardKey(board, depth, alpha, beta, isMaximizingPlayer, currentColor);
+    if (this.memo.has(key)) {
+      return this.memo.get(key)!;
     }
-
-    const legalMoves = this.getAllLegalMoves(board, color);
-    let bestMove: MoveAttempt | null = null;
-
+    if (depth === 0 || this.chessService.isMate(currentColor) === 'mate') {
+      const evalScore = this.evaluateBoard(board, currentColor);
+      this.memo.set(key, evalScore);
+      return evalScore;
+    }
+    const legalMoves = this.getAllLegalMoves(board, currentColor);
+    if (legalMoves.length === 0) {
+      const evalScore = this.evaluateBoard(board, currentColor);
+      this.memo.set(key, evalScore);
+      return evalScore;
+    }
+    let value: number;
     if (isMaximizingPlayer) {
-      let maxEval = -Infinity;
+      value = -Infinity;
       for (const move of legalMoves) {
         const newBoard = this.simulateMove(move.from, move.to, board);
-        const evaluation = this.minimax(newBoard, depth - 1, alpha, beta, false, color === 'white' ? 'black' : 'white').score;
-        if (evaluation > maxEval) {
-          maxEval = evaluation;
-          bestMove = move;
-        }
-        alpha = Math.max(alpha, evaluation);
-        if (beta <= alpha) {
-          break;
-        }
+        value = Math.max(
+          value,
+          this.minimax(
+            newBoard,
+            depth - 1,
+            alpha,
+            beta,
+            false,
+            currentColor === 'white' ? 'black' : 'white'
+          )
+        );
+        alpha = Math.max(alpha, value);
+        if (beta <= alpha) break;
       }
-      return { score: maxEval, move: bestMove };
     } else {
-      let minEval = Infinity;
+      value = Infinity;
       for (const move of legalMoves) {
         const newBoard = this.simulateMove(move.from, move.to, board);
-        const evaluation = this.minimax(newBoard, depth - 1, alpha, beta, true, color === 'white' ? 'black' : 'white').score;
-        if (evaluation < minEval) {
-          minEval = evaluation;
-          bestMove = move;
-        }
-        beta = Math.min(beta, evaluation);
-        if (beta <= alpha) {
-          break;
-        }
+        value = Math.min(
+          value,
+          this.minimax(
+            newBoard,
+            depth - 1,
+            alpha,
+            beta,
+            true,
+            currentColor === 'white' ? 'black' : 'white'
+          )
+        );
+        beta = Math.min(beta, value);
+        if (beta <= alpha) break;
       }
-      return { score: minEval, move: bestMove };
     }
+    this.memo.set(key, value);
+    return value;
+  }
+
+  private generateBoardKey(
+    board: (ChessPiece | null)[][],
+    depth: number,
+    alpha: number,
+    beta: number,
+    isMaximizingPlayer: boolean,
+    currentColor: PieceColor
+  ): string {
+    return JSON.stringify(board) + '_' + depth + '_' + alpha + '_' + beta + '_' + isMaximizingPlayer + '_' + currentColor;
   }
 
   private evaluateBoard(board: (ChessPiece | null)[][], color: PieceColor): number {
     let score = 0;
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
-        const piece = board[row][col];
+    const centerBonus = [
+      [0, 1, 2, 2, 2, 2, 1, 0],
+      [1, 2, 3, 3, 3, 3, 2, 1],
+      [2, 3, 4, 4, 4, 4, 3, 2],
+      [2, 3, 4, 5, 5, 4, 3, 2],
+      [2, 3, 4, 5, 5, 4, 3, 2],
+      [2, 3, 4, 4, 4, 4, 3, 2],
+      [1, 2, 3, 3, 3, 3, 2, 1],
+      [0, 1, 2, 2, 2, 2, 1, 0]
+    ];
+
+    for (let i = 0; i < 8; i++) {
+      for (let j = 0; j < 8; j++) {
+        const piece = board[i][j];
         if (piece) {
-          let pieceValue = this.getPieceValue(piece.type);
-
-          // Bonus for central control
-          if ((row === 3 || row === 4) && (col === 3 || col === 4)) {
-            pieceValue += 0.5;
-          }
-
-          // Penalty for isolated pawns
-          if (piece.type === 'pawn') {
-            if ((col > 0 && !board[row][col - 1]) && (col < 7 && !board[row][col + 1])) {
-              pieceValue -= 0.5;
-            }
-          }
-
-          // Bonus for capturing high-value pieces
-          if (piece.type === 'rook' || piece.type === 'queen') {
-            pieceValue += 2;
-          }
-
-          // Subtract if piece is enemy
-          score += piece.color === color ? pieceValue : -pieceValue;
+          let baseImportance = this.getBaseImportance(piece.type);
+          let positionImportance = centerBonus[i][j];
+          // Adjust weight of the center control bonus as needed
+          let pieceValue = baseImportance + positionImportance * 10;
+          score += piece.color === 'white' ? pieceValue : -pieceValue;
         }
       }
     }
     return score;
   }
 
-  private getPieceValue(type: string): number {
+  private getBaseImportance(type: string): number {
     switch (type) {
-      case 'pawn': return 1;
-      case 'knight': return 3;
-      case 'bishop': return 3;
-      case 'rook': return 5;
-      case 'queen': return 9;
-      case 'king': return 100;
+      case 'pawn': return 10;
+      case 'knight': return 30;
+      case 'bishop': return 30;
+      case 'rook': return 50;
+      case 'queen': return 90;
+      case 'king': return 1000;
       default: return 0;
     }
   }
@@ -123,13 +161,18 @@ export class ChessAiService {
         const piece = board[row][col];
         if (piece && piece.color === color) {
           const moves = this.chessService.calculateLegalMoves(piece, board);
-          for (let moveRow = 0; moveRow < 8; moveRow++) {
-            for (let moveCol = 0; moveCol < 8; moveCol++) {
-              if (moves[moveRow][moveCol].isLegal) {
-                legalMoves.push({
-                  from: { row, col },
-                  to: { row: moveRow, col: moveCol }
-                });
+          for (let targetRow = 0; targetRow < moves.length; targetRow++) {
+            for (let targetCol = 0; targetCol < moves[targetRow].length; targetCol++) {
+              const target = moves[targetRow][targetCol];
+              if (target && target.isLegal) {
+                // simulate move and check king safety
+                const simulatedBoard = this.simulateMove({ row, col }, { row: targetRow, col: targetCol }, board);
+                if (!this.chessService.isKingInCheck(color, simulatedBoard)) {
+                  legalMoves.push({
+                    from: { row, col },
+                    to: { row: targetRow, col: targetCol }
+                  });
+                }
               }
             }
           }
@@ -139,7 +182,11 @@ export class ChessAiService {
     return legalMoves;
   }
 
-  private simulateMove(from: { row: number, col: number }, to: { row: number, col: number }, board: (ChessPiece | null)[][]): (ChessPiece | null)[][] {
+  private simulateMove(
+    from: { row: number, col: number },
+    to: { row: number, col: number },
+    board: (ChessPiece | null)[][]
+  ): (ChessPiece | null)[][] {
     const newBoard = this.chessService.copyChessBoard(board);
     const piece = newBoard[from.row][from.col];
     newBoard[to.row][to.col] = piece;

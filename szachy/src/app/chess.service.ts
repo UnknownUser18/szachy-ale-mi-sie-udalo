@@ -1,7 +1,6 @@
-﻿import {Injectable, output} from '@angular/core';
-import { PawnPromotionComponent } from './pawn-promotion/pawn-promotion.component';
+﻿import {Injectable} from '@angular/core';
+import {PawnPromotionComponent} from './pawn-promotion/pawn-promotion.component';
 import {MatDialog} from '@angular/material/dialog';
-import EventEmitter from 'node:events';
 import {Subject} from 'rxjs';
 import {ChessAiService} from './chess-ai.service';
 
@@ -830,11 +829,10 @@ export class ChessService {
   checkForDraw(): GameEndType
   {
     if(this.lowEffortBoards.length >= 50) return 'draw-50-moves';
-    let isDraw: GameEndType = 'none';
     // this.lowEffortBoards.forEach((distinctBoard: (LowEffortChessPiece | null)[][]) => {
     //   if(this.lowEffortBoards.filter((distinctItem: (LowEffortChessPiece | null)[][]) => {if(this.compareBoardsLowEffort(distinctItem, distinctBoard)) isDraw = 'draw-repetition'}).length >= 3) isDraw = 'draw-repetition';
     // })
-    return isDraw;
+    return 'none';
   }
 
   compareBoardsLowEffort(board1:(LowEffortChessPiece|null)[][], board2: (LowEffortChessPiece | null)[][]): boolean
@@ -1070,16 +1068,17 @@ export class ChessService {
         if(board[row][col]) count++;
     return count;
   }
-  public attemptAiMove(color: PieceColor): void{
+  public attemptAiMove(color: PieceColor): void {
     if (!this.chessAiService) {
       console.warn(`AI service not set yet.`);
       return;
     }
-    const bestMove = this.chessAiService.findBestMove(color, 4)
-    if (bestMove){
+    const bestMove = this.chessAiService.findBestMove(color, 2);
+    if (bestMove) {
+      console.log(`AI selected move: from (${bestMove.from.row}, ${bestMove.from.col}) to (${bestMove.to.row}, ${bestMove.to.col})`);
       this.tryMove(bestMove);
-      console.warn(bestMove);
-
+    } else {
+      console.warn('No valid move found by AI.');
     }
   }
 
