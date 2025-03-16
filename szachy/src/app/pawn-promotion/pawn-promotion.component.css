@@ -65,12 +65,11 @@
 .piece-card:hover .piece-image {
   transform: scale(1.1);
 }
-
 .piece-label {
   color: #fff;
   text-align: center;
   font-size: 0.9rem;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }

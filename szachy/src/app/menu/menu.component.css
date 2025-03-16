@@ -1,4 +1,16 @@
-h2 {
+h2, li {
+  user-select: none;
   color: var(--white-text-color);
+}
+h2 {
   text-align: center;
+}
+li {
+  transition: color 0.15s ease-in-out;
+  will-change: color;
+  cursor: pointer;
+  margin: 10px 0 10px 20px;
+}
+li:hover {
+  color: var(--border-color);
 }

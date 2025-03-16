@@ -3,7 +3,7 @@
   <h1 (click)="convert_name()">Szachy</h1>
 </nav>
 <div>
-  <app-menu></app-menu>
+  <app-menu (game_selected)="selectGame($event)"></app-menu>
   <main>
     <div>
       <app-zegar [color]="black" [time]="black_time"></app-zegar>
@@ -13,4 +13,5 @@
       <app-zegar [color]="white" [time]="white_time"></app-zegar>
     </div>
   </main>
+  <app-game-selector *ngIf="game" [game]="game" (blackTime)="changeTime($event, 'black')" (whiteTime)="changeTime($event, 'white')"></app-game-selector>
 </div>

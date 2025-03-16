@@ -2,21 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { PieceType, PieceColor} from '../chess.service';
 import {NgForOf} from '@angular/common';
-
-const pieces: { [key: string]: string } = {
-  'black_pawn': `assets/cp.svg`,
-  'white_pawn': `assets/bp.svg`,
-  'black_rook': `assets/cw.svg`,
-  'white_rook': `assets/bw.svg`,
-  'black_knight': `assets/cs.svg`,
-  'white_knight': `assets/bs.svg`,
-  'black_bishop': `assets/cg.svg`,
-  'white_bishop': `assets/bg.svg`,
-  'black_queen': `assets/ch.svg`,
-  'white_queen': `assets/bh.svg`,
-  'black_king': `assets/ck.svg`,
-  'white_king': `assets/bk.svg`
-};
+import { pieces } from '../app.component';
 
 @Component({
   selector: 'app-pawn-promotion',

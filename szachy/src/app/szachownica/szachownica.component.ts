@@ -1,5 +1,6 @@
-import { Component, ElementRef, OnInit, Renderer2 } from '@angular/core';
-import { ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position, GameEndType, SpecialMove } from '../chess.service';
+import {Component, ElementRef, OnInit, Renderer2} from '@angular/core';
+import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position, GameEndType, SpecialMove} from '../chess.service';
+import { pieces } from '../app.component';
 export type GameType = 'GraczVsGracz' | 'GraczVsSiec' | 'GraczVsAi' | 'GraczVsGrandmaster';
 
 export interface Game {
@@ -20,11 +21,10 @@ export class SzachownicaComponent implements OnInit {
   focusedPiece: HTMLElement | null = null;
   focusedChessPiece: ChessPiece | null = null;
   focusedLegalMoves: legalMove[][] = [];
-  focusedColor: PieceColor = 'white';
-
-  constructor(protected chessService: ChessService, private renderer: Renderer2, private element: ElementRef) {
-    this.chessService.updateBoard.subscribe(board => this.loadBoard())
+  constructor(protected chessService: ChessService, private renderer : Renderer2, private element : ElementRef) {
+    this.chessService.updateBoard.subscribe(() => this.loadBoard())
   }
+  focusedColor: PieceColor = 'white';
 
   loadBoard(): void {
     let board: HTMLElement = this.element.nativeElement.querySelector('main');
@@ -33,20 +33,6 @@ export class SzachownicaComponent implements OnInit {
         if (!(cell.hasAttribute('data-row') && cell.hasAttribute('data-column'))) return;
         let rowNum: number = parseInt(cell.getAttribute('data-row')!);
         let columnNum: number = parseInt(cell.getAttribute('data-column')!);
-        const pieces: { [key: string]: string } = {
-          'black_pawn': `assets/cp.svg`,
-          'white_pawn': `assets/bp.svg`,
-          'black_rook': `assets/cw.svg`,
-          'white_rook': `assets/bw.svg`,
-          'black_knight': `assets/cs.svg`,
-          'white_knight': `assets/bs.svg`,
-          'black_bishop': `assets/cg.svg`,
-          'white_bishop': `assets/bg.svg`,
-          'black_queen': `assets/ch.svg`,
-          'white_queen': `assets/bh.svg`,
-          'black_king': `assets/ck.svg`,
-          'white_king': `assets/bk.svg`
-        };
         const pieceType = this.chessService.board[rowNum][columnNum]?.type.toString();
         const pieceColor = this.chessService.board[rowNum][columnNum]?.color.toString();
         if (pieceType && pieceColor) {
@@ -60,15 +46,15 @@ export class SzachownicaComponent implements OnInit {
           cell.classList.add('piece');
           cell.setAttribute('draggable', 'true');
         }
-        else if (cell.classList.contains('piece')) {
-          cell.innerHTML = '';
+        else if(cell.classList.contains('piece')) {
+          if(!(cell.classList.contains('letter') || cell.classList.contains('number')))
+            cell.innerHTML = ''
           cell.classList.remove('piece');
           cell.removeAttribute('draggable');
-          if (cell.childNodes && cell.childNodes.length > 0)
-            cell.removeChild(cell.querySelector('img')!);
+          if(cell.childNodes && cell.childNodes.length > 0) cell.removeChild(cell.querySelector('img')!);
         }
-      });
-    });
+      })
+    })
   }
 
   styleLegalMoves(board: HTMLElement): void {

@@ -1,0 +1,74 @@
+<main *ngIf="game">
+  <h2> {{ type[game] }} </h2>
+  <div class="czas" *ngIf="game !== 'GraczVsGrandmaster'">
+    <div>
+      <h3>Tryb klasyczny</h3>
+      <p>90 minut | 0</p>
+      <button class="time selected" (click)="changeTime(1)">Wybrano</button>
+    </div>
+    <div>
+      <h3>Tryb błyskawiczny</h3>
+      <p>10 minut | 10</p>
+      <button class="time" (click)="changeTime(2)">Wybierz</button>
+    </div>
+  </div>
+
+  <div *ngIf="game === 'GraczVsSiec' || game === 'GraczVsAi'">
+    <div class="kolor">
+      <h3>Wybierz Kolor</h3>
+      <div>
+          <div>
+            <h3>Białe</h3>
+            <button class="kolor-button selected" (click)="changeColor('white')">Wybrano</button>
+        </div>
+        <div>
+          <h3>Czarne</h3>
+          <button class="kolor-button" (click)="changeColor('black')">Wybierz</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="kolor przeciwnik" *ngIf="game === 'GraczVsSiec'">
+      <h3>Przeciwnik wybrał:</h3>
+      <p>białe</p> <!-- tutaj będzie wyświetlany kolor wybrany przez przeciwnika -->
+    </div>
+  </div>
+  <div *ngIf="game !== 'GraczVsGrandmaster'" class="chess">
+    <h3>Ustaw pozycje szachów</h3>
+    <div class="chessboard">
+
+    </div>
+  </div>
+  <div class="ai" *ngIf="game === 'GraczVsAi'">
+    <h3>Wybierz poziom trudności</h3>
+    <div>
+      <input type="range" min="1" max="4" step="1" value="2" [(ngModel)]="ai_difficulty">
+    </div>
+      Aktualny poziom trudności: <b>{{ ai_difficulty }}</b> "pod tablice"
+  </div>
+  <div class="grandmaster" *ngIf="game === 'GraczVsGrandmaster'">
+      <h3>Wybierz grandmaster</h3>
+      <div>
+          <select [(ngModel)]="grandmaster">
+            <option value="NA" disabled>Wybierz grandmaster</option>
+            <option value="Duda">Jan-Krzysztof Duda</option>
+            <option value="Carlsen">Magnus Carlsen</option>
+            <option value="Kasparov">Garry Kasparov</option>
+            <option value="Nakamura">Hikaru Nakamura</option>
+            <option value="Fischer">Bobby Fischer</option>
+            <option value="Tal">Mikhail Tal</option>
+            <option value="Kozak">Adam Kozak</option>
+            <option value="Pichot">Alan Pichot</option>
+            <option value="Adly">Ahmed Adly</option>
+            <option value="Indjic">Aleksandar Indjic</option>
+            <option value="Dreev">Aleksey Dreev</option>
+            <option value="Goryachkina">Aleksandra Goryachkina</option>
+        </select>
+      </div>
+      <h3>Albo załaduj plik</h3>
+      <div>
+          <input type="file" accept=".pgn" (change)="loadFile($event)">
+      </div>
+  </div>
+  <button (click)="startGame()">Rozpocznij grę</button>
+</main>
