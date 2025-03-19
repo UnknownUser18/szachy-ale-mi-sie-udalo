@@ -29,6 +29,8 @@ export let pieces: { [key: string]: string } = {
 })
 export class AppComponent {
   game : GameType | null = null;
+  grandMasterName : string = "";
+  file : File | null = null;
   black : string = "black";
   white : string = "white";
   black_time : number = 0;
@@ -74,5 +76,15 @@ export class AppComponent {
         this.white_time = time;
         break;
     }
+  }
+
+  setFile(event: File) : void {
+    this.file = event;
+    console.log(this.file);
+  }
+
+  setName(event: string) : void {
+    this.grandMasterName = event;
+    console.log(this.grandMasterName);
   }
 }

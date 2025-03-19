@@ -26,7 +26,6 @@
           <button class="kolor-button" (click)="changeColor('black')">Wybierz</button>
         </div>
       </div>
-
     </div>
     <div class="kolor przeciwnik" *ngIf="game === 'GraczVsSiec'">
       <h3>Przeciwnik wybrał:</h3>
@@ -35,8 +34,16 @@
   </div>
   <div *ngIf="game !== 'GraczVsGrandmaster'" class="chess">
     <h3>Ustaw pozycje szachów</h3>
-    <div class="chessboard">
+    <div>
+      <div class="pawns">
+        <div *ngFor="let pawn of pawns_string">
+          <img ngSrc="assets/{{pawn}}.svg" alt="{{pawn}}" width="36" height="70" draggable="true">
+          {{ pawns_names[pawn] }}
+        </div>
+      </div>
+      <div class="chessboard">
 
+      </div>
     </div>
   </div>
   <div class="ai" *ngIf="game === 'GraczVsAi'">
@@ -68,6 +75,9 @@
       <h3>Albo załaduj plik</h3>
       <div>
           <input type="file" accept=".pgn" (change)="loadFile($event)">
+      </div>
+      <div *ngIf="grandmasterFile">
+        <h3>Wybierz przeciwnika:</h3>
       </div>
   </div>
   <button (click)="startGame()">Rozpocznij grę</button>
