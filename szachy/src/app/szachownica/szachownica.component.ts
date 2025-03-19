@@ -10,11 +10,10 @@ export interface Game {
 }
 
 @Component({
-  selector: 'app-szachownica',
-  standalone: true,
-  imports: [],
-  templateUrl: './szachownica.component.html',
-  styleUrl: './szachownica.component.css'
+    selector: 'app-szachownica',
+    imports: [],
+    templateUrl: './szachownica.component.html',
+    styleUrl: './szachownica.component.css'
 })
 export class SzachownicaComponent implements OnInit {
   private currentGame!: Game;

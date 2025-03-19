@@ -5,13 +5,12 @@ import {NgForOf} from '@angular/common';
 import { pieces } from '../app.component';
 
 @Component({
-  selector: 'app-pawn-promotion',
-  templateUrl: './pawn-promotion.component.html',
-  standalone: true,
-  imports: [
-    NgForOf
-  ],
-  styleUrls: ['./pawn-promotion.component.css']
+    selector: 'app-pawn-promotion',
+    templateUrl: './pawn-promotion.component.html',
+    imports: [
+        NgForOf
+    ],
+    styleUrls: ['./pawn-promotion.component.css']
 })
 export class PawnPromotionComponent {
   promotionOptions: PieceType[] = ['rook', 'knight', 'bishop', 'queen'];

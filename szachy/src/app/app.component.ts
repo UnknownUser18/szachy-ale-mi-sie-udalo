@@ -22,11 +22,10 @@ export let pieces: { [key: string]: string } = {
   'white_king': `assets/bk.svg`
 }
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+    selector: 'app-root',
+    imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.css'
 })
 export class AppComponent {
   game : GameType | null = null;

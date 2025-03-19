@@ -4,14 +4,13 @@ import {GameType} from '../szachownica/szachownica.component';
 import {FormsModule} from '@angular/forms';
 
 @Component({
-  selector: 'app-game-selector',
-  standalone: true,
-  imports: [
-    NgIf,
-    FormsModule
-  ],
-  templateUrl: './game-selector.component.html',
-  styleUrls: ['./game-selector.component.css']
+    selector: 'app-game-selector',
+    imports: [
+        NgIf,
+        FormsModule
+    ],
+    templateUrl: './game-selector.component.html',
+    styleUrls: ['./game-selector.component.css']
 })
 export class GameSelectorComponent implements OnChanges, AfterViewInit {
   @Input({ required: true }) game: GameType | undefined;
