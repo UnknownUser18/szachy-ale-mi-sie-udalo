@@ -1,22 +1,25 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, Renderer2, SimpleChanges, EventEmitter} from '@angular/core';
-import {NgIf} from '@angular/common';
+import {NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {GameType} from '../szachownica/szachownica.component';
 import {FormsModule} from '@angular/forms';
 
 @Component({
-  selector: 'app-game-selector',
-  standalone: true,
+    selector: 'app-game-selector',
   imports: [
     NgIf,
-    FormsModule
+    FormsModule,
+    NgOptimizedImage,
+    NgForOf
   ],
-  templateUrl: './game-selector.component.html',
-  styleUrls: ['./game-selector.component.css']
+    templateUrl: './game-selector.component.html',
+    styleUrls: ['./game-selector.component.css']
 })
 export class GameSelectorComponent implements OnChanges, AfterViewInit {
   @Input({ required: true }) game: GameType | undefined;
   @Output() whiteTime = new EventEmitter<number>();
   @Output() blackTime = new EventEmitter<number>();
+  @Output() grandmasterFile = new EventEmitter<File>();
+  @Output() grandmasterName = new EventEmitter<string>();
   constructor(private renderer: Renderer2, private element: ElementRef) {}
   pawns : Array<string[]> = [
     ['cw','cs','cg','ch','ck','cg','cs','cw'],
@@ -28,6 +31,21 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     ['bp','bp','bp','bp','bp','bp','bp','bp'],
     ['bw','bs','bg','bh','bk','bg','bs','bw']
   ]
+  pawns_string : string[] = ['cw','cs','cg','ch','ck','cp','bw','bs','bg','bh','bk','bp'];
+  pawns_names: { [key: string]: string } = {
+  'cw': 'Czarna Wieża',
+  'cs': 'Czarny Skoczek',
+  'cg': 'Czarny Goniec',
+  'ch': 'Czarny Hetman',
+  'ck': 'Czarny Król',
+  'cp': 'Czarny Pionek',
+  'bw': 'Biała Wieża',
+  'bs': 'Biały Skoczek',
+  'bg': 'Biały Goniec',
+  'bh': 'Biały Hetman',
+  'bk': 'Biały Król',
+  'bp': 'Biały Pionek'
+  };
   ai_difficulty : number = 2;
   grandmaster: string = 'NA';
   type = {
@@ -36,8 +54,28 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     GraczVsGrandmaster: 'Gracz vs Grandmaster',
     GraczVsAi: 'Gracz vs Komputer',
   };
+  grandmasterFile_local : File | null = null;
   ngAfterViewInit() : void {
     this.initializeChessboard().then(() : void => this.loadBoard());
+    const pawns: NodeListOf<HTMLImageElement> = this.element.nativeElement.querySelectorAll('.pawns img');
+    pawns.forEach((pawn: HTMLImageElement) : void => {
+      pawn.addEventListener('dragstart', (event: DragEvent): void => {
+        event.dataTransfer!.setData('text/plain', JSON.stringify({ pawn: pawn.alt }));
+      });
+    });
+    const chessboard: HTMLElement = this.element.nativeElement.querySelector('.chess');
+    if(!chessboard) return;
+    chessboard.addEventListener('dragover', (event: DragEvent): void => {
+      event.preventDefault();
+    });
+
+    chessboard.addEventListener('drop', (event: DragEvent): void => {
+      event.preventDefault();
+      const data = JSON.parse(event.dataTransfer!.getData('text/plain'));
+      if(!(data.fromCol !== undefined && data.fromRow !== undefined)) return; // musi być sprawdzane, gdy jest undefined, bo inaczej 0 == false
+      this.pawns[parseInt(data.fromRow)][parseInt(data.fromCol)] = '';
+      this.loadBoard();
+    });
   }
   async initializeChessboard() : Promise<void> {
     let chessboard : HTMLElement = this.element.nativeElement.querySelector('.chessboard');
@@ -47,28 +85,30 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       let row : HTMLElement = this.renderer.createElement('div');
       for(let j : number = 0 ; j < 8 ; j++) {
         let square : HTMLElement = this.renderer.createElement('div');
+        square.setAttribute('data-row', i.toString());
+        square.setAttribute('data-col', j.toString());
         row.appendChild(square);
       }
       chessboard.appendChild(row);
     }
   }
   loadBoard() : void {
-    let chessboard : HTMLElement = this.element.nativeElement.querySelector('.chessboard');
-    if(!chessboard) return;
-    for(let i : number = 0 ; i < 8 ; i++) {
-      for(let j : number = 0 ; j < 8 ; j++) {
-        let element : HTMLElement = this.element.nativeElement.querySelector(`.chessboard > div:nth-child(${i+1}) > div:nth-child(${j+1})`)!;
-        if(this.pawns[i][j] === '') {
+    let chessboard: HTMLElement = this.element.nativeElement.querySelector('.chessboard');
+    if (!chessboard) return;
+    for (let i: number = 0; i < 8; i++) {
+      for (let j: number = 0; j < 8; j++) {
+        let element: HTMLElement = this.element.nativeElement.querySelector(`.chessboard > div:nth-child(${i + 1}) > div:nth-child(${j + 1})`)!;
+        if (this.pawns[i][j] === '') {
           element.innerHTML = '';
           element.classList.remove('pawn');
         } else {
-          if(!element.firstChild) {
+          if (!element.firstChild) {
             element.classList.add('pawn')
-            let img : HTMLImageElement = this.renderer.createElement('img')
+            let img: HTMLImageElement = this.renderer.createElement('img')
             img.src = `assets/${this.pawns[i][j]}.svg`;
             img.draggable = true;
             img.addEventListener('dragstart', (event: DragEvent): void => {
-              event.dataTransfer!.setData('text/plain', JSON.stringify({ fromRow: i, fromCol: j }));
+              event.dataTransfer!.setData('text/plain', JSON.stringify({fromRow: i, fromCol: j}));
             });
             element.appendChild(img);
           }
@@ -79,11 +119,19 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
         element.addEventListener('drop', (event: DragEvent): void => {
           event.preventDefault();
           const data = JSON.parse(event.dataTransfer!.getData('text/plain'));
-          this.movePiece(data.fromRow, data.fromCol, i, j);
+          if(data.pawn) {
+            let col : number = parseInt(element.getAttribute('data-col')!);
+            let row : number = parseInt(element.getAttribute('data-row')!);
+            if(this.pawns[row][col] !== '') return;
+            this.pawns[row][col] = data.pawn;
+            this.loadBoard();
+          } else {
+            this.movePiece(data.fromRow, data.fromCol, i, j);
+          }
         });
-        }
       }
     }
+  }
 
   movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
   if (this.pawns[toRow][toCol] === '') {
@@ -94,7 +142,6 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
 }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['game']) {
-      console.log(changes['game']);
       this.pawns = [
         ['cw','cs','cg','ch','ck','cg','cs','cw'],
         ['cp','cp','cp','cp','cp','cp','cp','cp'],
@@ -112,11 +159,17 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
           chessboard.classList.add('chessboard');
           let chess : HTMLElement = this.element.nativeElement.querySelector('.chess');
           chess.appendChild(chessboard);
-          this.initializeChessboard().then(() : void => this.loadBoard());
+          this.initializeChessboard().then(() : void => {
+            this.loadBoard();
+            this.attachDragEventListeners();
+          });
         }, 10)
         return;
       }
-      this.initializeChessboard().then(() : void => this.loadBoard());
+      this.initializeChessboard().then(() : void => {
+        this.loadBoard();
+        this.attachDragEventListeners();
+      });
     }
   }
 
@@ -124,10 +177,53 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     console.log('Starting Game');
   }
 
-  loadFile(event: Event) : void {
-    console.log("Loading PGN file");
+  loadFile(event : Event) : void {
+   let input : HTMLInputElement = event.target as HTMLInputElement;
+   if(input.files && input.files.length > 0) {
+     let file : File = input.files[0];
+     if(!file.name.endsWith('pgn')) {
+       console.error("Plik musi być w formacie PGN, a nie " + file.name.split('.').pop());
+       return;
+     } else {
+        let reader : FileReader = new FileReader();
+        let select : HTMLSelectElement = this.renderer.createElement('select');
+        reader.onload = () : void => {
+          let fileContent : string[] = (reader.result as string).split('\n');
+          fileContent.forEach((line : string) : void => {
+            let option : HTMLOptionElement = this.renderer.createElement('option');
+            if(line.startsWith('[White ')) {
+              option.value = line.split('"')[1];
+              option.textContent = `Biali : ${line.split('"')[1]}`;
+              select.appendChild(option);
+            } else if(line.startsWith('[Black ')) {
+              option.value = line.split('"')[1];
+              option.textContent = `Czarni : ${line.split('"')[1]}`;
+              select.appendChild(option);
+            }
+          })
+        }
+        reader.readAsText(file);
+        this.grandmasterFile.emit(file);
+        this.grandmasterFile_local = file;
+        select.addEventListener('change', () : void => {
+          this.grandmasterName.emit(select.value);
+        })
+        let lastChild : HTMLElement = this.element.nativeElement.querySelector('.grandmaster > div:last-child');
+        if(lastChild) {
+          lastChild.innerHTML = '<h3>Wybierz przeciwnika:</h3>';
+          lastChild.appendChild(select);
+        }
+     }
+   }
   }
-
+  attachDragEventListeners(): void {
+  const pawns: NodeListOf<HTMLImageElement> = this.element.nativeElement.querySelectorAll('.pawns > img');
+  pawns.forEach((pawn: HTMLImageElement): void => {
+    pawn.addEventListener('dragstart', (event: DragEvent): void => {
+      event.dataTransfer!.setData('text/plain', JSON.stringify({ pawn: pawn.alt }));
+    });
+  });
+}
   changeTime(type : number) : void {
     switch(type) {
     case 1:
