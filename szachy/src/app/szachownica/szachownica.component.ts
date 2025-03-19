@@ -9,7 +9,7 @@ export interface Game {
   mainPlayerColor?: PieceColor;
   board?: (ChessPiece | null)[][];
   difficulty?: number;
-  grandmaster?: string
+  grandmaster?: File;
 }
 
 @Component({
@@ -136,23 +136,19 @@ export class SzachownicaComponent implements OnInit {
         element.addEventListener('dragover', (event: DragEvent): void => {
           event.preventDefault();
         });
+        const executeForGameType = {
+            "GraczVsGracz": () => this.PlayerVsPlayerLocal(element, board),
+            "GraczVsSiec": () => {},
+            "GraczVsAi": () => {},
+            "GraczVsGrandmaster": () : void => this.PlayerVSGrandMaster(element, board, gameAttributes),
+          }
         element.addEventListener('drop', (event: DragEvent): void => {
           if (event.dataTransfer!.getData('text/plain').match('http://')) return;
           event.preventDefault();
-          const data = JSON.parse(event.dataTransfer?.getData('text/plain')!);
-          const fromPosition: Position = { row: parseInt(data.row), col: parseInt(data.column) };
-          const toPosition: Position = { row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!) };
-          this.movePiece(fromPosition, toPosition);
+          if(executeForGameType[gameAttributes.type]) executeForGameType[gameAttributes.type]();
         });
         element.addEventListener('click', (): void => {
-          this.PlayerVsPlayerLocal(element, board);
-          // const executeForGameType = {
-          //   "GraczVsGracz": () => this.PlayerVsPlayerLocal(element, board),
-          //   "GraczVsSiec": () => {},
-          //   "GraczVsAi": () => {},
-          //   "GraczVsGrandmaster": () => {},
-          // }
-          // if(executeForGameType[gameAttributes.type]) executeForGameType[gameAttributes.type]();
+          if(executeForGameType[gameAttributes.type]) executeForGameType[gameAttributes.type]();
         });
         this.renderer.appendChild(row, element);
       }
@@ -229,7 +225,11 @@ export class SzachownicaComponent implements OnInit {
     this.currentGame = gameAttributes;
     this.initializeChessBoard(gameAttributes);
   }
+  private PlayerVSGrandMaster(element : HTMLElement, board : HTMLElement, gameAttributes : Game): void {
+    console.log("Player vs Grandmaster");
+    console.log(gameAttributes);
 
+  }
 
   public undoMove(): void {
     if (this.chessService.undoMove()) this.focusedColor = this.focusedColor === 'white' ? 'black' : 'white';

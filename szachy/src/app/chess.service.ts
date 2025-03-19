@@ -4,7 +4,6 @@ import {MatDialog} from '@angular/material/dialog';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {ChessAiService} from './chess-ai.service';
 import {Game} from './szachownica/szachownica.component';
-import {GameEndComponent} from './game-end/game-end.component';
 
 // Typ wyróżniający każdy typ bierki występujący w standardowych szachach
 export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
@@ -1138,4 +1137,3 @@ export class ChessService {
     if(gameAtributes) this.gameStart.next(gameAtributes);
   }
 }
-

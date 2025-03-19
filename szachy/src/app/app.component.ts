@@ -6,8 +6,8 @@ import {ZegarComponent} from './zegar/zegar.component';
 import {MenuComponent} from './menu/menu.component';
 import {NgIf, NgOptimizedImage} from '@angular/common';
 import { GameSelectorComponent } from './game-selector/game-selector.component';
-import {LocalGameComponent} from './local-game/local-game.component';
-import {GameEndComponent} from './game-end/game-end.component';
+// import {LocalGameComponent} from './local-game/local-game.component';
+// import {GameEndComponent} from './game-end/game-end.component';
 
 export let pieces: { [key: string]: string } = {
   'black_pawn': `assets/cp.svg`,

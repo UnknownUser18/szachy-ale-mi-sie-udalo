@@ -43,6 +43,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   'bk': 'Biały Król',
   'bp': 'Biały Pionek'
   };
+  mainPlayerColor : string = 'white';
   ai_difficulty : number = 2;
   grandmaster: string = 'NA';
   type = {
@@ -223,12 +224,14 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
 
   startGame() : void {
     console.log('Starting Game');
-    console.log()
     let gameAtributes: Game = {board: this.transformChessBoard(this.pawns) ?? this.transformChessBoard(this.pawns), type: this.game ?? 'GraczVsGracz', duration: this.universalTime, mainPlayerColor: this.kolorGracza}
     if(this.game === 'GraczVsAi' || this.game === 'GraczVsGrandmaster') gameAtributes.difficulty = this.ai_difficulty;
-    if(this.game === 'GraczVsGrandmaster') gameAtributes.grandmaster = this.grandmaster;
+    if(this.game === 'GraczVsGrandmaster') {
+      gameAtributes.grandmaster = this.grandmasterFile_local!;
+      gameAtributes.mainPlayerColor = this.mainPlayerColor as PieceColor;
+    }
     console.log(gameAtributes);
-    this.chessService.startGame(gameAtributes)
+    this.chessService.startGame(gameAtributes);
   }
 
   loadFile(event : Event) : void {
@@ -238,35 +241,48 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
      if(!file.name.endsWith('pgn')) {
        console.error("Plik musi być w formacie PGN, a nie " + file.name.split('.').pop());
        return;
-     } else {
-        let reader : FileReader = new FileReader();
-        let select : HTMLSelectElement = this.renderer.createElement('select');
-        reader.onload = () : void => {
-          let fileContent : string[] = (reader.result as string).split('\n');
-          fileContent.forEach((line : string) : void => {
-            let option : HTMLOptionElement = this.renderer.createElement('option');
-            if(line.startsWith('[White ')) {
-              option.value = line.split('"')[1];
-              option.textContent = `Biali : ${line.split('"')[1]}`;
-              select.appendChild(option);
-            } else if(line.startsWith('[Black ')) {
-              option.value = line.split('"')[1];
-              option.textContent = `Czarni : ${line.split('"')[1]}`;
-              select.appendChild(option);
-            }
-          })
-        }
-        reader.readAsText(file);
-        this.grandmasterFile.emit(file);
-        this.grandmasterFile_local = file;
-        select.addEventListener('change', () : void => {
-          this.grandmasterName.emit(select.value);
-        })
-        let lastChild : HTMLElement = this.element.nativeElement.querySelector('.grandmaster > div:last-child');
-        if(lastChild) {
-          lastChild.innerHTML = '<h3>Wybierz przeciwnika:</h3>';
-          lastChild.appendChild(select);
-        }
+     }
+     let reader : FileReader = new FileReader();
+     let select : HTMLSelectElement = this.renderer.createElement('select');
+     reader.onload = () : void => {
+       let fileContent : string[] = (reader.result as string).split('\n');
+       let option_default : HTMLOptionElement = this.renderer.createElement('option');
+       option_default.value = 'NA';
+       option_default.textContent = 'Wybierz przeciwnika:';
+       option_default.selected = true;
+       option_default.disabled = true;
+       select.appendChild(option_default);
+       fileContent.forEach((line : string) : void => {
+         let option : HTMLOptionElement = this.renderer.createElement('option');
+         if(line.startsWith('[White ')) {
+           option.value = line.split('"')[1];
+           option.textContent = `Biali : ${line.split('"')[1]}`;
+           option.addEventListener('select', () : void => {
+              this.mainPlayerColor = 'black';
+           });
+           select.appendChild(option);
+         } else if(line.startsWith('[Black ')) {
+           option.value = line.split('"')[1];
+           option.textContent = `Czarni : ${line.split('"')[1]}`;
+           option.addEventListener('select', () : void => {
+              this.mainPlayerColor = 'white';
+           });
+           select.appendChild(option);
+         }
+       })
+     }
+     reader.readAsText(file);
+     this.grandmasterFile.emit(file);
+     this.grandmasterFile_local = file;
+     select.addEventListener('change', () : void => {
+       if(select.value === 'NA') return;
+       this.mainPlayerColor = select.value.startsWith('Biali') ? 'white' : 'black';
+       this.grandmasterName.emit(select.value);
+     })
+     let lastChild : HTMLElement = this.element.nativeElement.querySelector('.grandmaster > div:last-child');
+     if(lastChild) {
+       lastChild.innerHTML = '<h3>Wybierz przeciwnika:</h3>';
+       lastChild.appendChild(select);
      }
    }
   }
