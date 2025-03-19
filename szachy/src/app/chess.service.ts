@@ -1,8 +1,10 @@
 ﻿import {Injectable} from '@angular/core';
 import {PawnPromotionComponent} from './pawn-promotion/pawn-promotion.component';
 import {MatDialog} from '@angular/material/dialog';
-import {Subject} from 'rxjs';
+import {BehaviorSubject, Subject} from 'rxjs';
 import {ChessAiService} from './chess-ai.service';
+import {Game} from './szachownica/szachownica.component';
+import {GameEndComponent} from './game-end/game-end.component';
 
 // Typ wyróżniający każdy typ bierki występujący w standardowych szachach
 export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
@@ -85,6 +87,7 @@ export interface ChessPiece{
   lastPosition: Position;
   hasMoved?: boolean;
   moveTurn?: boolean;
+
 }
 
 export interface LowEffortChessPiece{
@@ -104,8 +107,12 @@ export class ChessService {
   public lowEffortBoards: (LowEffortChessPiece | null)[][][] = [];
   public updateBoard = new Subject<(ChessPiece | null)[][]>()
   public updateGameEnd = new Subject<GameEndType>()
-  private currentTurnColor: PieceColor = 'white';
+  public currentTurnColor = new BehaviorSubject<PieceColor>('white');
+  public gameEnd = new Subject<GameEndType>()
+  public gameStart = new Subject<Game>()
+
   constructor(private dialog: MatDialog) {
+    this.gameEnd.subscribe((gameEnd: GameEndType) => this.showGameEnding(gameEnd))
     console.log('ChessService constructor called');
     this.initializeChessBoard();
   }
@@ -819,6 +826,25 @@ export class ChessService {
     });
   }
 
+  private showGameEnding(gameEnd: GameEndType)
+  {
+    // if(['none', 'check'].includes(gameEnd)) return;
+    // console.log(gameEnd)
+    // const dialogRef = this.dialog.open(GameEndComponent, {
+    //   data: {
+    //     gameEnd: this.gameEnd,
+    //     currentTurn: 'white'
+    //   },
+    //   disableClose: true,
+    //   backdropClass: 'chess-dialog-backdrop'
+    // });
+    //
+    // dialogRef.afterClosed().subscribe(result => {
+      // if (result === 'new') this.newGame();
+      // if (result === 'analyze') this.analyzeGame();
+    // })
+
+  }
 
   checkForDraw(): GameEndType {
     if (this.lowEffortBoards.length >= 50) return 'draw-50-moves';
@@ -1052,20 +1078,23 @@ export class ChessService {
   * */
   public isMate(color: PieceColor): GameEndType {
     // Pobieramy wszystkie legalne ruchy dla danego koloru.
-    if(this.checkForDraw() !== 'none') {
-      this.updateGameEnd.next(this.checkForDraw())
-      return this.checkForDraw()
+    let isDraw: GameEndType = this.checkForDraw();
+    if(isDraw !== 'none')
+    {
+      this.gameEnd.next(isDraw)
+      return isDraw
     }
     const legalMovesForColor = this.getLegalMovesForColor(color);
     for (const { legalMoves } of legalMovesForColor)
       for (let row = 0; row < 8; row++)
         for (let col = 0; col < 8; col++)
-          if (legalMoves[row][col].isLegal){
-            this.updateGameEnd.next(this.isKingInCheck(color) ? 'check' : 'none')
+          if (legalMoves[row][col].isLegal)
+          {
+            this.gameEnd.next(this.isKingInCheck(color) ? 'check' : 'none')
             return this.isKingInCheck(color) ? 'check' : 'none';
-          }  // Znaleziono legalny ruch – nie jest to mat, ale może być pat.
+          } // Znaleziono legalny ruch – nie jest to mat, ale może być pat.
     // Nie znaleziono legalnego ruchu — jest mat albo pat!
-    this.updateGameEnd.next(this.isKingInCheck(color) ? 'mate' : 'stalemate')
+    this.gameEnd.next(this.isKingInCheck(color) ? 'mate' : 'stalemate')
     return this.isKingInCheck(color) ? 'mate' : 'stalemate';
   }
   /*
@@ -1101,8 +1130,12 @@ export class ChessService {
     }
   }
 
-  getCurrentTurnColor(): PieceColor{
-    return this.currentTurnColor;
+  // getCurrentTurnColor(): PieceColor{
+  //
+  // }
+
+  public startGame(gameAtributes: Game){
+    if(gameAtributes) this.gameStart.next(gameAtributes);
   }
 }
 

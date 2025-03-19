@@ -1,7 +1,8 @@
 import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, Renderer2, SimpleChanges, EventEmitter} from '@angular/core';
 import {NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
-import {GameType} from '../szachownica/szachownica.component';
+import {Game, GameType} from '../szachownica/szachownica.component';
 import {FormsModule} from '@angular/forms';
+import {ChessService,ChessPiece, PieceColor, PieceType} from '../chess.service';
 
 @Component({
     selector: 'app-game-selector',
@@ -20,17 +21,13 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   @Output() blackTime = new EventEmitter<number>();
   @Output() grandmasterFile = new EventEmitter<File>();
   @Output() grandmasterName = new EventEmitter<string>();
-  constructor(private renderer: Renderer2, private element: ElementRef) {}
-  pawns : Array<string[]> = [
-    ['cw','cs','cg','ch','ck','cg','cs','cw'],
-    ['cp','cp','cp','cp','cp','cp','cp','cp'],
-    ['','','','','','','',''],
-    ['','','','','','','',''],
-    ['','','','','','','',''],
-    ['','','','','','','',''],
-    ['bp','bp','bp','bp','bp','bp','bp','bp'],
-    ['bw','bs','bg','bh','bk','bg','bs','bw']
-  ]
+  universalTime: number = 0;
+  kolorGracza: PieceColor = 'white';
+  constructor(private renderer: Renderer2, private element: ElementRef, private chessService: ChessService) {
+    this.whiteTime.asObservable().subscribe((time: number) => this.universalTime = time )
+    this.blackTime.asObservable().subscribe((time: number) => this.universalTime = time )
+  }
+  pawns : Array<string[]> = this.defaultChessBoard();
   pawns_string : string[] = ['cw','cs','cg','ch','ck','cp','bw','bs','bg','bh','bk','bp'];
   pawns_names: { [key: string]: string } = {
   'cw': 'Czarna Wieża',
@@ -76,6 +73,8 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       this.pawns[parseInt(data.fromRow)][parseInt(data.fromCol)] = '';
       this.loadBoard();
     });
+    this.setTime(5400, 0, 1);
+    this.chessService.currentTurnColor.next('white');
   }
   async initializeChessboard() : Promise<void> {
     let chessboard : HTMLElement = this.element.nativeElement.querySelector('.chessboard');
@@ -92,6 +91,20 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       chessboard.appendChild(row);
     }
   }
+
+  defaultChessBoard(): Array<string[]> {
+    return [
+      ['cw','cs','cg','ch','ck','cg','cs','cw'],
+      ['cp','cp','cp','cp','cp','cp','cp','cp'],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['','','','','','','',''],
+      ['bp','bp','bp','bp','bp','bp','bp','bp'],
+      ['bw','bs','bg','bh','bk','bg','bs','bw']
+    ];
+  }
+
   loadBoard() : void {
     let chessboard: HTMLElement = this.element.nativeElement.querySelector('.chessboard');
     if (!chessboard) return;
@@ -133,6 +146,50 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     }
   }
 
+
+  transformChessBoard(board: Array<string[]>): (ChessPiece | null)[][]
+  {
+    const colorDictionary: { [key: string]: PieceColor | null } = {
+      'c': 'black',
+      'b': 'white',
+      '': null
+    };
+
+    const pieceTypeDictionary: { [key: string]: PieceType | null } = {
+      'p': 'pawn',
+      'r': 'rook',
+      's': 'knight',
+      'g': 'bishop',
+      'h': 'queen',
+      'k': 'king',
+      'w': 'rook',
+      '': null
+    };
+    board = board.reverse()
+    let chessBoard: (ChessPiece | null)[][] = Array.from({ length: 8 }, () => new Array(8).fill(null));
+    for(let rowNum = 0; rowNum < board.length; rowNum++)
+      for(let colNum = 0; colNum < board[rowNum].length; colNum++)
+      {
+        const cell = board[rowNum][colNum];
+        if (!cell || cell === '') {
+          continue;
+        }
+        const [colorChar, pieceTypeChar] = cell.split('');
+
+        const color = colorDictionary[colorChar] as PieceColor;
+        const type = pieceTypeDictionary[pieceTypeChar] as PieceType;
+
+        if (!color && type) {
+          chessBoard[rowNum][colNum] = null;
+          continue;
+        }
+        chessBoard[rowNum][colNum] = { color: color, type: type, position: {row: rowNum, col: colNum}, lastPosition: {row: 0, col: 0}, hasMoved: false, moveTurn: false}
+      }
+    console.log(board, chessBoard)
+    return chessBoard
+  }
+
+
   movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
   if (this.pawns[toRow][toCol] === '') {
     this.pawns[toRow][toCol] = this.pawns[fromRow][fromCol];
@@ -142,16 +199,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
 }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['game']) {
-      this.pawns = [
-        ['cw','cs','cg','ch','ck','cg','cs','cw'],
-        ['cp','cp','cp','cp','cp','cp','cp','cp'],
-        ['','','','','','','',''],
-        ['','','','','','','',''],
-        ['','','','','','','',''],
-        ['','','','','','','',''],
-        ['bp','bp','bp','bp','bp','bp','bp','bp'],
-        ['bw','bs','bg','bh','bk','bg','bs','bw']
-      ];
+      this.pawns = this.defaultChessBoard()
       if(changes['game'].previousValue === 'GraczVsGrandmaster') {
         setTimeout(() : void => {
           this.grandmaster = 'NA';
@@ -175,6 +223,12 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
 
   startGame() : void {
     console.log('Starting Game');
+    console.log()
+    let gameAtributes: Game = {board: this.transformChessBoard(this.pawns) ?? this.transformChessBoard(this.pawns), type: this.game ?? 'GraczVsGracz', duration: this.universalTime, mainPlayerColor: this.kolorGracza}
+    if(this.game === 'GraczVsAi' || this.game === 'GraczVsGrandmaster') gameAtributes.difficulty = this.ai_difficulty;
+    if(this.game === 'GraczVsGrandmaster') gameAtributes.grandmaster = this.grandmaster;
+    console.log(gameAtributes);
+    this.chessService.startGame(gameAtributes)
   }
 
   loadFile(event : Event) : void {
@@ -256,5 +310,6 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
         this.setButtons('kolor-button', 1, 0);
         break;
     }
+    this.kolorGracza = type === 'white' ? 'white' : 'black';
   }
 }

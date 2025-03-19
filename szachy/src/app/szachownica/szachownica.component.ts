@@ -6,14 +6,18 @@ export type GameType = 'GraczVsGracz' | 'GraczVsSiec' | 'GraczVsAi' | 'GraczVsGr
 export interface Game {
   type: GameType;
   duration: number;
-  mainPlayerColor: PieceColor;
+  mainPlayerColor?: PieceColor;
+  board?: (ChessPiece | null)[][];
+  difficulty?: number;
+  grandmaster?: string
 }
 
 @Component({
-    selector: 'app-szachownica',
-    imports: [],
-    templateUrl: './szachownica.component.html',
-    styleUrl: './szachownica.component.css'
+  selector: 'app-szachownica',
+  imports: [],
+  templateUrl: './szachownica.component.html',
+  standalone: true,
+  styleUrl: './szachownica.component.css'
 })
 export class SzachownicaComponent implements OnInit {
   private currentGame!: Game;
@@ -22,6 +26,8 @@ export class SzachownicaComponent implements OnInit {
   focusedLegalMoves: legalMove[][] = [];
   constructor(protected chessService: ChessService, private renderer : Renderer2, private element : ElementRef) {
     this.chessService.updateBoard.subscribe(() => this.loadBoard())
+    this.chessService.gameStart.subscribe((gameAtributes: Game) => this.startGame(gameAtributes))
+    this.chessService.currentTurnColor.subscribe((gameTurnColor: PieceColor) => this.focusedColor = gameTurnColor);
   }
   focusedColor: PieceColor = 'white';
 
@@ -86,6 +92,8 @@ export class SzachownicaComponent implements OnInit {
   }
 
   initializeChessBoard(gameAttributes: Game): void {
+    if(!!gameAttributes.board)
+      this.chessService.board = gameAttributes.board
     let board: HTMLElement = this.element.nativeElement.querySelector('main');
     board.innerHTML = '';
     for (let i: number = 8; i > 0; i--) {
@@ -138,6 +146,13 @@ export class SzachownicaComponent implements OnInit {
         });
         element.addEventListener('click', (): void => {
           this.PlayerVsPlayerLocal(element, board);
+          // const executeForGameType = {
+          //   "GraczVsGracz": () => this.PlayerVsPlayerLocal(element, board),
+          //   "GraczVsSiec": () => {},
+          //   "GraczVsAi": () => {},
+          //   "GraczVsGrandmaster": () => {},
+          // }
+          // if(executeForGameType[gameAttributes.type]) executeForGameType[gameAttributes.type]();
         });
         this.renderer.appendChild(row, element);
       }
@@ -215,17 +230,6 @@ export class SzachownicaComponent implements OnInit {
     this.initializeChessBoard(gameAttributes);
   }
 
-  public startPlayerVsAi(): void {
-    console.log("Starting Player vs AI game");
-    this.currentGame = {
-      type: "GraczVsAi",
-      duration: 600,
-      mainPlayerColor: "white"
-    };
-    this.initializeChessBoard(this.currentGame);
-    this.loadBoard();
-    this.focusedColor = "white";
-  }
 
   public undoMove(): void {
     if (this.chessService.undoMove()) this.focusedColor = this.focusedColor === 'white' ? 'black' : 'white';

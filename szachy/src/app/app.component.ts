@@ -6,6 +6,7 @@ import {ZegarComponent} from './zegar/zegar.component';
 import {MenuComponent} from './menu/menu.component';
 import {NgIf, NgOptimizedImage} from '@angular/common';
 import { GameSelectorComponent } from './game-selector/game-selector.component';
+import {LocalGameComponent} from './local-game/local-game.component';
 import {GameEndComponent} from './game-end/game-end.component';
 
 export let pieces: { [key: string]: string } = {
@@ -23,11 +24,10 @@ export let pieces: { [key: string]: string } = {
   'white_king': `assets/bk.svg`
 }
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf, GameEndComponent],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+    selector: 'app-root',
+    imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.css'
 })
 export class AppComponent {
   game : GameType | null = null;
@@ -46,6 +46,7 @@ export class AppComponent {
     private element: ElementRef
   ) {
     this.chessService.setAiService(this.chessAiService);
+    this.chessService.gameStart.subscribe(() => this.selectGame(null))
   }
 
   protected convert_name() : void {
@@ -57,16 +58,22 @@ export class AppComponent {
     }
   }
 
-  selectGame(game: GameType): void {
-    let chessboard : HTMLElement = this.element.nativeElement.querySelector('main');
-    let zegar : Array<ZegarComponent> = this.element.nativeElement.querySelectorAll('app-zegar');
-    if(chessboard.childNodes[1].nodeName.toLowerCase() === 'app-szachownica' && zegar) {
-      this.renderer.removeChild(this.element.nativeElement, chessboard);
-      zegar.forEach((z : ZegarComponent) : void => {
-        this.renderer.removeChild(this.element.nativeElement, z);
+  selectGame(game: GameType | null): void {
+    let chessboard: HTMLElement = this.element.nativeElement.querySelector('main');
+    let zegar: NodeListOf<HTMLElement> = this.element.nativeElement.querySelectorAll('app-zegar');
+    this.game = game;
+    if (game === null) {
+      this.renderer.setStyle(chessboard, 'display', 'block');
+      zegar.forEach((z: HTMLElement): void => {
+        this.renderer.setStyle(z, 'display', 'block');
+      });
+    } else if (chessboard.childNodes && chessboard.childNodes[1].nodeName.toLowerCase() === 'app-szachownica' && zegar) {
+      this.renderer.setStyle(chessboard, 'display', 'none');
+      zegar.forEach((z: HTMLElement): void => {
+        this.renderer.setStyle(z, 'display', 'none');
       });
     }
-    this.game = game;
+
   }
 
   changeTime(time : number, color : string) : void {
