@@ -103,17 +103,11 @@ export class ChessService {
   private chessAiService: any;
   public lowEffortBoards: (LowEffortChessPiece | null)[][][] = [];
   public updateBoard = new Subject<(ChessPiece | null)[][]>()
-
+  public updateGameEnd = new Subject<GameEndType>()
+  private currentTurnColor: PieceColor = 'white';
   constructor(private dialog: MatDialog) {
     console.log('ChessService constructor called');
     this.initializeChessBoard();
-    this.logChessBoard();
-    console.log(this.getLegalMovesForColor('white'));
-    console.log(this.getLegalMovesForColor('black'));
-    this.tryMove({ from: { row: 1, col: 3 }, to: { row: 3, col: 3 } });
-    this.undoMove();
-    this.tryMove({ from: { row: 1, col: 3 }, to: { row: 2, col: 3 } });
-    this.restartChessBoard();
   }
 
   public setAiService(aiService: ChessAiService): void {
@@ -826,13 +820,31 @@ export class ChessService {
   }
 
 
-  checkForDraw(): GameEndType
-  {
-    if(this.lowEffortBoards.length >= 50) return 'draw-50-moves';
-    // this.lowEffortBoards.forEach((distinctBoard: (LowEffortChessPiece | null)[][]) => {
-    //   if(this.lowEffortBoards.filter((distinctItem: (LowEffortChessPiece | null)[][]) => {if(this.compareBoardsLowEffort(distinctItem, distinctBoard)) isDraw = 'draw-repetition'}).length >= 3) isDraw = 'draw-repetition';
-    // })
+  checkForDraw(): GameEndType {
+    if (this.lowEffortBoards.length >= 50) return 'draw-50-moves';
+
+    const frequencyMap = new Map<string, number>();
+
+    for (const board of this.lowEffortBoards) {
+      const key = this.serializeBoard(board);
+      const count = (frequencyMap.get(key) || 0) + 1;
+      frequencyMap.set(key, count);
+      if (count >= 3) {
+        return 'draw-repetition';
+      }
+    }
+
     return 'none';
+  }
+
+  private serializeBoard(board: (LowEffortChessPiece | null)[][]): string {
+    return board.map(row =>
+      row.map(square => {
+        if (!square) return 'null';
+        const { color, type, position } = square;
+        return `${color}_${type}_${position.row},${position.col}`;
+      }).join(',')
+    ).join('|');
   }
 
   compareBoardsLowEffort(board1:(LowEffortChessPiece|null)[][], board2: (LowEffortChessPiece | null)[][]): boolean
@@ -1040,13 +1052,20 @@ export class ChessService {
   * */
   public isMate(color: PieceColor): GameEndType {
     // Pobieramy wszystkie legalne ruchy dla danego koloru.
-    if(this.checkForDraw() !== 'none') return this.checkForDraw()
+    if(this.checkForDraw() !== 'none') {
+      this.updateGameEnd.next(this.checkForDraw())
+      return this.checkForDraw()
+    }
     const legalMovesForColor = this.getLegalMovesForColor(color);
     for (const { legalMoves } of legalMovesForColor)
       for (let row = 0; row < 8; row++)
         for (let col = 0; col < 8; col++)
-          if (legalMoves[row][col].isLegal) return this.isKingInCheck(color) ? 'check' : 'none'; // Znaleziono legalny ruch – nie jest to mat, ale może być pat.
+          if (legalMoves[row][col].isLegal){
+            this.updateGameEnd.next(this.isKingInCheck(color) ? 'check' : 'none')
+            return this.isKingInCheck(color) ? 'check' : 'none';
+          }  // Znaleziono legalny ruch – nie jest to mat, ale może być pat.
     // Nie znaleziono legalnego ruchu — jest mat albo pat!
+    this.updateGameEnd.next(this.isKingInCheck(color) ? 'mate' : 'stalemate')
     return this.isKingInCheck(color) ? 'mate' : 'stalemate';
   }
   /*
@@ -1082,5 +1101,8 @@ export class ChessService {
     }
   }
 
+  getCurrentTurnColor(): PieceColor{
+    return this.currentTurnColor;
+  }
 }
 

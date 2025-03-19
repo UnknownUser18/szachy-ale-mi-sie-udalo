@@ -6,6 +6,7 @@ import {ZegarComponent} from './zegar/zegar.component';
 import {MenuComponent} from './menu/menu.component';
 import {NgIf, NgOptimizedImage} from '@angular/common';
 import { GameSelectorComponent } from './game-selector/game-selector.component';
+import {GameEndComponent} from './game-end/game-end.component';
 
 export let pieces: { [key: string]: string } = {
   'black_pawn': `assets/cp.svg`,
@@ -24,7 +25,7 @@ export let pieces: { [key: string]: string } = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf],
+  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf, GameEndComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
