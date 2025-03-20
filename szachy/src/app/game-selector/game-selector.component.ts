@@ -17,16 +17,10 @@ import {ChessService,ChessPiece, PieceColor, PieceType} from '../chess.service';
 })
 export class GameSelectorComponent implements OnChanges, AfterViewInit {
   @Input({ required: true }) game: GameType | undefined;
-  @Output() whiteTime = new EventEmitter<number>();
-  @Output() blackTime = new EventEmitter<number>();
-  @Output() grandmasterFile = new EventEmitter<File>();
-  @Output() grandmasterName = new EventEmitter<string>();
+  @Output() time = new EventEmitter<number>();
   universalTime: number = 0;
   kolorGracza: PieceColor = 'white';
-  constructor(private renderer: Renderer2, private element: ElementRef, private chessService: ChessService) {
-    this.whiteTime.asObservable().subscribe((time: number) => this.universalTime = time )
-    this.blackTime.asObservable().subscribe((time: number) => this.universalTime = time )
-  }
+  constructor(private renderer: Renderer2, private element: ElementRef, private chessService: ChessService) {}
   pawns : Array<string[]> = this.defaultChessBoard();
   pawns_string : string[] = ['cw','cs','cg','ch','ck','cp','bw','bs','bg','bh','bk','bp'];
   pawns_names: { [key: string]: string } = {
@@ -45,6 +39,8 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   };
   mainPlayerColor : string = 'white';
   ai_difficulty : number = 2;
+  black_grandmaster: string | undefined = undefined;
+  white_grandmaster: string | undefined = undefined;
   grandmaster: string = 'NA';
   type = {
     GraczVsGracz: 'Gracz vs Gracz (1 komputer)',
@@ -52,7 +48,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     GraczVsGrandmaster: 'Gracz vs Grandmaster',
     GraczVsAi: 'Gracz vs Komputer',
   };
-  grandmasterFile_local : File | null = null;
+  grandmasterFile : File | null = null;
   ngAfterViewInit() : void {
     this.initializeChessboard().then(() : void => this.loadBoard());
     const pawns: NodeListOf<HTMLImageElement> = this.element.nativeElement.querySelectorAll('.pawns img');
@@ -150,11 +146,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
 
   transformChessBoard(board: Array<string[]>): (ChessPiece | null)[][]
   {
-    const colorDictionary: { [key: string]: PieceColor | null } = {
-      'c': 'black',
-      'b': 'white',
-      '': null
-    };
+    const colorDictionary: { [key: string]: PieceColor | null } = {'c': 'black', 'b': 'white', '': null};
 
     const pieceTypeDictionary: { [key: string]: PieceType | null } = {
       'p': 'pawn',
@@ -224,13 +216,24 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
 
   startGame() : void {
     console.log('Starting Game');
-    let gameAtributes: Game = {board: this.transformChessBoard(this.pawns) ?? this.transformChessBoard(this.pawns), type: this.game ?? 'GraczVsGracz', duration: this.universalTime, mainPlayerColor: this.kolorGracza}
-    if(this.game === 'GraczVsAi' || this.game === 'GraczVsGrandmaster') gameAtributes.difficulty = this.ai_difficulty;
-    if(this.game === 'GraczVsGrandmaster') {
-      gameAtributes.grandmaster = this.grandmasterFile_local!;
-      gameAtributes.mainPlayerColor = this.mainPlayerColor as PieceColor;
+    let gameAtributes: Game = {
+      board: this.transformChessBoard(this.pawns) ?? this.transformChessBoard(this.pawns),
+      type: this.game ?? 'GraczVsGracz',
+      duration: this.universalTime,
+      mainPlayerColor: this.kolorGracza,
+      grandmaster: this.grandmasterFile ?? undefined,
+      difficulty: this.ai_difficulty ?? undefined
     }
-    console.log(gameAtributes);
+    if(this.game === 'GraczVsGrandmaster') {
+      gameAtributes.mainPlayerColor = this.mainPlayerColor as PieceColor;
+      if(this.mainPlayerColor === 'white') {
+        gameAtributes.black_player = this.black_grandmaster;
+        gameAtributes.white_player = 'Gracz';
+      } else {
+        gameAtributes.white_player = this.white_grandmaster;
+        gameAtributes.black_player = 'Gracz';
+      }
+    }
     this.chessService.startGame(gameAtributes);
   }
 
@@ -255,35 +258,30 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
        fileContent.forEach((line : string) : void => {
          let option : HTMLOptionElement = this.renderer.createElement('option');
          if(line.startsWith('[White ')) {
-           option.value = line.split('"')[1];
-           option.textContent = `Biali : ${line.split('"')[1]}`;
-           option.addEventListener('select', () : void => {
-              this.mainPlayerColor = 'black';
-           });
+           let value : string = `Biali : ${line.split('"')[1]}`;
+           option.value = value;
+           option.textContent = value;
+           this.white_grandmaster = line.split('"')[1];
            select.appendChild(option);
          } else if(line.startsWith('[Black ')) {
-           option.value = line.split('"')[1];
-           option.textContent = `Czarni : ${line.split('"')[1]}`;
-           option.addEventListener('select', () : void => {
-              this.mainPlayerColor = 'white';
-           });
+           let value : string = `Czarni : ${line.split('"')[1]}`;
+           option.value = value;
+           option.textContent = value;
+           this.black_grandmaster = line.split('"')[1];
            select.appendChild(option);
          }
        })
      }
      reader.readAsText(file);
-     this.grandmasterFile.emit(file);
-     this.grandmasterFile_local = file;
+     this.grandmasterFile = file;
      select.addEventListener('change', () : void => {
-       if(select.value === 'NA') return;
-       this.mainPlayerColor = select.value.startsWith('Biali') ? 'white' : 'black';
-       this.grandmasterName.emit(select.value);
-     })
-     let lastChild : HTMLElement = this.element.nativeElement.querySelector('.grandmaster > div:last-child');
-     if(lastChild) {
-       lastChild.innerHTML = '<h3>Wybierz przeciwnika:</h3>';
-       lastChild.appendChild(select);
-     }
+       this.mainPlayerColor = select.value.startsWith('Czarni') ? 'white' : 'black';
+     });
+     setTimeout(() : void => {
+      let lastChild : HTMLElement = this.element.nativeElement.querySelector('.grandmaster > div:last-child')!;
+      if(lastChild.childNodes.length > 1) lastChild.removeChild(lastChild.childNodes[1]);
+      lastChild.appendChild(select);
+     }, 10) // musi być timeout, bo inaczej dodaje do "wybierz plik"
    }
   }
   attachDragEventListeners(): void {
@@ -312,8 +310,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     buttons[unselected].textContent = 'Wybierz';
   }
   private setTime(time: number, selectedIndex: number, unselectedIndex: number): void {
-    this.whiteTime.emit(time);
-    this.blackTime.emit(time);
+    this.universalTime = time;
     this.setButtons('time', selectedIndex, unselectedIndex);
   }
 

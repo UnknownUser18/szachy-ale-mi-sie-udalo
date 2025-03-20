@@ -6,12 +6,13 @@
   <app-menu (game_selected)="selectGame($event)"></app-menu>
   <main>
     <div>
-      <app-zegar [color]="black" [time]="black_time"></app-zegar>
+      <app-zegar [color]="black" [time]="time"></app-zegar>
     </div>
-    <app-szachownica></app-szachownica>
+    <app-szachownica (currentGameChange)="setGame($event)"></app-szachownica>
     <div>
-      <app-zegar [color]="white" [time]="white_time"></app-zegar>
+      <app-zegar [color]="white" [time]="time"></app-zegar>
     </div>
+    <app-nerd-view [game]="game"></app-nerd-view>
   </main>
-  <app-game-selector *ngIf="game" [game]="game" (blackTime)="changeTime($event, 'black')" (whiteTime)="changeTime($event, 'white')" (grandmasterFile)="setFile($event)" (grandmasterName)="setName($event)"></app-game-selector>
+  <app-game-selector *ngIf="gameType" [game]="gameType" (time)="setTime($event)"></app-game-selector>
 </div>

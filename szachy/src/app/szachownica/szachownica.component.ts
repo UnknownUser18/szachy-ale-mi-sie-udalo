@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, Renderer2} from '@angular/core';
+import {Component, ElementRef, OnInit, Renderer2, Output, EventEmitter} from '@angular/core';
 import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position, GameEndType, SpecialMove} from '../chess.service';
 import { pieces } from '../app.component';
 export type GameType = 'GraczVsGracz' | 'GraczVsSiec' | 'GraczVsAi' | 'GraczVsGrandmaster';
@@ -10,6 +10,8 @@ export interface Game {
   board?: (ChessPiece | null)[][];
   difficulty?: number;
   grandmaster?: File;
+  black_player?: string;
+  white_player?: string;
 }
 
 @Component({
@@ -20,17 +22,18 @@ export interface Game {
   styleUrl: './szachownica.component.css'
 })
 export class SzachownicaComponent implements OnInit {
-  private currentGame!: Game;
-  focusedPiece: HTMLElement | null = null;
-  focusedChessPiece: ChessPiece | null = null;
-  focusedLegalMoves: legalMove[][] = [];
+  public currentGame!: Game;
+  @Output() currentGameChange = new EventEmitter<Game>();
+  private focusedPiece: HTMLElement | null = null;
+  private focusedChessPiece: ChessPiece | null = null;
+  private focusedLegalMoves: legalMove[][] = [];
   constructor(protected chessService: ChessService, private renderer : Renderer2, private element : ElementRef) {
     this.chessService.updateBoard.subscribe(() => this.loadBoard())
     this.chessService.gameStart.subscribe((gameAtributes: Game) => this.startGame(gameAtributes))
     this.chessService.currentTurnColor.subscribe((gameTurnColor: PieceColor) => this.focusedColor = gameTurnColor);
   }
   focusedColor: PieceColor = 'white';
-
+  number_move : number = 0;
   loadBoard(): void {
     let board: HTMLElement = this.element.nativeElement.querySelector('main');
     (board.childNodes as NodeListOf<HTMLElement>).forEach((row: HTMLElement): void => {
@@ -155,6 +158,19 @@ export class SzachownicaComponent implements OnInit {
       this.renderer.appendChild(board, row);
     }
     this.loadBoard();
+    if((this.currentGame.type !== 'GraczVsGracz' || this.currentGame.type !== 'GraczVsGracz') && this.currentGame.mainPlayerColor === 'black') {
+      if(this.currentGame.type === 'GraczVsGrandmaster') {
+        let reader : FileReader = new FileReader();
+        reader.onload = () : void => {
+          let fileContent : string = reader.result as string;
+          let moves : string[] = fileContent.split(/\d+\.\s/).filter(Boolean);
+          moves.shift();
+          moves.forEach((move : string) : void => {
+          })
+        };
+        reader.readAsText(gameAttributes.grandmaster!)
+      }
+    }
   }
 
   PlayerVsPlayerLocal(element: HTMLElement, board: HTMLElement): void {
@@ -223,12 +239,64 @@ export class SzachownicaComponent implements OnInit {
 
   public startGame(gameAttributes: Game): void {
     this.currentGame = gameAttributes;
+    this.currentGameChange.emit(gameAttributes);
+
     this.initializeChessBoard(gameAttributes);
   }
-  private PlayerVSGrandMaster(element : HTMLElement, board : HTMLElement, gameAttributes : Game): void {
+  private PlayerVSGrandMaster(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
     console.log("Player vs Grandmaster");
     console.log(gameAttributes);
-
+    let position: Position = {row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!)};
+    let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
+    if (piece && piece.color === this.focusedColor) {
+      this.focusedChessPiece = piece;
+      this.focusedPiece = element;
+      let legalMoves = this.chessService.getLegalMovesForColor(piece.color).find((distinctPieceLegalMoves: { piece: ChessPiece, legalMoves: legalMove[][] }) => distinctPieceLegalMoves.piece === piece)?.legalMoves;
+      if (!(legalMoves && legalMoves.length > 0)) return;
+      this.focusedLegalMoves = legalMoves;
+      this.styleLegalMoves(board);
+      return;
+    }
+    if (this.focusedChessPiece) {
+      this.movePiece(this.focusedChessPiece!.position, position);
+      if(this.chessService.currentTurnColor.value !== gameAttributes.mainPlayerColor) return;
+      const pawns : string[] = ['N', 'B', 'R', 'Q', 'K'];
+      const rows : any = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
+      let reader : FileReader = new FileReader();
+      reader.onload = () : void => {
+        let fileContent: string = reader.result as string;
+        let moves: string[] = fileContent.split(/\d+\.\s/).filter(Boolean);
+        moves.shift();
+        for (let i : number = 0; i < moves.length; i++) {
+          let moveArray: string | string[] = moves[i].split('  ').filter(Boolean);
+          if (i === this.number_move && gameAttributes.mainPlayerColor === 'white') {
+            moveArray = moveArray[1].trimEnd().split(' ')[0].replace(/[+#]/g, '');
+            console.log(moveArray);
+            if (pawns.includes(moveArray[0])) {
+              console.log("Not Pawn move");
+            } else {
+              console.log("Pawn move");
+              let finalPosition: Position = { row: rows[moveArray[0]], col: parseInt(moveArray[1]) - 1 };
+              console.log(finalPosition);
+              let previousElement : HTMLImageElement = board.querySelector(`div[data-row="${finalPosition.row + 2}"][data-column="${finalPosition.col}"]`)?.querySelector('img') as HTMLImageElement;
+              let moveAttempt : MoveAttempt;
+              if(!previousElement) {
+                previousElement = board.querySelector(`div[data-row="${finalPosition.row + 1}"][data-column="${finalPosition.col}"]`)?.querySelector('img') as HTMLImageElement;
+                moveAttempt = {from: {row: finalPosition.row + 1, col: finalPosition.col}, to: {row: finalPosition.row, col: finalPosition.col}};
+              } else
+                moveAttempt = {from: {row: finalPosition.row + 2, col: finalPosition.col}, to: {row: finalPosition.row, col: finalPosition.col}};
+              console.log(moveAttempt, previousElement.parentElement);
+                  this.chessService.tryMove(moveAttempt)
+                  this.loadBoard();
+            }
+            this.number_move++;
+            break;
+          }
+        }
+      }
+      reader.readAsText(gameAttributes.grandmaster!)
+      this.chessService.currentTurnColor.next(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white');
+    }
   }
 
   public undoMove(): void {

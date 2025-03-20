@@ -1,11 +1,12 @@
 import { Component, ElementRef, Renderer2, ViewChild, ViewContainerRef } from '@angular/core';
-import {GameType, SzachownicaComponent} from './szachownica/szachownica.component';
+import {Game, GameType, SzachownicaComponent} from './szachownica/szachownica.component';
 import { ChessService } from './chess.service';
 import { ChessAiService } from './chess-ai.service';
 import {ZegarComponent} from './zegar/zegar.component';
 import {MenuComponent} from './menu/menu.component';
 import {NgIf, NgOptimizedImage} from '@angular/common';
 import { GameSelectorComponent } from './game-selector/game-selector.component';
+import {NerdViewComponent} from './nerd-view/nerd-view.component';
 // import {LocalGameComponent} from './local-game/local-game.component';
 // import {GameEndComponent} from './game-end/game-end.component';
 
@@ -25,18 +26,16 @@ export let pieces: { [key: string]: string } = {
 }
 @Component({
     selector: 'app-root',
-    imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf],
+  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf, NerdViewComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css'
 })
 export class AppComponent {
-  game : GameType | null = null;
-  grandMasterName : string = "";
-  file : File | null = null;
+  gameType : GameType | null = null;
+  game : Game | null = null;
   black : string = "black";
   white : string = "white";
-  black_time : number = 0;
-  white_time : number = 0;
+  time : number = 0;
 
   @ViewChild('gameSelectorContainer', { read: ViewContainerRef, static: true }) gameSelectorContainer!: ViewContainerRef;
     constructor(
@@ -61,9 +60,9 @@ export class AppComponent {
   selectGame(game: GameType | null): void {
     let chessboard: HTMLElement = this.element.nativeElement.querySelector('main');
     let zegar: NodeListOf<HTMLElement> = this.element.nativeElement.querySelectorAll('app-zegar');
-    this.game = game;
+    this.gameType = game;
     if (game === null) {
-      this.renderer.setStyle(chessboard, 'display', 'block');
+      this.renderer.setStyle(chessboard, 'display', 'flex');
       zegar.forEach((z: HTMLElement): void => {
         this.renderer.setStyle(z, 'display', 'block');
       });
@@ -75,25 +74,11 @@ export class AppComponent {
     }
 
   }
-
-  changeTime(time : number, color : string) : void {
-    switch(color) {
-      case 'black':
-        this.black_time = time;
-        break;
-      case 'white':
-        this.white_time = time;
-        break;
-    }
+  setGame(game : Game) : void {
+    this.game = game;
   }
 
-  setFile(event: File) : void {
-    this.file = event;
-    console.log(this.file);
-  }
-
-  setName(event: string) : void {
-    this.grandMasterName = event;
-    console.log(this.grandMasterName);
+  setTime(event : number) : void {
+    this.time = event;
   }
 }
