@@ -8,11 +8,18 @@
     <div>
       <app-zegar [color]="black" [time]="time"></app-zegar>
     </div>
-    <app-szachownica (currentGameChange)="setGame($event)"></app-szachownica>
+    <app-szachownica 
+      (currentGameChange)="setGame($event)" 
+      (moveExecuted)="notation.addMove($event)">
+    </app-szachownica>
     <div>
       <app-zegar [color]="white" [time]="time"></app-zegar>
     </div>
-    <app-nerd-view [game]="game"></app-nerd-view>
+    <div style="display: flex; width:80%; justify-content: space-between;">
+      <app-nerd-view [game]="game"></app-nerd-view>
+      <app-notation #notation></app-notation>
+    </div>
+
   </main>
   <app-game-selector *ngIf="gameType" [game]="gameType" (time)="setTime($event)"></app-game-selector>
 </div>

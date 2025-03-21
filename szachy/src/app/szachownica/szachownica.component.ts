@@ -24,6 +24,7 @@ export interface Game {
 export class SzachownicaComponent implements OnInit {
   public currentGame!: Game;
   @Output() currentGameChange = new EventEmitter<Game>();
+  @Output() moveExecuted = new EventEmitter<MoveAttempt>();
   private focusedPiece: HTMLElement | null = null;
   private focusedChessPiece: ChessPiece | null = null;
   private focusedLegalMoves: legalMove[][] = [];
@@ -210,6 +211,14 @@ export class SzachownicaComponent implements OnInit {
     let movedPieceColor: PieceColor = this.focusedChessPiece!.color;
     if (attempt) {
       console.log(`Move executed: from (${from.row}, ${from.col}) to (${to.row}, ${to.col})`);
+      const fromNotation = this.convertPositionToNotation(from);
+      const toNotation = this.convertPositionToNotation(to);
+      this.moveExecuted.emit({
+        from: { row: from.row, col: from.col },
+        to: { row: to.row, col: to.col },
+        specialMove: this.chessService.getSpecialMove(from, to) || undefined // Convert null to undefined
+      });
+    
       // After a valid human move, switch turn.
       this.focusedColor = movedPieceColor === "white" ? "black" : "white";
       if (this.currentGame.type === "GraczVsAi") {
@@ -302,5 +311,11 @@ export class SzachownicaComponent implements OnInit {
   public undoMove(): void {
     if (this.chessService.undoMove()) this.focusedColor = this.focusedColor === 'white' ? 'black' : 'white';
     this.loadBoard();
+  }
+  
+  convertPositionToNotation(position: { row: number, col: number }): string {
+    const column = String.fromCharCode(97 + position.col); // a-h
+    const row = 8 - position.row; // 1-8
+    return `${column}${row}`;
   }
 }

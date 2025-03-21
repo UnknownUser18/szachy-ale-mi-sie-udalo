@@ -6,6 +6,7 @@ import {ZegarComponent} from './zegar/zegar.component';
 import {MenuComponent} from './menu/menu.component';
 import {NgIf, NgOptimizedImage} from '@angular/common';
 import { GameSelectorComponent } from './game-selector/game-selector.component';
+import { NotationComponent } from './notation/notation.component';
 import {NerdViewComponent} from './nerd-view/nerd-view.component';
 // import {LocalGameComponent} from './local-game/local-game.component';
 // import {GameEndComponent} from './game-end/game-end.component';
@@ -26,7 +27,7 @@ export let pieces: { [key: string]: string } = {
 }
 @Component({
     selector: 'app-root',
-  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf, NerdViewComponent],
+  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf, NerdViewComponent, NotationComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css'
 })

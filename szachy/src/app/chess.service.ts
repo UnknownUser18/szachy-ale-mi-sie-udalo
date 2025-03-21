@@ -51,6 +51,7 @@ export interface Position{
 export interface MoveAttempt {
   from: Position;
   to: Position;
+  specialMove?: SpecialMove;
 }
 
 /*
@@ -118,6 +119,75 @@ export class ChessService {
 
   public setAiService(aiService: ChessAiService): void {
     this.chessAiService = aiService;
+  }
+
+  isCheck(): boolean {
+    const kingPosition = this.findKing(this.currentTurnColor.value);
+    return this.isSquareUnderAttack(kingPosition, this.currentTurnColor.value === 'white' ? 'black' : 'white');
+  }
+  
+  isCheckmate(): boolean {
+    if (!this.isCheck()) return false;
+  
+   
+    const legalMoves = this.getLegalMovesForColor(this.currentTurnColor.value);
+    return legalMoves.length === 0;
+  }
+  
+  // Pomocnicza metoda do znalezienia pozycji króla
+  private findKing(color: PieceColor): Position {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.board[row][col];
+        if (piece?.type === 'king' && piece.color === color) {
+          return { row, col };
+        }
+      }
+    }
+    throw new Error('King not found'); 
+  }
+  
+  // Funkcja pole atakowane
+  private isSquareUnderAttack(position: Position, attackingColor: PieceColor): boolean {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.board[row][col];
+        if (piece && piece.color === attackingColor) {
+          const legalMoves = this.calculateLegalMoves(piece);
+          if (legalMoves[position.row][position.col].isLegal) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  getSpecialMove(from: Position, to: Position): SpecialMove | null {
+    // Sprawdź, czy ruch jest roszadą
+    if (this.isCastle(from, to)) {
+      return to.col === 6 ? 'O-O' : 'O-O-O';
+    }
+  
+    // enpassant
+    if (this.isEnPassant(from, to)) {
+      return 'enpassant';
+    }
+  
+    return null; 
+  }
+  
+
+  private isCastle(from: Position, to: Position): boolean {
+    const piece = this.getPieceFromPosition(from);
+    return piece?.type === 'king' && Math.abs(to.col - from.col) === 2;
+  }
+  
+
+  private isEnPassant(from: Position, to: Position): boolean {
+    const piece = this.getPieceFromPosition(from);
+    const targetPiece = this.getPieceFromPosition(to);
+    return piece?.type === 'pawn' && !targetPiece && Math.abs(to.col - from.col) === 1;
   }
 
 
