@@ -125,15 +125,15 @@ export class ChessService {
     const kingPosition = this.findKing(this.currentTurnColor.value);
     return this.isSquareUnderAttack(kingPosition, this.currentTurnColor.value === 'white' ? 'black' : 'white');
   }
-  
+
   isCheckmate(): boolean {
     if (!this.isCheck()) return false;
-  
-   
+
+
     const legalMoves = this.getLegalMovesForColor(this.currentTurnColor.value);
     return legalMoves.length === 0;
   }
-  
+
   // Pomocnicza metoda do znalezienia pozycji króla
   private findKing(color: PieceColor): Position {
     for (let row = 0; row < 8; row++) {
@@ -144,9 +144,9 @@ export class ChessService {
         }
       }
     }
-    throw new Error('King not found'); 
+    throw new Error('King not found');
   }
-  
+
   // Funkcja pole atakowane
   private isSquareUnderAttack(position: Position, attackingColor: PieceColor): boolean {
     for (let row = 0; row < 8; row++) {
@@ -168,21 +168,21 @@ export class ChessService {
     if (this.isCastle(from, to)) {
       return to.col === 6 ? 'O-O' : 'O-O-O';
     }
-  
+
     // enpassant
     if (this.isEnPassant(from, to)) {
       return 'enpassant';
     }
-  
-    return null; 
+
+    return null;
   }
-  
+
 
   private isCastle(from: Position, to: Position): boolean {
     const piece = this.getPieceFromPosition(from);
     return piece?.type === 'king' && Math.abs(to.col - from.col) === 2;
   }
-  
+
 
   private isEnPassant(from: Position, to: Position): boolean {
     const piece = this.getPieceFromPosition(from);
@@ -869,8 +869,8 @@ export class ChessService {
         specialExecutes[`${currentLegalMove.special}`]();
     }
     console.log('Czy jest mat?', this.isMate(piece.color === 'white' ? 'black' : 'white'));
-    console.warn(this.countChessPieces());
-    console.log(this.lowEffortBoards)
+    // console.log('Ilość pionków : ', this.countChessPieces());
+    // console.log(this.lowEffortBoards)
     this.checkForDraw();
     return true;
   }

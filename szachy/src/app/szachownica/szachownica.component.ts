@@ -159,19 +159,6 @@ export class SzachownicaComponent implements OnInit {
       this.renderer.appendChild(board, row);
     }
     this.loadBoard();
-    if((this.currentGame.type !== 'GraczVsGracz' || this.currentGame.type !== 'GraczVsGracz') && this.currentGame.mainPlayerColor === 'black') {
-      if(this.currentGame.type === 'GraczVsGrandmaster') {
-        let reader : FileReader = new FileReader();
-        reader.onload = () : void => {
-          let fileContent : string = reader.result as string;
-          let moves : string[] = fileContent.split(/\d+\.\s/).filter(Boolean);
-          moves.shift();
-          moves.forEach((move : string) : void => {
-          })
-        };
-        reader.readAsText(gameAttributes.grandmaster!)
-      }
-    }
   }
 
   PlayerVsPlayerLocal(element: HTMLElement, board: HTMLElement): void {
@@ -218,7 +205,7 @@ export class SzachownicaComponent implements OnInit {
         to: { row: to.row, col: to.col },
         specialMove: this.chessService.getSpecialMove(from, to) || undefined // Convert null to undefined
       });
-    
+
       // After a valid human move, switch turn.
       this.focusedColor = movedPieceColor === "white" ? "black" : "white";
       if (this.currentGame.type === "GraczVsAi") {
@@ -252,6 +239,90 @@ export class SzachownicaComponent implements OnInit {
 
     this.initializeChessBoard(gameAttributes);
   }
+  private GrandMasterMove(board : HTMLElement, gameAttributes : Game): void {
+    const rows: any = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
+    function setMoveAttempt(finalPosition : Position, n_rows : number, n_columns : number) : MoveAttempt {
+      return {from: {row: finalPosition.row + n_rows, col: finalPosition.col + n_columns}, to: {row: finalPosition.row, col: finalPosition.col}};
+    }
+    let reader: FileReader = new FileReader();
+    reader.onload = (): void => {
+      let fileContent: string = reader.result as string;
+      let moves: string[] = fileContent.split(/\d+\.\s/).filter(Boolean);
+      moves.shift();
+      for (let i: number = 0; i < moves.length; i++) {
+        let moveArray: string | string[] = moves[i].split('  ').filter(Boolean);
+        if (i === this.number_move && gameAttributes.mainPlayerColor === 'white') {
+          moveArray = moveArray[1].trimEnd().split(' ')[0].replace(/[+#]/g, '');
+          console.warn(moveArray, "The final position should be: ", `Row: ${parseInt(moveArray[2]) - 1} Column: ${rows[moveArray[1]]}`);
+          let finalPosition : Position = {row : parseInt(moveArray[2]) - 1, col: rows[moveArray[1]]};
+          let moveAttempt: MoveAttempt | null = null;
+          let img : string | null = null;
+          switch (moveArray[0]) {
+            case 'N':
+              console.log("Knight move");
+              const knightMoves : Array<Position> = [
+                { row: 2, col: -1 },
+                { row: 2, col: 1 },
+                { row: 1, col: 2 },
+                { row: -1, col: 2 },
+                { row: -2, col: -1 },
+                { row: -2, col: 1 },
+                { row: 1, col: -2 },
+                { row: -1, col: -2 }
+              ];
+              for(const move of knightMoves) {
+                let newRow : number = finalPosition.row + move.row;
+                let newCol : number = finalPosition.col + move.col;
+                if(newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+                  let element : HTMLImageElement = board.querySelector(`div[data-row="${newRow}"][data-column="${newCol}"]`)?.querySelector('img') as HTMLImageElement;
+                  if(!element) continue;
+                  img = element.src as string;
+                  img = img.substring(img.indexOf('assets/'));
+                  if(img === pieces['black_knight'] || img === pieces['white_knight']) {
+                    moveAttempt = setMoveAttempt(finalPosition, newRow - finalPosition.row, newCol - finalPosition.col);
+                    break;
+                  }
+                }
+              }
+              break;
+            case 'B':
+              console.log("Bishop move");
+              moveAttempt = setMoveAttempt({row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]}, 0, 0);
+              break;
+            case 'R':
+              console.log("Rook move");
+              moveAttempt = setMoveAttempt({row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]}, 0, 0);
+              break;
+            case 'Q':
+              console.log("Queen move");
+              moveAttempt = setMoveAttempt({row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]}, 0, 0);
+              break;
+            case 'K':
+              console.log("King move");
+              moveAttempt = setMoveAttempt({row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]}, 0, 0);
+              break;
+            default:
+              console.log("Pawn move");
+              finalPosition = {row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]};
+              let element : HTMLImageElement = board.querySelector(`div[data-row="${finalPosition.row + 2}"][data-column="${finalPosition.col}"]`)?.querySelector('img') as HTMLImageElement;
+              if(element) {
+                img = element.src!;
+                img = img.substring(img.indexOf('assets/'));
+                moveAttempt = (img === pieces['black_pawn'] || img === pieces['white_pawn']) ? setMoveAttempt(finalPosition, 2, 0) : setMoveAttempt(finalPosition, 1, 0);
+              } else {
+                moveAttempt = setMoveAttempt(finalPosition, 1, 0);
+              }
+          }
+          this.chessService.tryMove(moveAttempt!);
+          this.loadBoard();
+          this.number_move++;
+          console.log("Move number: " + this.number_move);
+          break;
+        }
+      }
+    }
+    reader.readAsText(gameAttributes.grandmaster!)
+  }
   private PlayerVSGrandMaster(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
     console.log("Player vs Grandmaster");
     console.log(gameAttributes);
@@ -266,53 +337,18 @@ export class SzachownicaComponent implements OnInit {
       this.styleLegalMoves(board);
       return;
     }
-    if (this.focusedChessPiece) {
-      this.movePiece(this.focusedChessPiece!.position, position);
-      if(this.chessService.currentTurnColor.value !== gameAttributes.mainPlayerColor) return;
-      const pawns : string[] = ['N', 'B', 'R', 'Q', 'K'];
-      const rows : any = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
-      let reader : FileReader = new FileReader();
-      reader.onload = () : void => {
-        let fileContent: string = reader.result as string;
-        let moves: string[] = fileContent.split(/\d+\.\s/).filter(Boolean);
-        moves.shift();
-        for (let i : number = 0; i < moves.length; i++) {
-          let moveArray: string | string[] = moves[i].split('  ').filter(Boolean);
-          if (i === this.number_move && gameAttributes.mainPlayerColor === 'white') {
-            moveArray = moveArray[1].trimEnd().split(' ')[0].replace(/[+#]/g, '');
-            console.log(moveArray);
-            if (pawns.includes(moveArray[0])) {
-              console.log("Not Pawn move");
-            } else {
-              console.log("Pawn move");
-              let finalPosition: Position = { row: rows[moveArray[0]], col: parseInt(moveArray[1]) - 1 };
-              console.log(finalPosition);
-              let previousElement : HTMLImageElement = board.querySelector(`div[data-row="${finalPosition.row + 2}"][data-column="${finalPosition.col}"]`)?.querySelector('img') as HTMLImageElement;
-              let moveAttempt : MoveAttempt;
-              if(!previousElement) {
-                previousElement = board.querySelector(`div[data-row="${finalPosition.row + 1}"][data-column="${finalPosition.col}"]`)?.querySelector('img') as HTMLImageElement;
-                moveAttempt = {from: {row: finalPosition.row + 1, col: finalPosition.col}, to: {row: finalPosition.row, col: finalPosition.col}};
-              } else
-                moveAttempt = {from: {row: finalPosition.row + 2, col: finalPosition.col}, to: {row: finalPosition.row, col: finalPosition.col}};
-              console.log(moveAttempt, previousElement.parentElement);
-                  this.chessService.tryMove(moveAttempt)
-                  this.loadBoard();
-            }
-            this.number_move++;
-            break;
-          }
-        }
-      }
-      reader.readAsText(gameAttributes.grandmaster!)
-      this.chessService.currentTurnColor.next(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white');
-    }
+    if (!this.focusedChessPiece) return;
+    this.movePiece(this.focusedChessPiece!.position, position);
+    this.chessService.currentTurnColor.next(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white'); // flip turn
+    this.GrandMasterMove(board, gameAttributes);
+    this.chessService.currentTurnColor.next(this.chessService.currentTurnColor.value === 'white' ? 'black' : 'white'); // flip turn, and yes, it has to be twice.
   }
 
   public undoMove(): void {
     if (this.chessService.undoMove()) this.focusedColor = this.focusedColor === 'white' ? 'black' : 'white';
     this.loadBoard();
   }
-  
+
   convertPositionToNotation(position: { row: number, col: number }): string {
     const column = String.fromCharCode(97 + position.col); // a-h
     const row = 8 - position.row; // 1-8

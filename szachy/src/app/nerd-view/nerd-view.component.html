@@ -1,4 +1,3 @@
-<!-- narazie tylko dla grandmaster. -->
 <fieldset>
   <legend>Widok dla nerdów</legend>
   @if (!game) {
@@ -11,6 +10,7 @@
     @if (game.type !== 'GraczVsGracz') {
       <p>Kolor gracza: <b>{{ game.mainPlayerColor }}</b></p>
     }
+    <p>Obecny ruch: <b>{{ currentTurnColor }}</b></p>
     @if (game.type === 'GraczVsAi') {
       <p>Poziom trudności: <b>{{game.difficulty}}</b> "pod tablic"</p>
     }
@@ -20,5 +20,4 @@
       <p>Czarny gracz: <b>{{game.black_player}}</b></p>
     }
   }
-
 </fieldset>
