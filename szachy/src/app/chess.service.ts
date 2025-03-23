@@ -1056,9 +1056,8 @@ export class ChessService {
     piece.position = { ...moveAttempt.to };
     piece.moveTurn = true;
     piece.hasMoved = true;
-    this.logChessBoard();
     if(piece.type === 'pawn' && (piece.position.row === 0 || piece.position.row === 7)) this.promotePawn(piece);
-    this.logChessBoard()
+    // this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
     if(piece.type !== "pawn" && numberOfPieces === this.countChessPieces(this.board))

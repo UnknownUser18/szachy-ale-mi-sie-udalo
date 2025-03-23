@@ -1,6 +1,8 @@
 import {Component, ElementRef, OnInit, Renderer2, Output, EventEmitter} from '@angular/core';
 import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position, GameEndType, SpecialMove} from '../chess.service';
 import { pieces } from '../app.component';
+import { ChessAiService } from '../chess-ai.service';
+
 export type GameType = 'GraczVsGracz' | 'GraczVsSiec' | 'GraczVsAi' | 'GraczVsGrandmaster';
 
 export interface Game {
@@ -28,10 +30,10 @@ export class SzachownicaComponent implements OnInit {
   private focusedPiece: HTMLElement | null = null;
   private focusedChessPiece: ChessPiece | null = null;
   private focusedLegalMoves: legalMove[][] = [];
-  constructor(protected chessService: ChessService, private renderer : Renderer2, private element : ElementRef) {
-    this.chessService.updateBoard.subscribe(() => this.loadBoard())
-    this.chessService.gameStart.subscribe((gameAtributes: Game) => this.startGame(gameAtributes))
-    this.chessService.currentTurnColor.subscribe((gameTurnColor: PieceColor) => this.focusedColor = gameTurnColor);
+  constructor(private chessService : ChessService, private renderer : Renderer2, private element : ElementRef, private aiChessService : ChessAiService) {
+    this.chessService.updateBoard.subscribe(() : void => this.loadBoard())
+    this.chessService.gameStart.subscribe((gameAtributes: Game) : void => this.startGame(gameAtributes))
+    this.chessService.currentTurnColor.subscribe((gameTurnColor: PieceColor) : PieceColor => this.focusedColor = gameTurnColor);
   }
   focusedColor: PieceColor = 'white';
   number_move : number = 0;
@@ -183,15 +185,15 @@ export class SzachownicaComponent implements OnInit {
     this.PlayerVsPlayerLocal(element, board);
   }
 
-  movePiece(from: Position, to: Position): void {
+  movePiece(from: Position, to: Position): void | number {
     // Block moves from pieces not matching the focused turn.
     if (this.focusedChessPiece && this.focusedChessPiece.color !== this.focusedColor) {
       console.warn("It is not your turn.");
-      return;
+      return 1;
     }
     if (!this.focusedLegalMoves[to.row] || !this.focusedLegalMoves[to.row][to.col].isLegal) {
       console.warn("Illegal move attempted");
-      return;
+      return 1;
     }
     let moveAttempt: MoveAttempt = { from: { ...from }, to: { ...to } };
     let attempt: boolean = this.chessService.tryMove(moveAttempt);
@@ -239,11 +241,36 @@ export class SzachownicaComponent implements OnInit {
 
     this.initializeChessBoard(gameAttributes);
   }
-  private GrandMasterMove(board : HTMLElement, gameAttributes : Game): void {
-    const rows: any = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
-    function setMoveAttempt(finalPosition : Position, n_rows : number, n_columns : number) : MoveAttempt {
-      return {from: {row: finalPosition.row + n_rows, col: finalPosition.col + n_columns}, to: {row: finalPosition.row, col: finalPosition.col}};
+  private GrandMasterMove(board: HTMLElement, gameAttributes: Game): void {
+    const rows: any = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7 };
+
+    function setMoveAttempt(finalPosition: Position, n_rows: number, n_columns: number): MoveAttempt {
+      return { from: { row: finalPosition.row + n_rows, col: finalPosition.col + n_columns }, to: { row: finalPosition.row, col: finalPosition.col } };
     }
+
+    let findMoves = (moves: Array<Position>, finalPosition: Position, name: string): MoveAttempt | void => {
+      for (let directions of moves) {
+        let newRow: number = finalPosition.row;
+        let newCol: number = finalPosition.col;
+        while (true) {
+          newRow += directions.row;
+          newCol += directions.col;
+          if (newRow < 0 || newRow >= 8 || newCol < 0 || newCol >= 8) {
+            break;
+          }
+          let element: HTMLImageElement = board.querySelector(`div[data-row="${newRow}"][data-column="${newCol}"]`)?.querySelector('img') as HTMLImageElement;
+          if (!element) continue;
+          let img: string = element.src!;
+          img = img.substring(img.indexOf('assets/'));
+          if (img === pieces[`white_${name}`] || img === pieces[`black_${name}`]) {
+            console.warn(`${name} found at row: ${newRow}, col: ${newCol}`);
+            return setMoveAttempt(finalPosition, newRow - finalPosition.row, newCol - finalPosition.col);
+          }
+        }
+      }
+      return;
+    }
+
     let reader: FileReader = new FileReader();
     reader.onload = (): void => {
       let fileContent: string = reader.result as string;
@@ -253,67 +280,53 @@ export class SzachownicaComponent implements OnInit {
         let moveArray: string | string[] = moves[i].split('  ').filter(Boolean);
         if (i === this.number_move && gameAttributes.mainPlayerColor === 'white') {
           moveArray = moveArray[1].trimEnd().split(' ')[0].replace(/[+#]/g, '');
-          console.warn(moveArray, "The final position should be: ", `Row: ${parseInt(moveArray[2]) - 1} Column: ${rows[moveArray[1]]}`);
-          let finalPosition : Position = {row : parseInt(moveArray[2]) - 1, col: rows[moveArray[1]]};
+          let finalPosition: Position = { row: parseInt(moveArray[2]) - 1, col: rows[moveArray[1]] };
+          if (moveArray.includes('x') && moveArray.length > 3) {
+            console.warn("Found a capture move");
+            finalPosition.row = parseInt(moveArray[3]) - 1;
+            console.log(finalPosition);
+          }
           let moveAttempt: MoveAttempt | null = null;
-          let img : string | null = null;
           switch (moveArray[0]) {
             case 'N':
               console.log("Knight move");
-              const knightMoves : Array<Position> = [
-                { row: 2, col: -1 },
-                { row: 2, col: 1 },
-                { row: 1, col: 2 },
-                { row: -1, col: 2 },
-                { row: -2, col: -1 },
-                { row: -2, col: 1 },
-                { row: 1, col: -2 },
-                { row: -1, col: -2 }
-              ];
-              for(const move of knightMoves) {
-                let newRow : number = finalPosition.row + move.row;
-                let newCol : number = finalPosition.col + move.col;
-                if(newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-                  let element : HTMLImageElement = board.querySelector(`div[data-row="${newRow}"][data-column="${newCol}"]`)?.querySelector('img') as HTMLImageElement;
-                  if(!element) continue;
-                  img = element.src as string;
-                  img = img.substring(img.indexOf('assets/'));
-                  if(img === pieces['black_knight'] || img === pieces['white_knight']) {
-                    moveAttempt = setMoveAttempt(finalPosition, newRow - finalPosition.row, newCol - finalPosition.col);
-                    break;
-                  }
-                }
-              }
+              moveAttempt = findMoves([{ row: 2, col: -1 }, { row: 2, col: 1 }, { row: 1, col: 2 }, { row: -1, col: 2 }, { row: -2, col: -1 }, { row: -2, col: 1 }, { row: 1, col: -2 }, { row: -1, col: -2 }], finalPosition, 'knight')!;
               break;
             case 'B':
               console.log("Bishop move");
-              moveAttempt = setMoveAttempt({row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]}, 0, 0);
+              moveAttempt = findMoves([{ row: 1, col: 1 }, { row: 1, col: -1 }, { row: -1, col: 1 }, { row: -1, col: -1 }], finalPosition, 'bishop')!;
               break;
             case 'R':
               console.log("Rook move");
-              moveAttempt = setMoveAttempt({row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]}, 0, 0);
+              moveAttempt = findMoves([{ row: 1, col: 0 }, { row: -1, col: 0 }, { row: 0, col: 1 }, { row: 0, col: -1 }], finalPosition, 'rook')!;
               break;
             case 'Q':
               console.log("Queen move");
-              moveAttempt = setMoveAttempt({row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]}, 0, 0);
+              moveAttempt = findMoves([{ row: 1, col: 1 }, { row: 1, col: -1 }, { row: -1, col: 1 }, { row: -1, col: -1 }, { row: 1, col: 0 }, { row: -1, col: 0 }, { row: 0, col: 1 }, { row: 0, col: -1 }], finalPosition, 'queen')!;
               break;
             case 'K':
               console.log("King move");
-              moveAttempt = setMoveAttempt({row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]}, 0, 0);
+              moveAttempt = findMoves([{ row: 1, col: 1 }, { row: 1, col: -1 }, { row: -1, col: 1 }, { row: -1, col: -1 }, { row: 1, col: 0 }, { row: -1, col: 0 }, { row: 0, col: 1 }, { row: 0, col: -1 }], finalPosition, 'king')!;
               break;
             default:
               console.log("Pawn move");
-              finalPosition = {row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]};
-              let element : HTMLImageElement = board.querySelector(`div[data-row="${finalPosition.row + 2}"][data-column="${finalPosition.col}"]`)?.querySelector('img') as HTMLImageElement;
-              if(element) {
-                img = element.src!;
-                img = img.substring(img.indexOf('assets/'));
-                moveAttempt = (img === pieces['black_pawn'] || img === pieces['white_pawn']) ? setMoveAttempt(finalPosition, 2, 0) : setMoveAttempt(finalPosition, 1, 0);
-              } else {
-                moveAttempt = setMoveAttempt(finalPosition, 1, 0);
+              finalPosition = { row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]] };
+              if (moveArray.includes('x')) {
+                console.warn("Found a capture move");
+                finalPosition.row = parseInt(moveArray[2]) - 1;
+                finalPosition.col = rows[moveArray[1]];
               }
+              console.log("Pawn modified: ", finalPosition);
+              moveAttempt = findMoves([{ row: 2, col: 0 }, { row: 1, col: 0 }], finalPosition, 'pawn')!;
           }
-          this.chessService.tryMove(moveAttempt!);
+          let foundEverything: boolean = false;
+          if (moveAttempt?.from.row && moveAttempt?.from.row && moveAttempt?.to.row && moveAttempt?.to.col) foundEverything = true;
+          if (foundEverything) {
+            this.chessService.tryMove(moveAttempt!);
+          } else {
+            moveAttempt = this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!);
+            this.chessService.tryMove(moveAttempt!);
+          }
           this.loadBoard();
           this.number_move++;
           console.log("Move number: " + this.number_move);
@@ -324,24 +337,27 @@ export class SzachownicaComponent implements OnInit {
     reader.readAsText(gameAttributes.grandmaster!)
   }
   private PlayerVSGrandMaster(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
-    console.log("Player vs Grandmaster");
-    console.log(gameAttributes);
     let position: Position = {row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!)};
     let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
     if (piece && piece.color === this.focusedColor) {
       this.focusedChessPiece = piece;
       this.focusedPiece = element;
-      let legalMoves = this.chessService.getLegalMovesForColor(piece.color).find((distinctPieceLegalMoves: { piece: ChessPiece, legalMoves: legalMove[][] }) => distinctPieceLegalMoves.piece === piece)?.legalMoves;
+      let legalMoves = this.chessService.getLegalMovesForColor(piece.color).find((distinctPieceLegalMoves: { piece: ChessPiece, legalMoves: legalMove[][] }) : boolean => distinctPieceLegalMoves.piece === piece)?.legalMoves;
       if (!(legalMoves && legalMoves.length > 0)) return;
       this.focusedLegalMoves = legalMoves;
       this.styleLegalMoves(board);
       return;
     }
     if (!this.focusedChessPiece) return;
-    this.movePiece(this.focusedChessPiece!.position, position);
+    const result : number | void = this.movePiece(this.focusedChessPiece!.position, position);
+    if (result === 1) {
+      return console.warn("Illegal move attempted, grandmaster move will not be executed.");
+    }
     this.chessService.currentTurnColor.next(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white'); // flip turn
-    this.GrandMasterMove(board, gameAttributes);
-    this.chessService.currentTurnColor.next(this.chessService.currentTurnColor.value === 'white' ? 'black' : 'white'); // flip turn, and yes, it has to be twice.
+    setTimeout(() : void => {
+      this.GrandMasterMove(board, gameAttributes);
+      this.chessService.currentTurnColor.next(this.chessService.currentTurnColor.value === 'white' ? 'black' : 'white'); // flip turn, and yes, it has to be twice.
+    }, Math.floor(Math.random() * 1000) + 1000);
   }
 
   public undoMove(): void {
