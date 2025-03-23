@@ -144,10 +144,8 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   }
 
 
-  transformChessBoard(board: Array<string[]>): (ChessPiece | null)[][]
-  {
-    const colorDictionary: { [key: string]: PieceColor | null } = {'c': 'black', 'b': 'white', '': null};
-
+  transformChessBoard(board: Array<string[]>): (ChessPiece | null)[][] {
+    const colorDictionary: { [key: string]: PieceColor | null } = { 'c': 'black', 'b': 'white', '': null };
     const pieceTypeDictionary: { [key: string]: PieceType | null } = {
       'p': 'pawn',
       'r': 'rook',
@@ -160,23 +158,25 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     };
     board = board.reverse()
     let chessBoard: (ChessPiece | null)[][] = Array.from({ length: 8 }, () => new Array(8).fill(null));
-    for(let rowNum = 0; rowNum < board.length; rowNum++)
-      for(let colNum = 0; colNum < board[rowNum].length; colNum++)
-      {
+    for (let rowNum = 0; rowNum < board.length; rowNum++)
+      for (let colNum = 0; colNum < board[rowNum].length; colNum++) {
         const cell = board[rowNum][colNum];
-        if (!cell || cell === '') {
-          continue;
-        }
+        if (!cell || cell === '') continue;
         const [colorChar, pieceTypeChar] = cell.split('');
-
         const color = colorDictionary[colorChar] as PieceColor;
         const type = pieceTypeDictionary[pieceTypeChar] as PieceType;
-
         if (!color && type) {
           chessBoard[rowNum][colNum] = null;
           continue;
         }
-        chessBoard[rowNum][colNum] = { color: color, type: type, position: {row: rowNum, col: colNum}, lastPosition: {row: 0, col: 0}, hasMoved: false, moveTurn: false}
+        chessBoard[rowNum][colNum] = {
+          color: color,
+          type: type,
+          position: { row: rowNum, col: colNum },
+          lastPosition: { row: 0, col: 0 },
+          hasMoved: false,
+          moveTurn: false
+        }
       }
     console.log(board, chessBoard)
     return chessBoard
