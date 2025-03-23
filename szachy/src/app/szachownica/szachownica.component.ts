@@ -37,36 +37,49 @@ export class SzachownicaComponent implements OnInit {
   }
   focusedColor: PieceColor = 'white';
   number_move : number = 0;
-  loadBoard(): void {
-    let board: HTMLElement = this.element.nativeElement.querySelector('main');
-    (board.childNodes as NodeListOf<HTMLElement>).forEach((row: HTMLElement): void => {
-      (row.childNodes as NodeListOf<HTMLElement>).forEach((cell: HTMLElement): void => {
-        if (!(cell.hasAttribute('data-row') && cell.hasAttribute('data-column'))) return;
-        let rowNum: number = parseInt(cell.getAttribute('data-row')!);
-        let columnNum: number = parseInt(cell.getAttribute('data-column')!);
-        const pieceType = this.chessService.board[rowNum][columnNum]?.type.toString();
-        const pieceColor = this.chessService.board[rowNum][columnNum]?.color.toString();
-        if (pieceType && pieceColor) {
-          let childNodes = cell.childNodes as NodeListOf<HTMLElement>;
-          childNodes.forEach((cellNode: HTMLElement): void => {
-            if (cellNode.tagName === 'IMG') cell.removeChild(cellNode);
-          });
-          let img: HTMLImageElement = this.renderer.createElement('img');
-          img.src = pieces[pieceColor + '_' + pieceType];
-          cell.appendChild(img);
-          cell.classList.add('piece');
-          cell.setAttribute('draggable', 'true');
+loadBoard(): void {
+  let board: HTMLElement = this.element.nativeElement.querySelector('main');
+  (board.childNodes as NodeListOf<HTMLElement>).forEach((row: HTMLElement): void => {
+    (row.childNodes as NodeListOf<HTMLElement>).forEach((cell: HTMLElement): void => {
+      if (!(cell.hasAttribute('data-row') && cell.hasAttribute('data-column'))) return;
+      let rowNum: number = parseInt(cell.getAttribute('data-row')!);
+      let columnNum: number = parseInt(cell.getAttribute('data-column')!);
+      const pieceType = this.chessService.board[rowNum][columnNum]?.type.toString();
+      const pieceColor = this.chessService.board[rowNum][columnNum]?.color.toString();
+      if (pieceType && pieceColor) {
+        let childNodes = cell.childNodes as NodeListOf<HTMLElement>;
+        childNodes.forEach((cellNode: HTMLElement): void => {
+          if (cellNode.tagName === 'IMG') cell.removeChild(cellNode);
+        });
+        let img: HTMLImageElement = this.renderer.createElement('img');
+        img.src = pieces[pieceColor + '_' + pieceType];
+        cell.appendChild(img);
+        cell.classList.add('piece');
+        cell.setAttribute('draggable', 'true');
+      } else if (cell.classList.contains('piece')) {
+        if (!(cell.classList.contains('letter') || cell.classList.contains('number')))
+          cell.innerHTML = '';
+        cell.classList.remove('piece');
+        cell.removeAttribute('draggable');
+        if (cell.childNodes && cell.childNodes.length > 0) cell.removeChild(cell.querySelector('img')!);
+      }
+      if (cell.classList.contains('start')) {
+        if (!cell.querySelector('.number')) {
+          let span: HTMLElement = this.renderer.createElement('span');
+          span.textContent = '1';
+          span.classList.add('number');
+          this.renderer.appendChild(cell, span);
         }
-        else if(cell.classList.contains('piece')) {
-          if(!(cell.classList.contains('letter') || cell.classList.contains('number')))
-            cell.innerHTML = ''
-          cell.classList.remove('piece');
-          cell.removeAttribute('draggable');
-          if(cell.childNodes && cell.childNodes.length > 0) cell.removeChild(cell.querySelector('img')!);
+        if (!cell.querySelector('.letter')) {
+          let span: HTMLElement = this.renderer.createElement('span');
+          span.textContent = 'a';
+          span.classList.add('letter');
+          this.renderer.appendChild(cell, span);
         }
-      })
-    })
-  }
+      }
+    });
+  });
+}
 
   styleLegalMoves(board: HTMLElement): void {
     board.querySelectorAll('.moved').forEach((cell: Element): void => { cell.classList.remove('moved') });
@@ -161,6 +174,15 @@ export class SzachownicaComponent implements OnInit {
       this.renderer.appendChild(board, row);
     }
     this.loadBoard();
+    setTimeout(() : void => {
+      if(gameAttributes.mainPlayerColor === 'black' && (gameAttributes.type === 'GraczVsGrandmaster' || gameAttributes.type === 'GraczVsAi')) {
+        if(gameAttributes.type === 'GraczVsGrandmaster') {
+          this.GrandMasterMove(board, gameAttributes);
+        } else {
+          this.chessService.attemptAiMove('black');
+        }
+      }
+    }, Math.floor(Math.random() * 1000) + 1000);
   }
 
   PlayerVsPlayerLocal(element: HTMLElement, board: HTMLElement): void {
@@ -249,10 +271,14 @@ export class SzachownicaComponent implements OnInit {
     }
 
     let findMoves = (moves: Array<Position>, finalPosition: Position, name: string): MoveAttempt | void => {
+      if(!(moves && finalPosition && name)) {
+        console.error("Invalid arguments passed to findMoves");
+        return;
+      }
       for (let directions of moves) {
         let newRow: number = finalPosition.row;
         let newCol: number = finalPosition.col;
-        while (true) {
+        while(true) {
           newRow += directions.row;
           newCol += directions.col;
           if (newRow < 0 || newRow >= 8 || newCol < 0 || newCol >= 8) {
@@ -278,18 +304,19 @@ export class SzachownicaComponent implements OnInit {
       moves.shift();
       for (let i: number = 0; i < moves.length; i++) {
         let moveArray: string | string[] = moves[i].split('  ').filter(Boolean);
-        if (i === this.number_move && gameAttributes.mainPlayerColor === 'white') {
-          moveArray = moveArray[1].trimEnd().split(' ')[0].replace(/[+#]/g, '');
+        if (i === this.number_move) {
+          moveArray = gameAttributes.mainPlayerColor === 'white' ? moveArray[1] : moveArray[0];
+          moveArray = moveArray.trimEnd().split(' ')[0].replace(/[+#]/g, '');
           let finalPosition: Position = { row: parseInt(moveArray[2]) - 1, col: rows[moveArray[1]] };
-          if (moveArray.includes('x') && moveArray.length > 3) {
-            console.warn("Found a capture move");
+          if (moveArray.includes('x')) {
             finalPosition.row = parseInt(moveArray[3]) - 1;
-            console.log(finalPosition);
+            finalPosition.col = rows[moveArray[2]];
           }
           let moveAttempt: MoveAttempt | null = null;
           switch (moveArray[0]) {
             case 'N':
               console.log("Knight move");
+              // let knightMoves : Array<Position> = ;
               moveAttempt = findMoves([{ row: 2, col: -1 }, { row: 2, col: 1 }, { row: 1, col: 2 }, { row: -1, col: 2 }, { row: -2, col: -1 }, { row: -2, col: 1 }, { row: 1, col: -2 }, { row: -1, col: -2 }], finalPosition, 'knight')!;
               break;
             case 'B':
@@ -310,22 +337,30 @@ export class SzachownicaComponent implements OnInit {
               break;
             default:
               console.log("Pawn move");
-              finalPosition = { row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]] };
+              let pawn_attempt : Array<Position> = [{ row: 1, col: 0 }, { row: 2, col: 0 }];
               if (moveArray.includes('x')) {
                 console.warn("Found a capture move");
-                finalPosition.row = parseInt(moveArray[2]) - 1;
-                finalPosition.col = rows[moveArray[1]];
+                pawn_attempt = [{ row: 1, col: 1 }, { row: 1, col: -1 }];
+              } else {
+                finalPosition = { row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]] };
+              }
+              if(gameAttributes.mainPlayerColor === 'black') {
+                pawn_attempt = pawn_attempt.map((position: Position) : Position => ({ row: -position.row, col: position.col }));
               }
               console.log("Pawn modified: ", finalPosition);
-              moveAttempt = findMoves([{ row: 2, col: 0 }, { row: 1, col: 0 }], finalPosition, 'pawn')!;
+              moveAttempt = findMoves(pawn_attempt, finalPosition, 'pawn')!;
           }
           let foundEverything: boolean = false;
           if (moveAttempt?.from.row && moveAttempt?.from.row && moveAttempt?.to.row && moveAttempt?.to.col) foundEverything = true;
-          if (foundEverything) {
-            this.chessService.tryMove(moveAttempt!);
-          } else {
+          if(!foundEverything)
             moveAttempt = this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!);
+          try {
+            console.log(moveAttempt)
             this.chessService.tryMove(moveAttempt!);
+          } catch(err) {
+            console.error("Error while executing grandmaster move", err);
+            console.log("Switching to AI move");
+            this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!)!);
           }
           this.loadBoard();
           this.number_move++;

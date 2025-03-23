@@ -852,8 +852,7 @@ export class ChessService {
     let currentLegalMove = legalMoves[moveAttempt.to.row][moveAttempt.to.col];
     if (!currentLegalMove.isLegal) {
       console.warn(rawMoves, legalMoves)
-      console.error('Ruch niedozwolony lub pozostawi króla w szachu.');
-      return false;
+      throw new Error('Ruch niedozwolony lub pozostawi króla w szachu.');
     }
     // Wykonanie ruchu – jeśli na docelowej pozycji znajduje się przeciwnik, następuje bicie.
     if(!currentLegalMove.special)
