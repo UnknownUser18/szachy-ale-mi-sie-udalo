@@ -37,6 +37,7 @@ export class SzachownicaComponent implements OnInit {
   }
   focusedColor: PieceColor = 'white';
   number_move : number = 0;
+  cashedGrandmasterGames : string[] = [];
 loadBoard(): void {
   let board: HTMLElement = this.element.nativeElement.querySelector('main');
   (board.childNodes as NodeListOf<HTMLElement>).forEach((row: HTMLElement): void => {
@@ -177,11 +178,12 @@ loadBoard(): void {
     setTimeout(() : void => {
       if(gameAttributes.mainPlayerColor === 'black' && (gameAttributes.type === 'GraczVsGrandmaster' || gameAttributes.type === 'GraczVsAi')) {
         if(gameAttributes.type === 'GraczVsGrandmaster') {
-          this.GrandMasterMove(board, gameAttributes);
+          this.GrandMasterMove(board, gameAttributes, null, null);
         } else {
           this.chessService.attemptAiMove('black');
         }
       }
+      this.chessService.currentTurnColor.next(gameAttributes.mainPlayerColor === 'black' ? 'black' : 'white'); // flip turn
     }, Math.floor(Math.random() * 1000) + 1000);
   }
 
@@ -263,18 +265,15 @@ loadBoard(): void {
 
     this.initializeChessBoard(gameAttributes);
   }
-  private GrandMasterMove(board: HTMLElement, gameAttributes: Game): void {
+  private GrandMasterMove(board : HTMLElement, gameAttributes : Game, lastMove : Position | null, piece : string | null): void {
     const rows: any = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7 };
-
+    const pieces_local : any = {'pawn' : '', 'knight' : 'N', 'bishop' : 'B', 'rook' : 'R', 'queen' : 'Q', 'king' : 'K'};
     function setMoveAttempt(finalPosition: Position, n_rows: number, n_columns: number): MoveAttempt {
       return { from: { row: finalPosition.row + n_rows, col: finalPosition.col + n_columns }, to: { row: finalPosition.row, col: finalPosition.col } };
     }
 
     let findMoves = (moves: Array<Position>, finalPosition: Position, name: string): MoveAttempt | void => {
-      if(!(moves && finalPosition && name)) {
-        console.error("Invalid arguments passed to findMoves");
-        return;
-      }
+      if(!(moves && finalPosition && name)) throw new Error("Invalid arguments passed to findMoves");
       for (let directions of moves) {
         let newRow: number = finalPosition.row;
         let newCol: number = finalPosition.col;
@@ -296,13 +295,28 @@ loadBoard(): void {
       }
       return;
     }
-
     let reader: FileReader = new FileReader();
     reader.onload = (): void => {
-      let fileContent: string = reader.result as string;
-      let moves: string[] = fileContent.split(/\d+\.\s/).filter(Boolean);
+      let lastPlayerPosition : string = pieces_local[piece!] + (String.fromCharCode(Number(lastMove?.col) + 65) + (lastMove?.row! + 1)).toLowerCase();
+      let partie : string[] | string = (reader.result as string).split(`\r\n\r\n\r\n\r\n\r\n\r\n`); // please really ignore this.
+      if(this.cashedGrandmasterGames.length > 0) partie = this.cashedGrandmasterGames;
+      partie = partie.filter((part : string) : boolean => {
+        if(gameAttributes.mainPlayerColor === 'black')
+          return part.match(`\\b${this.number_move+1}. [a-zA-Z0-9]{1,4} {2}${lastPlayerPosition}.`) !== null;
+        else
+          return part.match(`\\b${this.number_move+1}. ${lastPlayerPosition} {2}[a-zA-Z0-9]{1,4}.`) !== null;
+      });
+      if(partie.length === 0) {
+        this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!)!);
+        this.loadBoard();
+        return;
+      } else {
+        this.cashedGrandmasterGames = partie;
+        partie = partie[Math.floor(Math.random() * partie.length)];
+      }
+      let moves: string[] = partie.split(/\d+\.\s/).filter(Boolean);
       moves.shift();
-      for (let i: number = 0; i < moves.length; i++) {
+      for (let i : number = 0; i < moves.length; i++) {
         let moveArray: string | string[] = moves[i].split('  ').filter(Boolean);
         if (i === this.number_move) {
           moveArray = gameAttributes.mainPlayerColor === 'white' ? moveArray[1] : moveArray[0];
@@ -315,47 +329,32 @@ loadBoard(): void {
           let moveAttempt: MoveAttempt | null = null;
           switch (moveArray[0]) {
             case 'N':
-              console.log("Knight move");
-              // let knightMoves : Array<Position> = ;
               moveAttempt = findMoves([{ row: 2, col: -1 }, { row: 2, col: 1 }, { row: 1, col: 2 }, { row: -1, col: 2 }, { row: -2, col: -1 }, { row: -2, col: 1 }, { row: 1, col: -2 }, { row: -1, col: -2 }], finalPosition, 'knight')!;
               break;
             case 'B':
-              console.log("Bishop move");
               moveAttempt = findMoves([{ row: 1, col: 1 }, { row: 1, col: -1 }, { row: -1, col: 1 }, { row: -1, col: -1 }], finalPosition, 'bishop')!;
               break;
             case 'R':
-              console.log("Rook move");
               moveAttempt = findMoves([{ row: 1, col: 0 }, { row: -1, col: 0 }, { row: 0, col: 1 }, { row: 0, col: -1 }], finalPosition, 'rook')!;
               break;
             case 'Q':
-              console.log("Queen move");
               moveAttempt = findMoves([{ row: 1, col: 1 }, { row: 1, col: -1 }, { row: -1, col: 1 }, { row: -1, col: -1 }, { row: 1, col: 0 }, { row: -1, col: 0 }, { row: 0, col: 1 }, { row: 0, col: -1 }], finalPosition, 'queen')!;
               break;
             case 'K':
-              console.log("King move");
               moveAttempt = findMoves([{ row: 1, col: 1 }, { row: 1, col: -1 }, { row: -1, col: 1 }, { row: -1, col: -1 }, { row: 1, col: 0 }, { row: -1, col: 0 }, { row: 0, col: 1 }, { row: 0, col: -1 }], finalPosition, 'king')!;
               break;
             default:
-              console.log("Pawn move");
               let pawn_attempt : Array<Position> = [{ row: 1, col: 0 }, { row: 2, col: 0 }];
               if (moveArray.includes('x')) {
-                console.warn("Found a capture move");
                 pawn_attempt = [{ row: 1, col: 1 }, { row: 1, col: -1 }];
               } else {
                 finalPosition = { row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]] };
               }
-              if(gameAttributes.mainPlayerColor === 'black') {
+              if(gameAttributes.mainPlayerColor === 'black')
                 pawn_attempt = pawn_attempt.map((position: Position) : Position => ({ row: -position.row, col: position.col }));
-              }
-              console.log("Pawn modified: ", finalPosition);
               moveAttempt = findMoves(pawn_attempt, finalPosition, 'pawn')!;
           }
-          let foundEverything: boolean = false;
-          if (moveAttempt?.from.row && moveAttempt?.from.row && moveAttempt?.to.row && moveAttempt?.to.col) foundEverything = true;
-          if(!foundEverything)
-            moveAttempt = this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!);
           try {
-            console.log(moveAttempt)
             this.chessService.tryMove(moveAttempt!);
           } catch(err) {
             console.error("Error while executing grandmaster move", err);
@@ -364,7 +363,6 @@ loadBoard(): void {
           }
           this.loadBoard();
           this.number_move++;
-          console.log("Move number: " + this.number_move);
           break;
         }
       }
@@ -384,13 +382,14 @@ loadBoard(): void {
       return;
     }
     if (!this.focusedChessPiece) return;
+    const type : string = this.focusedChessPiece?.type;
     const result : number | void = this.movePiece(this.focusedChessPiece!.position, position);
     if (result === 1) {
       return console.warn("Illegal move attempted, grandmaster move will not be executed.");
     }
     this.chessService.currentTurnColor.next(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white'); // flip turn
     setTimeout(() : void => {
-      this.GrandMasterMove(board, gameAttributes);
+      this.GrandMasterMove(board, gameAttributes, position, type);
       this.chessService.currentTurnColor.next(this.chessService.currentTurnColor.value === 'white' ? 'black' : 'white'); // flip turn, and yes, it has to be twice.
     }, Math.floor(Math.random() * 1000) + 1000);
   }

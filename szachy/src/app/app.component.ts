@@ -29,7 +29,7 @@ export let pieces: { [key: string]: string } = {
     selector: 'app-root',
   imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf, NerdViewComponent, NotationComponent],
     templateUrl: './app.component.html',
-    styleUrl: './app.component.css'
+    styleUrl: './app.component.css',
 })
 export class AppComponent {
   gameType : GameType | null = null;

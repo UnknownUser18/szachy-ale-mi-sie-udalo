@@ -2,6 +2,7 @@ import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, Renderer
 import {NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {Game, GameType} from '../szachownica/szachownica.component';
 import {FormsModule} from '@angular/forms';
+import {HttpClient} from '@angular/common/http';
 import {ChessService,ChessPiece, PieceColor, PieceType} from '../chess.service';
 
 @Component({
@@ -17,32 +18,21 @@ import {ChessService,ChessPiece, PieceColor, PieceType} from '../chess.service';
 })
 export class GameSelectorComponent implements OnChanges, AfterViewInit {
   @Input({ required: true }) game: GameType | undefined;
-  @Output() time = new EventEmitter<number>();
+  @Output() time : EventEmitter<number> = new EventEmitter<number>();
   universalTime: number = 0;
   kolorGracza: PieceColor = 'white';
-  constructor(private renderer: Renderer2, private element: ElementRef, private chessService: ChessService) {}
+  constructor(private renderer: Renderer2, private element: ElementRef, private chessService: ChessService, private http : HttpClient) {}
   pawns : Array<string[]> = this.defaultChessBoard();
   pawns_string : string[] = ['cw','cs','cg','ch','ck','cp','bw','bs','bg','bh','bk','bp'];
   pawns_names: { [key: string]: string } = {
-  'cw': 'Czarna Wieża',
-  'cs': 'Czarny Skoczek',
-  'cg': 'Czarny Goniec',
-  'ch': 'Czarny Hetman',
-  'ck': 'Czarny Król',
-  'cp': 'Czarny Pionek',
-  'bw': 'Biała Wieża',
-  'bs': 'Biały Skoczek',
-  'bg': 'Biały Goniec',
-  'bh': 'Biały Hetman',
-  'bk': 'Biały Król',
-  'bp': 'Biały Pionek'
+    'cw': 'Czarna Wieża', 'cs': 'Czarny Skoczek', 'cg': 'Czarny Goniec', 'ch': 'Czarny Hetman', 'ck': 'Czarny Król', 'cp': 'Czarny Pionek',
+    'bw': 'Biała Wieża', 'bs': 'Biały Skoczek', 'bg': 'Biały Goniec', 'bh': 'Biały Hetman', 'bk': 'Biały Król', 'bp': 'Biały Pionek'
   };
   mainPlayerColor : string = 'white';
   ai_difficulty : number = 2;
   black_grandmaster: string | undefined = undefined;
   white_grandmaster: string | undefined = undefined;
-  grandmaster: string = 'NA';
-  type = {
+  type : { [key in GameType] : string } = {
     GraczVsGracz: 'Gracz vs Gracz (1 komputer)',
     GraczVsSiec: 'Gracz vs Gracz (Sieć lokalna)',
     GraczVsGrandmaster: 'Gracz vs Grandmaster',
@@ -62,7 +52,6 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     chessboard.addEventListener('dragover', (event: DragEvent): void => {
       event.preventDefault();
     });
-
     chessboard.addEventListener('drop', (event: DragEvent): void => {
       event.preventDefault();
       const data = JSON.parse(event.dataTransfer!.getData('text/plain'));
@@ -195,7 +184,6 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       this.pawns = this.defaultChessBoard()
       if(changes['game'].previousValue === 'GraczVsGrandmaster') {
         setTimeout(() : void => {
-          this.grandmaster = 'NA';
           let chessboard : HTMLElement = this.renderer.createElement('div');
           chessboard.classList.add('chessboard');
           let chess : HTMLElement = this.element.nativeElement.querySelector('.chess');
@@ -216,7 +204,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
 
   startGame() : void {
     console.log('Starting Game');
-    let gameAtributes: Game = {
+    let gameAttributes: Game = {
       board: this.transformChessBoard(this.pawns) ?? this.transformChessBoard(this.pawns),
       type: this.game ?? 'GraczVsGracz',
       duration: this.universalTime,
@@ -225,26 +213,23 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       difficulty: this.ai_difficulty ?? undefined
     }
     if(this.game === 'GraczVsGrandmaster') {
-      gameAtributes.mainPlayerColor = this.mainPlayerColor as PieceColor;
+      gameAttributes.mainPlayerColor = this.mainPlayerColor as PieceColor;
       if(this.mainPlayerColor === 'white') {
-        gameAtributes.black_player = this.black_grandmaster;
-        gameAtributes.white_player = 'Gracz';
+        gameAttributes.black_player = this.black_grandmaster;
+        gameAttributes.white_player = 'Gracz';
       } else {
-        gameAtributes.white_player = this.white_grandmaster;
-        gameAtributes.black_player = 'Gracz';
+        gameAttributes.white_player = this.white_grandmaster;
+        gameAttributes.black_player = 'Gracz';
       }
     }
-    this.chessService.startGame(gameAtributes);
+    this.chessService.startGame(gameAttributes);
   }
 
   loadFile(event : Event) : void {
    let input : HTMLInputElement = event.target as HTMLInputElement;
    if(input.files && input.files.length > 0) {
      let file : File = input.files[0];
-     if(!file.name.endsWith('pgn')) {
-       console.error("Plik musi być w formacie PGN, a nie " + file.name.split('.').pop());
-       return;
-     }
+     if(!file.name.endsWith('pgn')) throw new Error("Plik musi być w formacie PGN, a nie " + file.name.split('.').pop());
      let reader : FileReader = new FileReader();
      let select : HTMLSelectElement = this.renderer.createElement('select');
      reader.onload = () : void => {
@@ -270,7 +255,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
            this.black_grandmaster = line.split('"')[1];
            select.appendChild(option);
          }
-       })
+       });
      }
      reader.readAsText(file);
      this.grandmasterFile = file;
@@ -324,5 +309,33 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
         break;
     }
     this.kolorGracza = type === 'white' ? 'white' : 'black';
+  }
+  grandmasterChange(type : Event) : void {
+    let target : HTMLSelectElement = type.target as HTMLSelectElement;
+    if(target.value === 'NA') return;
+    let select : HTMLSelectElement = this.renderer.createElement('select');
+    let option_dark : HTMLOptionElement = this.renderer.createElement('option');
+    option_dark.value = 'Czarni';
+    option_dark.textContent = 'Czarni';
+    let option_light : HTMLOptionElement = this.renderer.createElement('option');
+    option_light.value = 'Biali';
+    option_light.textContent = 'Biali';
+    select.appendChild(option_dark);
+    select.appendChild(option_light);
+    select.addEventListener('change', () : void => {
+      this.mainPlayerColor = select.value === 'Czarni' ? 'white' : 'black';
+    });
+    setTimeout(() : void => {
+      let lastChild : HTMLElement = this.element.nativeElement.querySelector('.grandmaster > div:last-child')!;
+      if(lastChild.childNodes.length > 1) lastChild.removeChild(lastChild.childNodes[1]);
+      lastChild.appendChild(select);
+     }, 10) // musi być timeout, bo inaczej dodaje do "wybierz plik"
+    try {
+      this.http.get(`../../../assets/pgn/${target.value}.pgn`, { responseType: 'blob' }).subscribe((file: Blob) : void => {
+        this.grandmasterFile = file as File;
+      });
+    } catch(e) {
+      console.error("Błąd w odczytywaniu bazy danych.", e);
+    }
   }
 }
