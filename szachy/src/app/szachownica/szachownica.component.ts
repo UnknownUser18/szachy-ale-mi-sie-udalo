@@ -158,7 +158,7 @@ loadBoard(): void {
         const executeForGameType = {
             "GraczVsGracz": () => this.PlayerVsPlayerLocal(element, board),
             "GraczVsSiec": () => {},
-            "GraczVsAi": () => {},
+            "GraczVsAi": () => this.PlayerVsAi(element, board, gameAttributes),
             "GraczVsGrandmaster": () : void => this.PlayerVSGrandMaster(element, board, gameAttributes),
           }
         element.addEventListener('drop', (event: DragEvent): void => {
@@ -202,9 +202,28 @@ loadBoard(): void {
   }
 
   // For cases where a human click should trigger the same logic as a drag action
-  PlayerVsAi(element: HTMLElement, board: HTMLElement): void {
-    // This can be implemented similarly to PlayerVsPlayerLocal if needed
-    this.PlayerVsPlayerLocal(element, board);
+  public PlayerVsAi(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
+    let position: Position = {
+      row: parseInt(element.getAttribute('data-row')!),
+      col: parseInt(element.getAttribute('data-column')!)
+    };
+    let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
+
+    if (piece && piece.color === this.focusedColor) {
+      this.focusedChessPiece = piece;
+      this.focusedPiece = element;
+      let moves = this.chessService
+        .getLegalMovesForColor(piece.color)
+        .find((m) => m.piece === piece)?.legalMoves;
+      if (moves) {
+        this.focusedLegalMoves = moves;
+        this.styleLegalMoves(board);
+      }
+      return;
+    }
+    if (this.focusedChessPiece) {
+      this.movePiece(this.focusedChessPiece.position, position);
+    }
   }
 
   movePiece(from: Position, to: Position): void | number {
@@ -372,6 +391,8 @@ loadBoard(): void {
     reader.readAsText(gameAttributes.grandmaster!)
   }
   private PlayerVSGrandMaster(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
+    console.log("Player vs Grandmaster");
+    console.log(gameAttributes);
     let position: Position = {row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!)};
     let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
     if (piece && piece.color === this.focusedColor) {
