@@ -705,10 +705,7 @@ export class ChessService {
       }
       if (kingPos) break;
     }
-    if (!kingPos) {
-      console.error(`Brak króla dla koloru ${color}`);
-      return false;
-    }
+    if (!kingPos) throw new Error(`Brak króla dla koloru ${color}`);
     const enemyColor: PieceColor = color === 'white' ? 'black' : 'white';
     // Dla każdej bierki przeciwnika sprawdzamy, czy ma ruch trafiający w pozycję króla.
     for (let row = 0; row < 8; row++) {
