@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, Renderer2, Output, EventEmitter} from '@angular/core';
+import {Component, ElementRef, Renderer2, Output, EventEmitter} from '@angular/core';
 import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position, GameEndType, SpecialMove} from '../chess.service';
 import { pieces } from '../app.component';
 import { ChessAiService } from '../chess-ai.service';
@@ -23,16 +23,16 @@ export interface Game {
   standalone: true,
   styleUrl: './szachownica.component.css'
 })
-export class SzachownicaComponent implements OnInit {
+export class SzachownicaComponent {
   public currentGame!: Game;
-  @Output() currentGameChange = new EventEmitter<Game>();
-  @Output() moveExecuted = new EventEmitter<MoveAttempt>();
+  @Output() currentGameChange : EventEmitter<Game> = new EventEmitter<Game>();
+  @Output() moveExecuted : EventEmitter<MoveAttempt> = new EventEmitter<MoveAttempt>();
   private focusedPiece: HTMLElement | null = null;
   private focusedChessPiece: ChessPiece | null = null;
   private focusedLegalMoves: legalMove[][] = [];
   constructor(private chessService : ChessService, private renderer : Renderer2, private element : ElementRef, private aiChessService : ChessAiService) {
     this.chessService.updateBoard.subscribe(() : void => this.loadBoard())
-    this.chessService.gameStart.subscribe((gameAtributes: Game) : void => this.startGame(gameAtributes))
+    this.chessService.gameStart.subscribe((gameAttributes: Game) : void => this.startGame(gameAttributes))
     this.chessService.currentTurnColor.subscribe((gameTurnColor: PieceColor) : PieceColor => this.focusedColor = gameTurnColor);
   }
   focusedColor: PieceColor = 'white';
@@ -104,13 +104,6 @@ loadBoard(): void {
     board.querySelectorAll('.active').forEach((cell: Element): void => { cell.classList.remove('active') });
     if (this.focusedChessPiece) this.focusedPiece!.classList.add('active');
   }
-
-  ngOnInit(): void {
-    this.loadBoard();
-    // Default game can be started here
-    this.startGame({ type: 'GraczVsGracz', duration: 600, mainPlayerColor: 'white' });
-  }
-
   initializeChessBoard(gameAttributes: Game): void {
     if(!!gameAttributes.board)
       this.chessService.board = gameAttributes.board
@@ -175,16 +168,17 @@ loadBoard(): void {
       this.renderer.appendChild(board, row);
     }
     this.loadBoard();
-    setTimeout(() : void => {
-      if(gameAttributes.mainPlayerColor === 'black' && (gameAttributes.type === 'GraczVsGrandmaster' || gameAttributes.type === 'GraczVsAi')) {
+    if(gameAttributes.mainPlayerColor === 'black' && (gameAttributes.type === 'GraczVsGrandmaster' || gameAttributes.type === 'GraczVsAi')) {
+      setTimeout(() : void => {
         if(gameAttributes.type === 'GraczVsGrandmaster') {
           this.GrandMasterMove(board, gameAttributes, null, null);
         } else {
           this.chessService.attemptAiMove('black');
         }
-      }
       this.chessService.currentTurnColor.next(gameAttributes.mainPlayerColor === 'black' ? 'black' : 'white'); // flip turn
-    }, Math.floor(Math.random() * 1000) + 1000);
+      }, Math.floor(Math.random() * 1000) + 1000);
+    }
+
   }
 
   PlayerVsPlayerLocal(element: HTMLElement, board: HTMLElement): void {
@@ -281,7 +275,6 @@ loadBoard(): void {
   public startGame(gameAttributes: Game): void {
     this.currentGame = gameAttributes;
     this.currentGameChange.emit(gameAttributes);
-
     this.initializeChessBoard(gameAttributes);
   }
   private GrandMasterMove(board : HTMLElement, gameAttributes : Game, lastMove : Position | null, piece : string | null): void {
@@ -389,8 +382,6 @@ loadBoard(): void {
     reader.readAsText(gameAttributes.grandmaster!)
   }
   private PlayerVSGrandMaster(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
-    console.log("Player vs Grandmaster");
-    console.log(gameAttributes);
     let position: Position = {row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!)};
     let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
     if (piece && piece.color === this.focusedColor) {

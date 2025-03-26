@@ -12,22 +12,22 @@ import {NerdViewComponent} from './nerd-view/nerd-view.component';
 // import {GameEndComponent} from './game-end/game-end.component';
 
 export let pieces: { [key: string]: string } = {
-  'black_pawn': `assets/cp.svg`,
-  'white_pawn': `assets/bp.svg`,
-  'black_rook': `assets/cw.svg`,
-  'white_rook': `assets/bw.svg`,
-  'black_knight': `assets/cs.svg`,
-  'white_knight': `assets/bs.svg`,
-  'black_bishop': `assets/cg.svg`,
-  'white_bishop': `assets/bg.svg`,
-  'black_queen': `assets/ch.svg`,
-  'white_queen': `assets/bh.svg`,
-  'black_king': `assets/ck.svg`,
-  'white_king': `assets/bk.svg`
+  'black_pawn': `assets/pieces/cp.svg`,
+  'white_pawn': `assets/pieces/bp.svg`,
+  'black_rook': `assets/pieces/cw.svg`,
+  'white_rook': `assets/pieces/bw.svg`,
+  'black_knight': `assets/pieces/cs.svg`,
+  'white_knight': `assets/pieces/bs.svg`,
+  'black_bishop': `assets/pieces/cg.svg`,
+  'white_bishop': `assets/pieces/bg.svg`,
+  'black_queen': `assets/pieces/ch.svg`,
+  'white_queen': `assets/pieces/bh.svg`,
+  'black_king': `assets/pieces/ck.svg`,
+  'white_king': `assets/pieces/bk.svg`
 }
 @Component({
     selector: 'app-root',
-  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NgIf, NerdViewComponent, NotationComponent],
+  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
 })

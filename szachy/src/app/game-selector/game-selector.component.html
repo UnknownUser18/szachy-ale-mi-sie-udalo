@@ -5,12 +5,12 @@
       <div class="czas">
         <div>
           <h3>Tryb klasyczny</h3>
-          <p>90 minut | 0</p>
+          <p>90 minut</p>
           <button class="time selected" (click)="changeTime(1)">Wybrano</button>
         </div>
         <div>
           <h3>Tryb błyskawiczny</h3>
-          <p>10 minut | 10</p>
+          <p>10 minut</p>
           <button class="time" (click)="changeTime(2)">Wybierz</button>
         </div>
       </div>
@@ -42,7 +42,7 @@
         <div>
           <div class="pawns">
             <div *ngFor="let pawn of pawns_string">
-              <img ngSrc="assets/{{pawn}}.svg" alt="{{pawn}}" width="36" height="70" draggable="true">
+              <img ngSrc="assets/pieces/{{pawn}}.svg" alt="{{pawn}}" width="36" height="70" draggable="true">
               {{ pawns_names[pawn] }}
             </div>
           </div>
@@ -92,6 +92,6 @@
         }
       </div>
     }
-  <button (click)="startGame()">Rozpocznij grę</button>
+  <button (click)="startGame()" class="start">Rozpocznij grę</button>
   }
 </main>

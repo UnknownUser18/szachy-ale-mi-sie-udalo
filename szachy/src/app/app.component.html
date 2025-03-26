@@ -1,5 +1,5 @@
 <nav>
-  <img ngSrc="../assets/bs.svg" alt="Logo szachów, biały pionek" height="48" width="48">
+  <img ngSrc="../assets/pieces/bs.svg" alt="Logo szachów, biały pionek" height="48" width="18">
   <h1 (click)="convert_name()">Szachy</h1>
 </nav>
 <div>
@@ -8,18 +8,16 @@
     <div>
       <app-zegar [color]="black" [time]="time"></app-zegar>
     </div>
-    <app-szachownica 
-      (currentGameChange)="setGame($event)" 
-      (moveExecuted)="notation.addMove($event)">
-    </app-szachownica>
+    <app-szachownica (currentGameChange)="setGame($event)" (moveExecuted)="notation.addMove($event)"></app-szachownica>
     <div>
       <app-zegar [color]="white" [time]="time"></app-zegar>
     </div>
-    <div style="display: flex; width:80%; justify-content: space-between;">
+    <div>
       <app-nerd-view [game]="game"></app-nerd-view>
       <app-notation #notation></app-notation>
     </div>
-
   </main>
-  <app-game-selector *ngIf="gameType" [game]="gameType" (time)="setTime($event)"></app-game-selector>
+  @if (gameType) {
+    <app-game-selector [game]="gameType" (time)="setTime($event)"></app-game-selector>
+  }
 </div>

@@ -1,7 +1,10 @@
-<h2>Dostępne tryby gry:</h2>
-<ul (click)="select_game($event)">
-  <li data-game="GraczVsGracz">Gracz vs Gracz <em>(1 komputer)</em></li>
-  <li data-game="GraczVsSiec">Gracz vs Gracz <em>(Sieć lokalna)</em></li>
-  <li data-game="GraczVsAi">Gracz vs Komputer</li>
-  <li data-game="GraczVsGrandmaster">Gracz vs Arcymistrz</li>
-</ul>
+<div>
+  <h2>Tryby Gry:</h2>
+  <ul (click)="select_game($event)">
+    <li data-game="GraczVsGracz">Gracz vs Gracz <em>(1 komputer)</em><svg height="20px" viewBox="0 0 512 512" width="20px" xmlns="http://www.w3.org/2000/svg"><polygon fill="currentColor" points="160,115.4 180.7,96 352,256 180.7,416 160,396.7 310.5,256 "/></svg></li>
+    <li data-game="GraczVsSiec">Gracz vs Gracz <em>(Sieć lokalna)</em><svg height="20px" viewBox="0 0 512 512" width="20px" xmlns="http://www.w3.org/2000/svg"><polygon fill="currentColor" points="160,115.4 180.7,96 352,256 180.7,416 160,396.7 310.5,256 "/></svg></li>
+    <li data-game="GraczVsAi"> Gracz vs Komputer<svg height="20px" viewBox="0 0 512 512" width="20px" xmlns="http://www.w3.org/2000/svg"><polygon fill="currentColor" points="160,115.4 180.7,96 352,256 180.7,416 160,396.7 310.5,256 "/></svg></li>
+    <li data-game="GraczVsGrandmaster">Gracz vs Arcymistrz<svg height="20px" viewBox="0 0 512 512" width="20px" xmlns="http://www.w3.org/2000/svg"><polygon fill="currentColor" points="160,115.4 180.7,96 352,256 180.7,416 160,396.7 310.5,256 "/></svg></li>
+  </ul>
+</div>
+<app-ustawienia></app-ustawienia>

@@ -194,3 +194,7 @@ input[type="file"] {
 .selected {
   background-color: var(--between-color);
 }
+.start:disabled {
+  background-color: var(--between-color);
+  cursor: not-allowed;
+}

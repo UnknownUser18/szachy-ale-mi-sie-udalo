@@ -104,7 +104,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
           if (!element.firstChild) {
             element.classList.add('pawn')
             let img: HTMLImageElement = this.renderer.createElement('img')
-            img.src = `assets/${this.pawns[i][j]}.svg`;
+            img.src = `assets/pieces/${this.pawns[i][j]}.svg`;
             img.draggable = true;
             img.addEventListener('dragstart', (event: DragEvent): void => {
               event.dataTransfer!.setData('text/plain', JSON.stringify({fromRow: i, fromCol: j}));
@@ -135,16 +135,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
 
   transformChessBoard(board: Array<string[]>): (ChessPiece | null)[][] {
     const colorDictionary: { [key: string]: PieceColor | null } = { 'c': 'black', 'b': 'white', '': null };
-    const pieceTypeDictionary: { [key: string]: PieceType | null } = {
-      'p': 'pawn',
-      'r': 'rook',
-      's': 'knight',
-      'g': 'bishop',
-      'h': 'queen',
-      'k': 'king',
-      'w': 'rook',
-      '': null
-    };
+    const pieceTypeDictionary: { [key: string]: PieceType | null } = {'p': 'pawn', 'r': 'rook', 's': 'knight', 'g': 'bishop', 'h': 'queen', 'k': 'king', 'w': 'rook', '': null};
     board = board.reverse()
     let chessBoard: (ChessPiece | null)[][] = Array.from({ length: 8 }, () => new Array(8).fill(null));
     for (let rowNum = 0; rowNum < board.length; rowNum++)
@@ -181,7 +172,11 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
 }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['game']) {
-      this.pawns = this.defaultChessBoard()
+      this.pawns = this.defaultChessBoard();
+      setTimeout(() : void => {
+        let button : HTMLButtonElement = this.element.nativeElement.querySelector('.start');
+        button.disabled = changes['game'].currentValue === 'GraczVsGrandmaster';
+      }, 10)
       if(changes['game'].previousValue === 'GraczVsGrandmaster') {
         setTimeout(() : void => {
           let chessboard : HTMLElement = this.renderer.createElement('div');
@@ -312,7 +307,13 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   }
   grandmasterChange(type : Event) : void {
     let target : HTMLSelectElement = type.target as HTMLSelectElement;
-    if(target.value === 'NA') return;
+    let button : HTMLButtonElement = this.element.nativeElement.querySelector('.start') as HTMLButtonElement;
+    if(target.value === 'NA') {
+      button.disabled = true;
+      return;
+    } else {
+      button.disabled = false;
+    }
     let select : HTMLSelectElement = this.renderer.createElement('select');
     let option_dark : HTMLOptionElement = this.renderer.createElement('option');
     option_dark.value = 'Czarni';
@@ -329,7 +330,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       let lastChild : HTMLElement = this.element.nativeElement.querySelector('.grandmaster > div:last-child')!;
       if(lastChild.childNodes.length > 1) lastChild.removeChild(lastChild.childNodes[1]);
       lastChild.appendChild(select);
-     }, 10) // musi być timeout, bo inaczej dodaje do "wybierz plik"
+     }, 50) // musi być timeout, bo inaczej dodaje do "wybierz plik"
     try {
       this.http.get(`../../../assets/pgn/${target.value}.pgn`, { responseType: 'blob' }).subscribe((file: Blob) : void => {
         this.grandmasterFile = file as File;

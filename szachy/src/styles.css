@@ -7,6 +7,7 @@
   --primary-color: #475841;
   --border-color: #3F403F;
   --gray-text-color: #898988;
+  --gradient-text-color: #bdbdbd;
   --white-text-color: #efefef;
   --black-text-color: #212121;
 }
@@ -19,4 +20,20 @@ body {
   background-color: var(--background-color);
   color: var(--black-text-color);
   font-family: 'Inter', sans-serif;
+}
+.dark {
+  --background-color: #212121;
+  --forth-color: #424242;
+  --third-color: #616161;
+  --secondary-color: #9E9E9E;
+  --between-color: #BDBDBD;
+  --primary-color: #757575;
+  --border-color: #9E9E9E;
+  --gray-text-color: #BDBDBD;
+  --gradient-text-color: #E0E0E0;
+  --white-text-color: #212121;
+  --black-text-color: #FAFAFA;
+}
+select, option {
+  color: var(--black-text-color);
 }

@@ -833,17 +833,11 @@ export class ChessService {
   * */
   public tryMove(moveAttempt: MoveAttempt): boolean {
     console.log('Czy jest bierka?', moveAttempt.to.row, moveAttempt.to.col);
-    if (!this.isValidPosition(moveAttempt.from) || !this.isValidPosition(moveAttempt.to)) {
-      console.error('Pozycja poza planszą.');
-      return false;
-    }
+    if (!this.isValidPosition(moveAttempt.from) || !this.isValidPosition(moveAttempt.to))
+      throw new Error('Pozycja poza planszą.');
     const piece = this.board[moveAttempt.from.row][moveAttempt.from.col];
-    console.log(piece)
-    console.log(this.board)
-    if (!piece) {
-      console.error('Brak bierki na pozycji startowej.');
-      return false;
-    }
+    if (!piece)
+      throw new Error('Brak bierki na pozycji startowej.');
     const rawMoves = this.calculateLegalMoves(piece);
     const legalMoves = this.filterMovesByKingSafety(piece, rawMoves);
     let currentLegalMove = legalMoves[moveAttempt.to.row][moveAttempt.to.col];

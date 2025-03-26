@@ -1,0 +1,53 @@
+svg {
+  transition: color 0.15s ease-in-out;
+  will-change: color;
+  color: var(--white-text-color);
+  cursor: pointer;
+}
+svg:hover {
+  color: var(--gradient-text-color);
+}
+.black {
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.black > div {
+  position: relative;
+  background-color: var(--third-color);
+  border-radius: 10px;
+  padding: 20px;
+  width: 25%;
+  height: 30%;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+img {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+select {
+  width: 100%;
+  background-color: var(--background-color);
+  font-family: inherit;
+  font-size: 1.1em;
+  border: 0;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 5px;
+}
+option {
+  font-family: inherit;
+  background-color: var(--background-color);
+}

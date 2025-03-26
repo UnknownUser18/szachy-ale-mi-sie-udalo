@@ -7,8 +7,9 @@ nav {
   position: absolute;
   width: 20%;
   max-height: 80px;
-  padding: 10px;
+  padding: 10px 1%;
   align-items: center;
+  gap: 10px;
   display: flex;
   background-color: var(--primary-color);
   color: var(--white-text-color);
@@ -21,12 +22,12 @@ h1 {
   will-change: color;
 }
 h1:hover {
-  color: var(--gray-text-color);
+  color: var(--gradient-text-color);
 }
 nav + div {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  padding-right: 25%; /* prosze później zmienić gdy się doda więcej elementów */
+  padding-right: 25%;
   height: 100vh;
 }
 main {
@@ -39,8 +40,12 @@ main > div {
 }
 app-menu {
   border-top: 1px solid var(--border-color);
-  display: block;
-  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 3%;
+  width: 300px;
   padding-top: 80px;
   background-color: var(--primary-color);
 }

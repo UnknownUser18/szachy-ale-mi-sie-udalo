@@ -5,12 +5,34 @@ h2, li {
 h2 {
   text-align: center;
 }
+ul {
+  margin-left: 5px;
+  border-left: 1px solid var(--white-text-color);
+  border-radius: 1px;
+}
 li {
-  transition: color 0.15s ease-in-out;
-  will-change: color;
+  transition: color 0.15s ease-in-out, border-left 0.15s ease-in-out;
+  font-size: 1.1em;
+  font-weight: 500;
+  border-left: 0 solid var(--white-text-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  will-change: color, border-left;
   cursor: pointer;
-  margin: 10px 0 10px 20px;
+  margin: 15px 0;
+  padding: 0 10px;
+  border-radius: 1px;
+}
+img {
+  color: inherit;
 }
 li:hover {
+  border-left: 3px solid var(--border-color);
   color: var(--border-color);
 }
+.selected {
+  border-left: 3px solid var(--secondary-color);
+  color: var(--secondary-color);
+}
+app-ustawienia {}
