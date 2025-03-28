@@ -2,7 +2,7 @@
     <legend>Notacja szachowa</legend>
     <ul>
       <li *ngFor="let move of getMovePairs(); let i = index">
-        {{ i + 1 }}. {{ move[0] }} {{ move[1] ? move[1] : '' }}
+       <div class="indexText">{{ i + 1 }}.</div>  <div> {{ move[0] }}</div> <div>{{ move[1] ? move[1] : '' }}</div> 
       </li>
     </ul>
 </fieldset>

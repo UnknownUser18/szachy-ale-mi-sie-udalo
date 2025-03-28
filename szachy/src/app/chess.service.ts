@@ -1,4 +1,4 @@
-﻿import {Injectable} from '@angular/core';
+﻿import {EventEmitter,Injectable} from '@angular/core';
 import {PawnPromotionComponent} from './pawn-promotion/pawn-promotion.component';
 import {MatDialog} from '@angular/material/dialog';
 import {BehaviorSubject, Subject} from 'rxjs';
@@ -114,7 +114,11 @@ export class ChessService {
   public currentTurnColor = new BehaviorSubject<PieceColor>('white');
   public gameEnd = new Subject<GameEndType>()
   public gameStart = new Subject<Game>()
-
+  public aiMoveExecuted = new EventEmitter<{
+    from: { row: number; col: number },
+    to: { row: number; col: number },
+    color: PieceColor
+  }>();
   constructor(private dialog: MatDialog) {
     this.gameEnd.subscribe((gameEnd: GameEndType) => this.showGameEnding(gameEnd))
     console.log('ChessService constructor called');
@@ -131,7 +135,7 @@ export class ChessService {
 
   isCheck(): boolean {
     const kingPosition = this.findKing(this.currentTurnColor.value);
-    alert("Check"+this.isSquareUnderAttack(kingPosition, this.currentTurnColor.value === 'white' ? 'black' : 'white'))
+    // alert("Check"+this.isSquareUnderAttack(kingPosition, this.currentTurnColor.value === 'white' ? 'black' : 'white'))
     return this.isSquareUnderAttack(kingPosition, this.currentTurnColor.value === 'white' ? 'black' : 'white');
   }
 
@@ -140,7 +144,7 @@ export class ChessService {
 
     
     const legalMoves = this.getLegalMovesForColor(this.currentTurnColor.value);
-    alert(legalMoves.length === 0)
+    // alert(legalMoves.length === 0)
     return legalMoves.length === 0;
   }
 

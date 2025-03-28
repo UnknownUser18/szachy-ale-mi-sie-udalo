@@ -3,14 +3,39 @@ fieldset {
   padding: 10px;
   border-color: var(--border-color);
   overflow-y: auto;
+  width: 100%;
   height: 200px;
+  overflow-y: auto;
+  scrollbar-color: var(--between-color) var(--forth-color);
+  scrollbar-width: thin;
 }
 
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
+ul {
+  list-style-type: none;
+  padding: 0;
+
+}
+
+.indexText{
+  text-align: center;
+}
+div
+{
+  text-align: center;
+}
+
+li {
+  padding: 5px 0;
+  width: 100%;
+  border: 2px var(--border-color) solid;
+  border-collapse: collapse;
+  grid-template-columns: repeat(3,1fr);
+  display: grid;
   
-  li {
-    padding: 5px 0;
-  }
+}
+li:nth-child(odd){
+  background-color:var(--third-color);
+}
+
+
+

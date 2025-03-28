@@ -1,5 +1,6 @@
 import { Injectable, forwardRef, Inject } from '@angular/core';
 import { ChessService, ChessPiece, MoveAttempt, PieceColor } from './chess.service';
+import { NotationComponent } from './notation/notation.component';
 
 @Injectable({
   providedIn: 'root'
@@ -35,8 +36,16 @@ export class ChessAiService {
         bestMove = move;
       }
     }
+    if (bestMove) {
+      this.chessService.aiMoveExecuted.emit({
+        from: bestMove.from,
+        to: bestMove.to,
+        color: color
+      });
+    }
     return bestMove;
   }
+
 
   private minimax(
     board: (ChessPiece | null)[][],
