@@ -4,6 +4,8 @@ import {MatDialog} from '@angular/material/dialog';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {ChessAiService} from './chess-ai.service';
 import {Game} from './szachownica/szachownica.component';
+import { NotationComponent } from './notation/notation.component';
+// import { NotationComponent } from './notation/notation.component';
 
 // Typ wyróżniający każdy typ bierki występujący w standardowych szachach
 export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
@@ -28,6 +30,7 @@ export interface legalMove{
   isLegal: boolean;
   special?: SpecialMove;
 }
+
 
 /*
 * Interfejs Danych
@@ -100,8 +103,9 @@ export interface LowEffortChessPiece{
   providedIn: 'root'
 })
 export class ChessService {
+  // @ViewChild('notation') notationComponent!: NotationComponent;
   public board: (ChessPiece | null)[][] = []; // Initialize the board as needed
-  private previousBoard: (ChessPiece | null)[][] = [];
+  public previousBoard: (ChessPiece | null)[][] = [];
   public canUndo: boolean = false;
   private chessAiService: any;
   public lowEffortBoards: (LowEffortChessPiece | null)[][][] = [];
@@ -117,20 +121,26 @@ export class ChessService {
     this.initializeChessBoard();
   }
 
+
+  
+
+
   public setAiService(aiService: ChessAiService): void {
     this.chessAiService = aiService;
   }
 
   isCheck(): boolean {
     const kingPosition = this.findKing(this.currentTurnColor.value);
+    alert("Check"+this.isSquareUnderAttack(kingPosition, this.currentTurnColor.value === 'white' ? 'black' : 'white'))
     return this.isSquareUnderAttack(kingPosition, this.currentTurnColor.value === 'white' ? 'black' : 'white');
   }
 
   isCheckmate(): boolean {
     if (!this.isCheck()) return false;
 
-
+    
     const legalMoves = this.getLegalMovesForColor(this.currentTurnColor.value);
+    alert(legalMoves.length === 0)
     return legalMoves.length === 0;
   }
 
@@ -866,6 +876,7 @@ export class ChessService {
   }
 
 
+
   private promotePawn(piece: ChessPiece){
     let selectedPiece: PieceType = 'pawn';
 
@@ -883,6 +894,7 @@ export class ChessService {
         this.updateBoard.next(this.board);
       }
     });
+    
   }
 
   private showGameEnding(gameEnd: GameEndType)
@@ -1188,6 +1200,7 @@ export class ChessService {
     }
   }
 
+  
   // getCurrentTurnColor(): PieceColor{
   //
   // }

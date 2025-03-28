@@ -1,8 +1,8 @@
 <fieldset class="notation-container">
     <legend>Notacja szachowa</legend>
     <ul>
-      <li *ngFor="let move of moves; let i = index">
-        {{ i + 1 }}. {{ move }}
+      <li *ngFor="let move of getMovePairs(); let i = index">
+        {{ i + 1 }}. {{ move[0] }} {{ move[1] ? move[1] : '' }}
       </li>
     </ul>
 </fieldset>
