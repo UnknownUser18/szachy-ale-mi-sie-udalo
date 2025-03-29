@@ -45,7 +45,9 @@ export class ChessAiService {
     }
     return bestMove;
   }
-
+  public evaluatePosition(board: (ChessPiece | null)[][]): number {
+    return this.evaluateBoard(board, 'white');
+  }
 
   private minimax(
     board: (ChessPiece | null)[][],

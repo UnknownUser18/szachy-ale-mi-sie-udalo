@@ -8,6 +8,7 @@ import {NgIf, NgOptimizedImage} from '@angular/common';
 import { GameSelectorComponent } from './game-selector/game-selector.component';
 import { NotationComponent } from './notation/notation.component';
 import {NerdViewComponent} from './nerd-view/nerd-view.component';
+import {PositionEvaluatorComponent} from './position-evaluator/position-evaluator.component';
 // import {LocalGameComponent} from './local-game/local-game.component';
 // import {GameEndComponent} from './game-end/game-end.component';
 
@@ -27,7 +28,7 @@ export let pieces: { [key: string]: string } = {
 }
 @Component({
     selector: 'app-root',
-  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent],
+  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent, PositionEvaluatorComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
 })
