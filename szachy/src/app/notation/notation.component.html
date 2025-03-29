@@ -1,8 +1,12 @@
 <fieldset class="notation-container">
-    <legend>Notacja szachowa</legend>
-    <ul>
-      <li *ngFor="let move of getMovePairs(); let i = index">
-       <div class="indexText">{{ i + 1 }}.</div>  <div> {{ move[0] }}</div> <div>{{ move[1] ? move[1] : '' }}</div> 
-      </li>
-    </ul>
+  <legend>Notacja szachowa</legend>
+  <select name="type" id="select_type"  (change)="onNotationTypeChange($event)">
+    <option value="notacja_prosta">Prosta notacja</option>
+    <option value="notacja_rozszerzona" selected>Rozszerzona notacja</option>
+  </select>
+  <ul>
+    <li *ngFor="let move of (notationType === 'short' ? getMovePairs() : getLongMovePairs()); let i = index">
+     <div class="indexText">{{ i + 1 }}.</div>  <div> {{ move[0] }}</div> <div>{{ move[1] ? move[1] : '' }}</div> 
+    </li>
+  </ul>
 </fieldset>

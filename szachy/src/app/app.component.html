@@ -6,9 +6,9 @@
   <app-menu (game_selected)="selectGame($event)"></app-menu>
   <main>
     <div>
-      <app-zegar [color]="black" [time]="time"></app-zegar>
+      <app-zegar [color]='black' [time]="time"></app-zegar>
     </div>
-    <app-szachownica (currentGameChange)="setGame($event)" (moveExecuted)="notation.addMove($event)"></app-szachownica>
+    <app-szachownica (currentGameChange)="setGame($event)" (moveExecuted)="notation.addMove($event)"  ></app-szachownica>
     <div>
       <app-zegar [color]="white" [time]="time"></app-zegar>
     </div>
