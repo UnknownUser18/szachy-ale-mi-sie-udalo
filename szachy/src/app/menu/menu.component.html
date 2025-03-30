@@ -7,4 +7,30 @@
     <li data-game="GraczVsGrandmaster">Gracz vs Arcymistrz<svg height="20px" viewBox="0 0 512 512" width="20px" xmlns="http://www.w3.org/2000/svg"><polygon fill="currentColor" points="160,115.4 180.7,96 352,256 180.7,416 160,396.7 310.5,256 "/></svg></li>
   </ul>
 </div>
+<div class="music">
+  <h2>Muzyka</h2>
+  <div class="btts">
+    <button (click)="toggleAudio()">
+      <svg height="20px" viewBox="0 0 64 64" width="20px" xmlns="http://www.w3.org/2000/svg">
+        <path [attr.d]="isPlaying ? 'M0 0h20v64H0zM44 0h20v64H44z' : 'M16 0l48 32-48 32z'"/>
+      </svg>
+    </button>
+    <button (click)="playNext()">
+      <svg height="20px" viewBox="0 0 64 64" width="20px" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="0,0 48,32 0,64"/>
+        <rect  x="48" y="0" width="16" height="64"/>
+      </svg>
+    </button>
+  </div>
+
+  <canvas #visualizer width="300" height="200"></canvas>
+  <audio id="audio" (ended)="playNext()" [volume]="0.1">
+    <source id="source1" src="./assets/music/music.mp3">
+    <source id="source2" src="./assets/music/music2.mp3">
+    <source id="source3" src="./assets/music/music3.mp3">
+    <source id="source4" src="./assets/music/music4.mp3">
+    <source id="source5" src="./assets/music/music5.mp3">
+    <source id="source6" src="./assets/music/music6.mp3">
+  </audio>
+</div>
 <app-ustawienia></app-ustawienia>

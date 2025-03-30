@@ -36,3 +36,27 @@ li:hover {
   color: var(--secondary-color);
 }
 app-ustawienia {}
+canvas{
+  border-bottom: 2px solid var(--background-color);
+}
+.btts{
+  display: flex;
+  justify-content: space-around;
+}
+.btts button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+.btts svg {
+  fill: var(--white-text-color);
+  width: 80%;
+  height: 80%;
+}
