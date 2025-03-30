@@ -15,8 +15,12 @@ export class MenuComponent {
   public select_game(event: MouseEvent) : void {
     let target : HTMLElement = event.target as HTMLElement;
     if(target.tagName === "UL") return;
-    if(target.tagName === "EM")
+    if(target.tagName === "EM") {
       target = target.parentElement as HTMLElement;
+    }
+    if(target.tagName === "SVG") {
+      target = target.parentElement!.parentElement as HTMLElement;
+    }
     (target.parentElement!.childNodes as NodeListOf<HTMLElement>).forEach((el : HTMLElement) : void => {
       el.classList.remove('selected');
     })
