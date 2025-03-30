@@ -1,27 +1,38 @@
 <nav>
-  <img ngSrc="../assets/pieces/bs.svg" alt="Logo szachów, biały skoczek" height="48" width="18">
+  <img ngSrc="../assets/pieces/bs.svg" alt="Logo szachów, Biały skoczek" height="48" width="18">
   <h1 (click)="convert_name()">Szachy</h1>
 </nav>
 <div>
   <app-menu (game_selected)="selectGame($event)"></app-menu>
-  <main>
-    <div>
-      <app-zegar [color]="'black'" [time]="blackTime" (timeEnded)="onTimeEnded('black')"></app-zegar>
-    </div>
-    <app-szachownica
-      (currentGameChange)="setGame($event)"
-      (moveExecuted)="notation.addMove($event); switchTimer()"
-      >
-    </app-szachownica>
-    <div>
-      <app-zegar [color]="'white'" [time]="whiteTime" (timeEnded)="onTimeEnded('white')"></app-zegar>
-    </div>
-    <div>
-      <app-nerd-view [game]="game"></app-nerd-view>
-      <app-position-evaluator></app-position-evaluator>
-      <app-notation #notation></app-notation>
-    </div>
+  @if (game) {
+    <main>
+      <div>
+        <div>
+        <app-zegar [color]="'black'" [time]="blackTime" (timeEnded)="onTimeEnded('black')"></app-zegar>
+        </div>
+        <app-szachownica [game]="game"
+        (currentGameChange)="setGame($event)"
+        (moveExecuted)="notation.addMove($event); switchTimer()"
+        >
+        </app-szachownica>
+        <div>
+          <app-zegar [color]="'white'" [time]="whiteTime" (timeEnded)="onTimeEnded('white')"></app-zegar>
+        </div>
+      </div>
+
+
+      <div>
+        <app-notation #notation></app-notation>
+        <app-nerd-view [game]="game"></app-nerd-view>
+        <app-position-evaluator></app-position-evaluator>
+      </div>
   </main>
+  } @else if(game === null && !gameType) {
+    <div class="welcome">
+      <h1>Witaj w Szachy</h1>
+      <p>Aby rozpocząć grę, wybierz jeden z czterech trybów na panelu z lewej strony.</p>
+    </div>
+  }
   @if (gameType) {
     <app-game-selector [game]="gameType" (time)="setTime($event)"></app-game-selector>
   }

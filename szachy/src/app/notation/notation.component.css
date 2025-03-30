@@ -4,49 +4,44 @@ fieldset {
   border-color: var(--border-color);
   overflow-y: auto;
   width: 100%;
-  height: 200px;
-  overflow-y: auto;
+  min-height: 200px;
+  max-height: 500px;
   scrollbar-color: var(--between-color) var(--forth-color);
   scrollbar-width: thin;
 }
-
+option {
+  color: var(--black-text-color);
+  font-family: inherit;
+  font-size: 1.1em;
+}
 ul {
   list-style-type: none;
-  padding: 0;
-
 }
-
-select{
+select {
   padding: 10px;
-  column-gap: 20px;
   margin-bottom: 15px;
   border-radius: 10px;
-  font-size: 0.8em;
-  color: var(--white-text-color);
-  background-color: var(--primary-color);
+  font-size: 0.9em;
+  font-family: inherit;
+  color: var(--black-text-color);
+  background-color: var(--forth-color);
   border: 1px solid var(--border-color);
 }
-
-.indexText{
+.indexText, div {
   text-align: center;
 }
-div
-{
-  text-align: center;
-}
-
 li {
+  color: var(--black-text-color);
+  margin: 10px 0;
   padding: 5px 0;
   width: 100%;
-  border: 2px var(--border-color) solid;
+  background-color: var(--secondary-color);
+  border-radius: 6px;
   border-collapse: collapse;
   grid-template-columns: repeat(3,1fr);
   display: grid;
-  
 }
-li:nth-child(odd){
-  background-color:var(--third-color);
+li:nth-child(odd) {
+  color: var(--white-text-color);
+  background-color:var(--between-color);
 }
-
-
-

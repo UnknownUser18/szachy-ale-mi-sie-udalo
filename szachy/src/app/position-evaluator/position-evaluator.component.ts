@@ -18,4 +18,5 @@ export class PositionEvaluatorComponent {
   evaluatePosition(): void {
     this.evaluation = this.chessAiService.evaluatePosition(this.chessService.board, 'white');
   }
+
 }

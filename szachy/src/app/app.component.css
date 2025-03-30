@@ -26,17 +26,16 @@ h1:hover {
 }
 nav + div {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  padding-right: 25%;
+  grid-template-columns: 0.3fr 1fr;
   height: 100vh;
 }
 main {
   display: flex;
-  flex-direction: column;
-  align-items: end;
 }
-main > div {
-  margin: 10px;
+main > div > div {
+  display: flex;
+  justify-content: end;
+  margin: 10px 0;
 }
 app-menu {
   border-top: 1px solid var(--border-color);
@@ -53,4 +52,33 @@ app-nerd-view {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+.welcome h1 {
+  font-size: 3rem;
+  color: var(--black-text-color);
+  margin-bottom: 20px;
+}
+main > div:nth-child(2) {
+  border: 2px solid var(--border-color);
+  background-color: var(--forth-color);
+  margin: 4.2% 0 0 20px;
+  border-radius: 20px;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+app-notation {
+  width: 95%;
+  margin: 2% 0;
+}
+app-position-evaluator {
+  margin: 5% 0;
 }

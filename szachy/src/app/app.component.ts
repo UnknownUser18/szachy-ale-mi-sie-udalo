@@ -4,7 +4,7 @@ import { ChessService } from './chess.service';
 import { ChessAiService } from './chess-ai.service';
 import {ZegarComponent} from './zegar/zegar.component';
 import {MenuComponent} from './menu/menu.component';
-import {NgIf, NgOptimizedImage} from '@angular/common';
+import {NgOptimizedImage} from '@angular/common';
 import { GameSelectorComponent } from './game-selector/game-selector.component';
 import { NotationComponent } from './notation/notation.component';
 import {NerdViewComponent} from './nerd-view/nerd-view.component';
@@ -37,7 +37,7 @@ export class AppComponent {
   game : Game | null = null;
   black : string = "black";
   white : string = "white";
-  initialTime: number = 600; // 10 minut w sekundach
+  initialTime: number = 5400;
   whiteTime: number = this.initialTime;
   blackTime: number = this.initialTime;
   currentTimer: 'white' | 'black' = 'white';
@@ -51,7 +51,10 @@ export class AppComponent {
     private element: ElementRef
   ) {
     this.chessService.setAiService(this.chessAiService);
-    this.chessService.gameStart.subscribe(() => this.selectGame(null))
+    this.chessService.gameStart.subscribe((game : Game) : void => {
+      this.game = game;
+      this.selectGame(null);
+    })
   }
 
   protected convert_name() : void {
@@ -65,15 +68,17 @@ export class AppComponent {
 
 
   selectGame(game: GameType | null): void {
-    let chessboard: HTMLElement = this.element.nativeElement.querySelector('main');
+    let chessboard: HTMLElement = this.element.nativeElement.querySelector('main > div');
     let zegar: NodeListOf<HTMLElement> = this.element.nativeElement.querySelectorAll('app-zegar');
     this.gameType = game;
+    if(!chessboard) return;
     if (game === null) {
       this.renderer.setStyle(chessboard, 'display', 'flex');
       zegar.forEach((z: HTMLElement): void => {
         this.renderer.setStyle(z, 'display', 'block');
       });
     } else if (chessboard.childNodes && chessboard.childNodes[1].nodeName.toLowerCase() === 'app-szachownica' && zegar) {
+      this.game = null;
       this.renderer.setStyle(chessboard, 'display', 'none');
       zegar.forEach((z: HTMLElement): void => {
         this.renderer.setStyle(z, 'display', 'none');
@@ -126,7 +131,4 @@ export class AppComponent {
     console.log(`Czas gracza ${color} się skończył!`);
 
   }
-
-
-
 }

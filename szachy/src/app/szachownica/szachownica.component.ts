@@ -1,4 +1,4 @@
-import {Component, ElementRef, Renderer2, Output, EventEmitter} from '@angular/core';
+import {Component, ElementRef, Renderer2, Output, EventEmitter, Input, OnChanges, SimpleChanges} from '@angular/core';
 import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position, GameEndType, SpecialMove} from '../chess.service';
 import { pieces } from '../app.component';
 import { ChessAiService } from '../chess-ai.service';
@@ -23,8 +23,9 @@ export interface Game {
   standalone: true,
   styleUrl: './szachownica.component.css'
 })
-export class SzachownicaComponent {
+export class SzachownicaComponent implements OnChanges {
   public currentGame!: Game;
+  @Input() game!: Game;
   @Output() currentGameChange : EventEmitter<Game> = new EventEmitter<Game>();
   @Output() moveExecuted : EventEmitter<MoveAttempt> = new EventEmitter<MoveAttempt>();
   private focusedPiece: HTMLElement | null = null;
@@ -32,13 +33,21 @@ export class SzachownicaComponent {
   private focusedLegalMoves: legalMove[][] = [];
   constructor(private chessService : ChessService, private renderer : Renderer2, private element : ElementRef, private aiChessService : ChessAiService) {
     this.chessService.updateBoard.subscribe(() : void => this.loadBoard())
-    this.chessService.gameStart.subscribe((gameAttributes: Game) : void => this.startGame(gameAttributes))
+    this.chessService.gameStart.subscribe((gameAttributes: Game) : void => {
+      this.startGame(gameAttributes);
+    })
     this.chessService.currentTurnColor.subscribe((gameTurnColor: PieceColor) : PieceColor => this.focusedColor = gameTurnColor);
   }
   focusedColor: PieceColor = 'white';
   number_move : number = 0;
   cashedGrandmasterGames : string[] = [];
-loadBoard(): void {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['game'] && changes['game'].currentValue) {
+      this.startGame(changes['game'].currentValue);
+    }
+  }
+
+  loadBoard(): void {
   let board: HTMLElement = this.element.nativeElement.querySelector('main');
   (board.childNodes as NodeListOf<HTMLElement>).forEach((row: HTMLElement): void => {
     (row.childNodes as NodeListOf<HTMLElement>).forEach((cell: HTMLElement): void => {
@@ -152,7 +161,7 @@ loadBoard(): void {
         const executeForGameType = {
             "GraczVsGracz": () => this.PlayerVsPlayerLocal(element, board),
             "GraczVsSiec": () => {},
-            "GraczVsAi": () => this.PlayerVsAi(element, board, gameAttributes),
+            "GraczVsAi": () => this.PlayerVsAi(element, board),
             "GraczVsGrandmaster": () : void => this.PlayerVSGrandMaster(element, board, gameAttributes),
           }
         element.addEventListener('drop', (event: DragEvent): void => {
@@ -198,7 +207,7 @@ loadBoard(): void {
   }
 
   // For cases where a human click should trigger the same logic as a drag action
-  public PlayerVsAi(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
+  public PlayerVsAi(element: HTMLElement, board: HTMLElement): void {
     let position: Position = {
       row: parseInt(element.getAttribute('data-row')!),
       col: parseInt(element.getAttribute('data-column')!)
@@ -237,8 +246,8 @@ loadBoard(): void {
     let movedPieceColor: PieceColor = this.focusedChessPiece!.color;
     if (attempt) {
       console.log(`Move executed: from (${from.row}, ${from.col}) to (${to.row}, ${to.col})`);
-      const fromNotation = this.convertPositionToNotation(from);
-      const toNotation = this.convertPositionToNotation(to);
+      this.convertPositionToNotation(from);
+      this.convertPositionToNotation(to);
       this.moveExecuted.emit({
         from: { row: from.row, col: from.col },
         to: { row: to.row, col: to.col },
@@ -261,6 +270,7 @@ loadBoard(): void {
       }
       this.resetFocus();
     }
+    this.chessService.currentTurnColor.next(this.focusedColor)
     this.loadBoard();
     this.styleLegalMoves(this.element.nativeElement.querySelector("main"));
   }

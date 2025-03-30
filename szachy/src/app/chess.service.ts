@@ -4,8 +4,6 @@ import {MatDialog} from '@angular/material/dialog';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {ChessAiService} from './chess-ai.service';
 import {Game} from './szachownica/szachownica.component';
-import { NotationComponent } from './notation/notation.component';
-// import { NotationComponent } from './notation/notation.component';
 
 // Typ wyróżniający każdy typ bierki występujący w standardowych szachach
 export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
@@ -121,13 +119,8 @@ export class ChessService {
   }>();
   constructor(private dialog: MatDialog) {
     this.gameEnd.subscribe((gameEnd: GameEndType) => this.showGameEnding(gameEnd))
-    console.log('ChessService constructor called');
     this.initializeChessBoard();
   }
-
-
-
-
 
   public setAiService(aiService: ChessAiService): void {
     this.chessAiService = aiService;
@@ -1203,6 +1196,11 @@ export class ChessService {
       console.warn('No valid move found by AI.');
     }
   }
+
+
+  // getCurrentTurnColor(): PieceColor{
+  //
+  // }
 
   public startGame(gameAtributes: Game){
     if(gameAtributes) this.gameStart.next(gameAtributes);

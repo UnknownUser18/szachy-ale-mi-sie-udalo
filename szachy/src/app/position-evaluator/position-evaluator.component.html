@@ -1,8 +1,7 @@
 <div>
   <h2>Ewaluacja pozycji</h2>
-  <p>
-    Wynik ewaluacji: <strong>{{ evaluation }}</strong>
-    <br /><small>(wartość dodatnia - przewaga białych, ujemna - przewaga czarnych)</small>
-  </p>
+  <p>Wynik ewaluacji: <strong>{{ evaluation.toFixed(2) }}</strong></p>
+  <i>(wartość dodatnia - przewaga białych, ujemna - przewaga czarnych)</i>
+
   <button (click)="evaluatePosition()">Ewaluuj pozycję</button>
 </div>

@@ -41,41 +41,36 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   grandmasterFile : File | null = null;
   ngAfterViewInit() : void {
     this.initializeChessboard().then(() : void => this.loadBoard());
-    const pawns: NodeListOf<HTMLImageElement> = this.element.nativeElement.querySelectorAll('.pawns img');
-    pawns.forEach((pawn: HTMLImageElement) : void => {
-      pawn.addEventListener('dragstart', (event: DragEvent): void => {
-        event.dataTransfer!.setData('text/plain', JSON.stringify({ pawn: pawn.alt }));
-      });
-    });
-    const chessboard: HTMLElement = this.element.nativeElement.querySelector('.chess');
-    if(!chessboard) return;
-    chessboard.addEventListener('dragover', (event: DragEvent): void => {
-      event.preventDefault();
-    });
-    chessboard.addEventListener('drop', (event: DragEvent): void => {
-      event.preventDefault();
-      const data = JSON.parse(event.dataTransfer!.getData('text/plain'));
-      if(!(data.fromCol !== undefined && data.fromRow !== undefined)) return; // musi być sprawdzane, gdy jest undefined, bo inaczej 0 == false
-      this.pawns[parseInt(data.fromRow)][parseInt(data.fromCol)] = '';
-      this.loadBoard();
-    });
     this.setTime(5400, 0, 1);
     this.chessService.currentTurnColor.next('white');
   }
   async initializeChessboard() : Promise<void> {
-    let chessboard : HTMLElement = this.element.nativeElement.querySelector('.chessboard');
-    if(!chessboard) return;
+    let chessboard: HTMLElement = this.element.nativeElement.querySelector('.chessboard');
+    if (!chessboard) return;
     chessboard.innerHTML = '';
-    for(let i : number = 0 ; i < 8 ; i++) {
-      let row : HTMLElement = this.renderer.createElement('div');
-      for(let j : number = 0 ; j < 8 ; j++) {
-        let square : HTMLElement = this.renderer.createElement('div');
+    for (let i: number = 0; i < 8; i++) {
+      let row: HTMLElement = this.renderer.createElement('div');
+      for (let j: number = 0; j < 8; j++) {
+        let square: HTMLElement = this.renderer.createElement('div');
         square.setAttribute('data-row', i.toString());
         square.setAttribute('data-col', j.toString());
         row.appendChild(square);
       }
       chessboard.appendChild(row);
     }
+    document.body.addEventListener('drop', (event: DragEvent): void => {
+    event.preventDefault();
+    const data = JSON.parse(event.dataTransfer!.getData('text/plain'));
+    if (data.fromRow !== undefined && data.fromCol !== undefined) {
+      this.pawns[data.fromRow][data.fromCol] = '';
+      this.loadBoard();
+    }
+  })
+
+  // Prevent default dragover behavior on the body
+  document.body.addEventListener('dragover', (event: DragEvent): void => {
+    event.preventDefault();
+  });
   }
 
   defaultChessBoard(): Array<string[]> {
@@ -96,7 +91,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     if (!chessboard) return;
     for (let i: number = 0; i < 8; i++) {
       for (let j: number = 0; j < 8; j++) {
-        let element: HTMLElement = this.element.nativeElement.querySelector(`.chessboard > div:nth-child(${i + 1}) > div:nth-child(${j + 1})`)!;
+        let element : HTMLElement = this.element.nativeElement.querySelector(`.chessboard > div:nth-child(${i + 1}) > div:nth-child(${j + 1})`)!;
         if (this.pawns[i][j] === '') {
           element.innerHTML = '';
           element.classList.remove('pawn');
@@ -105,9 +100,10 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
             element.classList.add('pawn')
             let img: HTMLImageElement = this.renderer.createElement('img')
             img.src = `assets/pieces/${this.pawns[i][j]}.svg`;
+            img.alt = this.pawns[i][j];
             img.draggable = true;
             img.addEventListener('dragstart', (event: DragEvent): void => {
-              event.dataTransfer!.setData('text/plain', JSON.stringify({fromRow: i, fromCol: j}));
+              event.dataTransfer!.setData('text/plain', JSON.stringify({fromRow: i, fromCol: j, pawn: this.pawns[i][j]}));
             });
             element.appendChild(img);
           }
@@ -130,6 +126,26 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
         });
       }
     }
+    const pawns : NodeListOf<HTMLImageElement> = this.element.nativeElement.querySelectorAll('.pawns img');
+    pawns.forEach((pawn: HTMLImageElement) : void => {
+      pawn.addEventListener('dragstart', (event: DragEvent): void => {
+        event.dataTransfer!.setData('text/plain', JSON.stringify({ pawn: pawn.alt }));
+      });
+    });
+    chessboard.addEventListener('dragover', (event: DragEvent): void => {
+      event.preventDefault();
+    });
+    chessboard.addEventListener('drop', (event: DragEvent): void => {
+      event.preventDefault();
+      const data = JSON.parse(event.dataTransfer!.getData('text/plain'));
+      if(!(data.fromCol !== undefined && data.fromRow !== undefined)) return; // musi być sprawdzane, gdy jest undefined, bo inaczej 0 == false
+      let target : HTMLElement = (event.target as HTMLElement).parentElement!;
+      if(target.getAttribute('data-row')) {
+        if(this.pawns[parseInt(target.getAttribute('data-row')!)][parseInt(target.getAttribute('data-col')!)] === this.pawns[parseInt(data.fromRow)][parseInt(data.fromCol)]) return;
+      }
+      this.pawns[parseInt(data.fromRow)][parseInt(data.fromCol)] = '';
+      this.loadBoard();
+    });
   }
 
 
@@ -284,6 +300,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   }
   private setButtons(css : string, selected : number, unselected : number) : void {
     let buttons : Array<HTMLElement> = this.element.nativeElement.querySelectorAll(`.${css}`);
+    if(buttons.length === 0) return;
     buttons[selected].classList.add('selected');
     buttons[unselected].classList.remove('selected');
     buttons[selected].textContent = 'Wybrano';
