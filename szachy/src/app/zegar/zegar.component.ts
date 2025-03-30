@@ -10,7 +10,7 @@ import { PieceColor } from '../chess.service';
   styleUrls: ['./zegar.component.css']
 })
 export class ZegarComponent implements OnDestroy {
-  @Input() color!: PieceColor;
+  @Input() color!: PieceColor | string;
   @Input() time!: number;
   private intervalId: any;
   isRunning = false;

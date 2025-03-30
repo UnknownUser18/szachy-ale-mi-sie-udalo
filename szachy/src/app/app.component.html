@@ -10,7 +10,7 @@
     </div>
     <app-szachownica (currentGameChange)="setGame($event)" (moveExecuted)="notation.addMove($event)"  ></app-szachownica>
     <div>
-      <app-zegar [color]="white" [time]="time"></app-zegar>
+      <app-zegar [color]='white' [time]="time"></app-zegar>
     </div>
     <div>
       <app-nerd-view [game]="game"></app-nerd-view>
