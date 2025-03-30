@@ -126,7 +126,7 @@ export class ChessService {
   }
 
 
-  
+
 
 
   public setAiService(aiService: ChessAiService): void {
@@ -142,7 +142,7 @@ export class ChessService {
   isCheckmate(): boolean {
     if (!this.isCheck()) return false;
 
-    
+
     const legalMoves = this.getLegalMovesForColor(this.currentTurnColor.value);
     // alert(legalMoves.length === 0)
     return legalMoves.length === 0;
@@ -898,7 +898,7 @@ export class ChessService {
         this.updateBoard.next(this.board);
       }
     });
-    
+
   }
 
   private showGameEnding(gameEnd: GameEndType)
@@ -1195,7 +1195,7 @@ export class ChessService {
       console.warn(`AI service not set yet.`);
       return;
     }
-    const bestMove = this.chessAiService.findBestMove(color, 2);
+    const bestMove = this.chessAiService.findBestMove(color, 3);
     if (bestMove) {
       console.log(`AI selected move: from (${bestMove.from.row}, ${bestMove.from.col}) to (${bestMove.to.row}, ${bestMove.to.col})`);
       this.tryMove(bestMove);
@@ -1203,11 +1203,6 @@ export class ChessService {
       console.warn('No valid move found by AI.');
     }
   }
-
-  
-  // getCurrentTurnColor(): PieceColor{
-  //
-  // }
 
   public startGame(gameAtributes: Game){
     if(gameAtributes) this.gameStart.next(gameAtributes);

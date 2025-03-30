@@ -1,5 +1,5 @@
 import { Injectable, forwardRef, Inject } from '@angular/core';
-import { ChessService, ChessPiece, MoveAttempt, PieceColor } from './chess.service';
+import {ChessService, ChessPiece, MoveAttempt, PieceColor, Position} from './chess.service';
 import { NotationComponent } from './notation/notation.component';
 
 @Injectable({
@@ -14,39 +14,60 @@ export class ChessAiService {
   private memo: Map<string, number> = new Map();
 
   public findBestMove(color: PieceColor, depth: number): MoveAttempt | null {
-    // Clear memo between moves.
     this.memo.clear();
     const board = this.chessService.copyChessBoard(this.chessService.board);
     const legalMoves = this.getAllLegalMoves(board, color);
+
     if (legalMoves.length === 0) {
-      console.warn('No legal moves available.');
+      console.warn('Brak legalnych ruchów.');
       return null;
     }
+
     let bestMove: MoveAttempt | null = null;
-    const isMaximizing = color === 'white';
-    let bestEval = isMaximizing ? -Infinity : Infinity;
+    let bestScore = -Infinity; // Szukamy najlepszego ruchu (maksymalizacja)
+
     for (const move of legalMoves) {
+      // Sprawdź czy ruch jest poprawny
+      if (!this.isValidMove(move, board)) continue;
+
       const newBoard = this.simulateMove(move.from, move.to, board);
-      const evalScore = this.minimax(newBoard, depth - 1, -Infinity, Infinity, !isMaximizing, color);
-      if (isMaximizing && evalScore > bestEval) {
-        bestEval = evalScore;
-        bestMove = move;
-      } else if (!isMaximizing && evalScore < bestEval) {
-        bestEval = evalScore;
+
+      // Sprawdź czy królowie istnieją po symulacji
+      if (!this.kingExists(newBoard, 'white') || !this.kingExists(newBoard, 'black')) {
+        continue;
+      }
+
+      const moveScore = this.minimax(
+        newBoard,
+        depth - 1,
+        -Infinity,
+        Infinity,
+        false,
+        color === 'white' ? 'black' : 'white'
+      );
+
+      if (moveScore > bestScore) {
+        bestScore = moveScore;
         bestMove = move;
       }
     }
+
     if (bestMove) {
       this.chessService.aiMoveExecuted.emit({
-        from: bestMove.from,
-        to: bestMove.to,
+        from: { row: bestMove.from.row, col: bestMove.from.col },
+        to: { row: bestMove.to.row, col: bestMove.to.col },
         color: color
       });
     }
+
     return bestMove;
   }
-  public evaluatePosition(board: (ChessPiece | null)[][]): number {
-    return this.evaluateBoard(board, 'white');
+  public evaluatePosition(board: (ChessPiece | null)[][], color: PieceColor): number {
+    if (!this.kingExists(board, 'white') || !this.kingExists(board, 'black')) {
+      return color === 'white' ? -10000 : 10000;
+    }
+    const score = this.evaluateBoard(board, color);
+    return color === 'white' ? score : -score;
   }
 
   private minimax(
@@ -57,68 +78,90 @@ export class ChessAiService {
     isMaximizingPlayer: boolean,
     currentColor: PieceColor
   ): number {
-    const key = this.generateBoardKey(board, depth, alpha, beta, isMaximizingPlayer, currentColor);
+    const key = this.generateBoardKey(board, depth, isMaximizingPlayer, currentColor);
     if (this.memo.has(key)) {
       return this.memo.get(key)!;
     }
-    if (depth === 0 || this.chessService.isMate(currentColor) === 'mate') {
-      const evalScore = this.evaluateBoard(board, currentColor);
+
+    // Sprawdź czy obaj królowie są na szachownicy
+    if (!this.kingExists(board, 'white') || !this.kingExists(board, 'black')) {
+      return isMaximizingPlayer ? -Infinity : Infinity;  // Niedozwolona pozycja
+    }
+
+    if (depth === 0) {
+      const evalScore = this.evaluatePosition(board, currentColor);
       this.memo.set(key, evalScore);
       return evalScore;
     }
+
+
     const legalMoves = this.getAllLegalMoves(board, currentColor);
     if (legalMoves.length === 0) {
-      const evalScore = this.evaluateBoard(board, currentColor);
+      const evalScore = this.evaluatePosition(board, currentColor);
       this.memo.set(key, evalScore);
       return evalScore;
     }
-    let value: number;
-    if (isMaximizingPlayer) {
-      value = -Infinity;
-      for (const move of legalMoves) {
-        const newBoard = this.simulateMove(move.from, move.to, board);
-        value = Math.max(
-          value,
-          this.minimax(
-            newBoard,
-            depth - 1,
-            alpha,
-            beta,
-            false,
-            currentColor === 'white' ? 'black' : 'white'
-          )
-        );
-        alpha = Math.max(alpha, value);
-        if (beta <= alpha) break;
+
+    const nextColor = currentColor === 'white' ? 'black' : 'white';
+    let bestValue = isMaximizingPlayer ? -Infinity : Infinity;
+
+    for (const move of legalMoves) {
+      if (!this.isValidMove(move, board)) continue;
+
+      const newBoard = this.simulateMove(move.from, move.to, board);
+
+      if (!this.kingExists(newBoard, 'white') || !this.kingExists(newBoard, 'black')) {
+        continue;
       }
-    } else {
-      value = Infinity;
-      for (const move of legalMoves) {
-        const newBoard = this.simulateMove(move.from, move.to, board);
-        value = Math.min(
-          value,
-          this.minimax(
-            newBoard,
-            depth - 1,
-            alpha,
-            beta,
-            true,
-            currentColor === 'white' ? 'black' : 'white'
-          )
-        );
-        beta = Math.min(beta, value);
-        if (beta <= alpha) break;
+
+      const evalScore = this.minimax(newBoard, depth -2, alpha, beta, !isMaximizingPlayer, nextColor);
+
+      if (isMaximizingPlayer) {
+        bestValue = Math.max(bestValue, evalScore);
+        alpha = Math.max(alpha, evalScore);
+      } else {
+        bestValue = Math.min(bestValue, evalScore);
+        beta = Math.min(beta, evalScore);
+      }
+
+      if (beta <= alpha) break;
+    }
+
+    this.memo.set(key, bestValue);
+    return bestValue;
+  }
+  private kingExists(board: (ChessPiece | null)[][], color: PieceColor): boolean {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = board[row][col];
+        if (piece?.type === 'king' && piece.color === color) {
+          return true;
+        }
       }
     }
-    this.memo.set(key, value);
-    return value;
+    return false;
+  }
+
+  private isValidMove(move: MoveAttempt, board: (ChessPiece | null)[][]): boolean {
+    if (!move || !move.from || !move.to) return false;
+
+    if (!this.isValidPosition(move.from) || !this.isValidPosition(move.to)) return false;
+
+    const piece = board[move.from.row][move.from.col];
+    if (!piece) return false;
+
+    return true;
+  }
+
+
+
+  private isValidPosition(pos: Position): boolean {
+    return pos.row >= 0 && pos.row < 8 && pos.col >= 0 && pos.col < 8;
   }
 
   private generateBoardKey(
     board: (ChessPiece | null)[][],
     depth: number,
-    alpha: number,
-    beta: number,
     isMaximizingPlayer: boolean,
     currentColor: PieceColor
   ): string {
@@ -126,7 +169,8 @@ export class ChessAiService {
   }
 
   private evaluateBoard(board: (ChessPiece | null)[][], color: PieceColor): number {
-    let score = 0;
+    let materialScore = 0;
+    let positionalScore = 0;
 
     const gamePhase = this.determineGamePhase(board);
 
@@ -140,6 +184,15 @@ export class ChessAiService {
     const pawnFiles = { white: Array(8).fill(0), black: Array(8).fill(0) };
     const pawnCounts = { white: 0, black: 0 };
 
+    const pieceValues = {
+      pawn: 100,
+      knight: 320,
+      bishop: 330,
+      rook: 500,
+      queen: 900,
+      king: 20000
+    };
+
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const piece = board[row][col];
@@ -150,18 +203,19 @@ export class ChessAiService {
           pawnCounts[piece.color]++;
         }
 
-        const baseValue = this.getBaseImportance(piece.type);
+        // Uwzględnij wartość materialną
+        const materialValue = pieceValues[piece.type];
+        const factor = piece.color === 'white' ? 1 : -1;
+        materialScore += materialValue * factor;
+
+        // Uwzględnij wartości pozycyjne
         let posValue = this.getPositionalValue(piece, row, col, gamePhase);
 
         if (gamePhase === 'opening') {
-          if (piece.color === 'white') {
-            if (this.isPieceDeveloped(piece, row, col, 'white')) {
-              whiteDevelopedPieces++;
-            }
-          } else {
-            if (this.isPieceDeveloped(piece, row, col, 'black')) {
-              blackDevelopedPieces++;
-            }
+          if (piece.color === 'white' && this.isPieceDeveloped(piece, row, col, 'white')) {
+            whiteDevelopedPieces++;
+          } else if (piece.color === 'black' && this.isPieceDeveloped(piece, row, col, 'black')) {
+            blackDevelopedPieces++;
           }
         }
 
@@ -173,63 +227,47 @@ export class ChessAiService {
 
         let safetyPenalty = 0;
         if (enemyAttackMap[row][col]) {
-          const phaseMultiplier = gamePhase === 'endgame' ? 0.3 : 0.6;
-          safetyPenalty = baseValue * phaseMultiplier;
           if (!this.isSquareDefended(board, row, col, piece.color)) {
-            safetyPenalty *= 3;
+            // Duża kara za niezabezpieczone figury
             if (piece.type === 'queen') {
-              safetyPenalty += baseValue * 300;
-            } else {
-              safetyPenalty += baseValue * 150;
+              safetyPenalty = 400; // Dodatkowa kara za niezabezpieczonego hetmana
+            } else if (piece.type === 'rook') {
+              safetyPenalty = 150;
+            } else if (piece.type === 'bishop' || piece.type === 'knight') {
+              safetyPenalty = 100;
+            } else if (piece.type === 'pawn') {
+              safetyPenalty = 30;
             }
           }
         }
 
-
-        // Add penalty for pieces that are under attack and not defended
-        if (enemyAttackMap[row][col] && !this.isSquareDefended(board, row, col, piece.color)) {
-          safetyPenalty += baseValue * 20;
-        }
-
-        // Add big penalty for losing valuable pieces
-        if (enemyAttackMap[row][col] && !this.isSquareDefended(board, row, col, piece.color)) {
-          safetyPenalty += baseValue * 100;
-        }
-
-        // Add big penalty for leaving the queen undefended
-        if (piece.type === 'queen' && !this.isSquareDefended(board, row, col, piece.color)) {
-          safetyPenalty += baseValue * 200;
-        }
-
         const mobilityBonus = this.calculateMobilityBonus(board, piece, gamePhase);
-        const totalValue = baseValue * 100 + posValue - safetyPenalty + mobilityBonus;
-        const factor = piece.color === 'white' ? 1 : -1;
-        score += totalValue * factor;
+        const totalPositionalValue = posValue - safetyPenalty + mobilityBonus;
+        positionalScore += totalPositionalValue * factor;
       }
     }
 
+    // Dodatkowe oceny dla różnych faz gry
     if (gamePhase === 'opening') {
-      score += (whiteDevelopedPieces - blackDevelopedPieces) * 25;
-
-      score += (whiteCenterControl - blackCenterControl) * 30;
-
-      score += this.evaluateCastlingOpportunities(board);
-
-      score += this.penalizeEarlyQueenMoves(board);
+      positionalScore += (whiteDevelopedPieces - blackDevelopedPieces) * 15;
+      positionalScore += (whiteCenterControl - blackCenterControl) * 20;
+      positionalScore += this.evaluateCastlingOpportunities(board);
+      positionalScore += this.penalizeEarlyQueenMoves(board);
     }
 
     if (gamePhase === 'middlegame') {
-      score += this.evaluateKingSafety(board);
-
-      score += this.evaluateRooksOnOpenFiles(board, pawnFiles);
+      positionalScore += this.evaluateKingSafety(board);
+      positionalScore += this.evaluateRooksOnOpenFiles(board, pawnFiles);
     }
+
     if (gamePhase === 'endgame') {
       if (pawnCounts.white + pawnCounts.black < 8) {
-        score += this.endgameAdjustments(board, color);
+        positionalScore += this.endgameAdjustments(board, color);
       }
     }
 
-    return score;
+    // Materiał ma większe znaczenie niż pozycja
+    return materialScore + (positionalScore * 0.5);
   }
 
   private determineGamePhase(board: (ChessPiece | null)[][]): 'opening' | 'middlegame' | 'endgame' {
