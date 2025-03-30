@@ -1,5 +1,5 @@
 <nav>
-  <img ngSrc="../assets/pieces/bs.svg" alt="Logo szachów, CZARNY skoczek" height="48" width="18">
+  <img ngSrc="../assets/pieces/bs.svg" alt="Logo szachów, biały skoczek" height="48" width="18">
   <h1 (click)="convert_name()">Szachy</h1>
 </nav>
 <div>
@@ -8,8 +8,8 @@
     <div>
       <app-zegar [color]="'black'" [time]="blackTime" (timeEnded)="onTimeEnded('black')"></app-zegar>
     </div>
-    <app-szachownica 
-      (currentGameChange)="setGame($event)" 
+    <app-szachownica
+      (currentGameChange)="setGame($event)"
       (moveExecuted)="notation.addMove($event); switchTimer()"
       >
     </app-szachownica>
