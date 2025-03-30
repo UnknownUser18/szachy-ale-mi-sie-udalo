@@ -6,11 +6,15 @@
   <app-menu (game_selected)="selectGame($event)"></app-menu>
   <main>
     <div>
-      <app-zegar [color]='black' [time]="time"></app-zegar>
+      <app-zegar [color]="'black'" [time]="blackTime" (timeEnded)="onTimeEnded('black')"></app-zegar>
     </div>
-    <app-szachownica (currentGameChange)="setGame($event)" (moveExecuted)="notation.addMove($event)"  ></app-szachownica>
+    <app-szachownica 
+      (currentGameChange)="setGame($event)" 
+      (moveExecuted)="notation.addMove($event); switchTimer()"
+      >
+    </app-szachownica>
     <div>
-      <app-zegar [color]='white' [time]="time"></app-zegar>
+      <app-zegar [color]="'white'" [time]="whiteTime" (timeEnded)="onTimeEnded('white')"></app-zegar>
     </div>
     <div>
       <app-nerd-view [game]="game"></app-nerd-view>

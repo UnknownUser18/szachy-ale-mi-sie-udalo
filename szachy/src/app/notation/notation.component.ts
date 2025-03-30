@@ -169,13 +169,12 @@ export class NotationComponent implements OnInit, OnDestroy {
     const toNotation = this.convertPositionToNotation(to);
     const piece = board[from.row][from.col];
     const from_col = fromNotation[0];
-
     let moveNotation = (board[to.row][to.col] ? `${from_col}x${toNotation}` : toNotation);
     let longmoveNotation = (board[to.row][to.col] ? `${fromNotation}x${toNotation}` : `${fromNotation}-${toNotation}`);
-    if ( (this.chessService.isMate('white') || this.chessService.isMate('black') )  === 'mate') {
+    if ( (this.chessService.isMate('white') || this.chessService.isMate('black') )  == 'mate') {
       longmoveNotation += "#";
       moveNotation += '#';
-    } else if ((this.chessService.isMate('white') || this.chessService.isMate('black') ) === 'check' ) {
+    } else if ((this.chessService.isMate('white') || this.chessService.isMate('black') ) == 'check' ) {
       longmoveNotation += "+";
       moveNotation += '+';
     }

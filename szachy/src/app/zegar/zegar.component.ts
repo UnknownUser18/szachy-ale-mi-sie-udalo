@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { PieceColor } from '../chess.service';
 
@@ -10,36 +10,23 @@ import { PieceColor } from '../chess.service';
   styleUrls: ['./zegar.component.css']
 })
 export class ZegarComponent implements OnDestroy {
-  @Input() color!: PieceColor | string;
-  @Input() time!: number;
+  @Input() color!: PieceColor;
+  @Input() set time(value: number) {
+    this._time = value;
+    if (value <= 0) {
+      this.timeEnded.emit();
+    }
+  }
+  get time(): number {
+    return this._time;
+  }
+  @Output() timeEnded = new EventEmitter<void>();
+
+  private _time: number = 0;
   private intervalId: any;
-  isRunning = false;
 
-  ngOnDestroy() {
-    this.stopTimer();
-  }
-
-  startTimer(): void {
-    if (this.isRunning) return;
-    this.isRunning = true;
-    this.intervalId = setInterval(() => {
-      this.time--;
-      if (this.time <= 0) {
-        this.stopTimer();
-       
-      }
-    }, 1000);
-  }
-
-  stopTimer(): void {
-    if (!this.isRunning) return;
+  ngOnDestroy(): void {
     clearInterval(this.intervalId);
-    this.isRunning = false;
-  }
-
-  resetTimer(newTime: number): void {
-    this.stopTimer();
-    this.time = newTime;
   }
 
   formatTime(seconds: number): string {
@@ -47,6 +34,4 @@ export class ZegarComponent implements OnDestroy {
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   }
-
-  protected readonly Math = Math;
 }

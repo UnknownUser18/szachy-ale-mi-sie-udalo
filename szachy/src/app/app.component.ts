@@ -37,7 +37,11 @@ export class AppComponent {
   game : Game | null = null;
   black : string = "black";
   white : string = "white";
-  time : number = 0;
+  initialTime: number = 600; // 10 minut w sekundach
+  whiteTime: number = this.initialTime;
+  blackTime: number = this.initialTime;
+  currentTimer: 'white' | 'black' = 'white';
+  timerInterval: any;
 
   @ViewChild('gameSelectorContainer', { read: ViewContainerRef, static: true }) gameSelectorContainer!: ViewContainerRef;
     constructor(
@@ -59,6 +63,7 @@ export class AppComponent {
     }
   }
 
+
   selectGame(game: GameType | null): void {
     let chessboard: HTMLElement = this.element.nativeElement.querySelector('main');
     let zegar: NodeListOf<HTMLElement> = this.element.nativeElement.querySelectorAll('app-zegar');
@@ -78,9 +83,50 @@ export class AppComponent {
   }
   setGame(game : Game) : void {
     this.game = game;
+    this.initialTime = game.duration ? game.duration  : 600;
+    // alert(this.whiteTime)
+    this.resetTimers();
+    this.startTimer();
   }
 
-  setTime(event : number) : void {
-    this.time = event;
+  resetTimers(): void {
+    this.whiteTime = this.initialTime;
+    this.blackTime = this.initialTime;
+    clearInterval(this.timerInterval);
+    this.currentTimer = 'white';
   }
+
+
+  setTime(minutes: number): void {
+    this.initialTime = minutes * 60;
+    this.resetTimers();
+  }
+
+  startTimer(): void {
+    clearInterval(this.timerInterval);
+    this.timerInterval = setInterval(() => {
+      if (this.currentTimer === 'white') {
+        this.whiteTime--;
+      } else if(this.currentTimer === 'black') {
+        this.blackTime--;
+      }
+      if ((this.whiteTime <= 0 || this.blackTime <= 0)) {
+        this.onTimeEnded(this.currentTimer);
+      }
+    }, 1000);
+  }
+
+  switchTimer(): void {
+    this.currentTimer = this.currentTimer === 'white' ? 'black' : 'white';
+    this.startTimer();
+  }
+
+  onTimeEnded(color: 'white' | 'black'): void {
+    clearInterval(this.timerInterval);
+    console.log(`Czas gracza ${color} się skończył!`);
+
+  }
+
+
+
 }

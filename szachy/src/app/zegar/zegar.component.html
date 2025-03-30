@@ -1,5 +1,4 @@
-<div>
+<div class="timer" [class.white-timer]="color === 'white'" [class.black-timer]="color === 'black'">
   <img ngSrc="../../assets/pieces/clock.svg" alt="Zegar" height="36" width="36">
   <h2>{{ formatTime(time) }}</h2>
 </div>
- 
