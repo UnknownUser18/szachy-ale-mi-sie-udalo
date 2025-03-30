@@ -18,6 +18,13 @@
       <p>Nazwa pliku: <b>{{game.grandmaster?.name}}</b></p>
       <p>Biały gracz: <b>{{game.white_player}}</b></p>
       <p>Czarny gracz: <b>{{game.black_player}}</b></p>
+      @if (moves.player && moves.grandmaster) {
+        <p>Następne ruchy gracza: <b>{{moves.player}}</b></p>
+        <p>Następne ruchy grandmaster: <b>{{moves.grandmaster}}</b></p>
+      } @else {
+        <p>Następne ruchy gracza: <b>Brak</b></p>
+        <p>Następne ruchy grandmaster: <b>Brak</b></p>
+      }
     }
   }
 </fieldset>

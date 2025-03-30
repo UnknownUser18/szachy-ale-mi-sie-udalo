@@ -25,9 +25,11 @@ export interface Game {
 })
 export class SzachownicaComponent implements OnChanges {
   public currentGame!: Game;
+  @Output() next_moves : EventEmitter<any> = new EventEmitter();
   @Input() game!: Game;
   @Output() currentGameChange : EventEmitter<Game> = new EventEmitter<Game>();
   @Output() moveExecuted : EventEmitter<MoveAttempt> = new EventEmitter<MoveAttempt>();
+  @Output() moveExectued_boolean : EventEmitter<string> = new EventEmitter<string>();
   private focusedPiece: HTMLElement | null = null;
   private focusedChessPiece: ChessPiece | null = null;
   private focusedLegalMoves: legalMove[][] = [];
@@ -253,7 +255,7 @@ export class SzachownicaComponent implements OnChanges {
         to: { row: to.row, col: to.col },
         specialMove: this.chessService.getSpecialMove(from, to) || undefined // Convert null to undefined
       });
-
+      this.moveExectued_boolean.emit("true");
       // After a valid human move, switch turn.
       this.focusedColor = movedPieceColor === "white" ? "black" : "white";
       if (this.currentGame.type === "GraczVsAi") {
@@ -329,7 +331,8 @@ export class SzachownicaComponent implements OnChanges {
           return part.match(`\\b${this.number_move+1}. ${lastPlayerPosition} {2}[a-zA-Z0-9]{1,4}.`) !== null;
       });
       if(partie.length === 0) {
-        this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!)!);
+        this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!+1)!);
+        this.next_moves.emit({player: null, grandmaster: null})
         this.loadBoard();
         return;
       } else {
@@ -339,7 +342,21 @@ export class SzachownicaComponent implements OnChanges {
       let moves: string[] = partie.split(/\d+\.\s/).filter(Boolean);
       moves.shift();
       for (let i : number = 0; i < moves.length; i++) {
+        let nextMovesPlayer : string[] = [];
+        let nextMovesGrandmaster : string[] = [];
+        for(let j : number = i ; j < i+5 ; j++) {
+          if(gameAttributes.mainPlayerColor === 'white') {
+            nextMovesGrandmaster.push(moves[j].trimEnd().split('  ')[1]);
+            nextMovesPlayer.push(moves[j].trimEnd().split('  ')[0]);
+          } else {
+            nextMovesGrandmaster.push(moves[j].trimEnd().split('  ')[0]);
+            nextMovesPlayer.push(moves[j].trimEnd().split('  ')[1]);
+          }
+        }
+        const data = {player : nextMovesPlayer, grandmaster : nextMovesGrandmaster};
+        this.next_moves.emit(data)
         let moveArray: string | string[] = moves[i].split('  ').filter(Boolean);
+
         if (i === this.number_move) {
           moveArray = gameAttributes.mainPlayerColor === 'white' ? moveArray[1] : moveArray[0];
           moveArray = moveArray.trimEnd().split(' ')[0].replace(/[+#]/g, '');
@@ -381,7 +398,7 @@ export class SzachownicaComponent implements OnChanges {
           } catch(err) {
             console.error("Error while executing grandmaster move", err);
             console.log("Switching to AI move");
-            this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!)!);
+            this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!+1)!);
           }
           this.loadBoard();
           this.number_move++;

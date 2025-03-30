@@ -1,6 +1,6 @@
 import { Component, ElementRef, Renderer2, ViewChild, ViewContainerRef } from '@angular/core';
 import {Game, GameType, SzachownicaComponent} from './szachownica/szachownica.component';
-import { ChessService } from './chess.service';
+import {ChessService, MoveAttempt} from './chess.service';
 import { ChessAiService } from './chess-ai.service';
 import {ZegarComponent} from './zegar/zegar.component';
 import {MenuComponent} from './menu/menu.component';
@@ -9,6 +9,7 @@ import { GameSelectorComponent } from './game-selector/game-selector.component';
 import { NotationComponent } from './notation/notation.component';
 import {NerdViewComponent} from './nerd-view/nerd-view.component';
 import {PositionEvaluatorComponent} from './position-evaluator/position-evaluator.component';
+import {PodpowiedziComponent} from './podpowiedzi/podpowiedzi.component';
 // import {LocalGameComponent} from './local-game/local-game.component';
 // import {GameEndComponent} from './game-end/game-end.component';
 
@@ -28,12 +29,14 @@ export let pieces: { [key: string]: string } = {
 }
 @Component({
     selector: 'app-root',
-  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent, PositionEvaluatorComponent],
+  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent, PositionEvaluatorComponent, PodpowiedziComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
 })
 export class AppComponent {
+  moves : any
   gameType : GameType | null = null;
+  moveOccured : string | undefined;
   game : Game | null = null;
   black : string = "black";
   white : string = "white";
@@ -130,5 +133,14 @@ export class AppComponent {
     clearInterval(this.timerInterval);
     console.log(`Czas gracza ${color} się skończył!`);
 
+  }
+
+  setMoves(data : any) : void {
+    this.moves = data;
+  }
+
+  setMove(data : string) : void {
+      console.log(data);
+    this.moveOccured = data;
   }
 }

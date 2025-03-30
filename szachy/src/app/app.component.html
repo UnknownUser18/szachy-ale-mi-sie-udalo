@@ -12,8 +12,9 @@
         </div>
         <app-szachownica [game]="game"
         (currentGameChange)="setGame($event)"
-        (moveExecuted)="notation.addMove($event); switchTimer()"
-        >
+        (moveExecuted)="notation.addMove($event); switchTimer();"
+        (next_moves)="setMoves($event)"
+        (moveExectued_boolean)="setMove($event)">
         </app-szachownica>
         <div>
           <app-zegar [color]="'white'" [time]="whiteTime" (timeEnded)="onTimeEnded('white')"></app-zegar>
@@ -23,7 +24,8 @@
 
       <div>
         <app-notation #notation></app-notation>
-        <app-nerd-view [game]="game"></app-nerd-view>
+        <app-nerd-view [game]="game" [moves]="moves"></app-nerd-view>
+        <app-podpowiedzi [moveOccurred]="moveOccured"></app-podpowiedzi>
         <app-position-evaluator></app-position-evaluator>
       </div>
   </main>

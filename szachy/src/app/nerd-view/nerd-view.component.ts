@@ -11,8 +11,12 @@ import {ChessService, PieceColor} from '../chess.service';
 export class NerdViewComponent implements OnInit {
   @Input() game!: Game | null;
   currentTurnColor! : PieceColor;
+  @Input() moves!: any;
   constructor(private chessService: ChessService) {}
   ngOnInit() : void {
     this.chessService.currentTurnColor.subscribe((color : PieceColor) : PieceColor => this.currentTurnColor = color);
+    if(!this.moves) {
+      this.moves = {player: '', grandmaster: ''};
+    }
   }
 }
