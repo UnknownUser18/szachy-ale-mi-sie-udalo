@@ -34,6 +34,19 @@ body {
   --white-text-color: #212121;
   --black-text-color: #FAFAFA;
 }
+.mocha {
+  --background-color: #1e1e2e;
+  --forth-color: #585b70;
+  --third-color: #45475a;
+  --secondary-color: #313244;
+  --between-color: #9399b2;
+  --primary-color: #bac2de;
+  --border-color: #6c7086;
+  --gray-text-color: #bac2de;
+  --gradient-text-color: #cdd6f4;
+  --white-text-color: #11111b;
+  --black-text-color: #cdd6f4;
+}
 select, option {
   color: var(--black-text-color);
 }

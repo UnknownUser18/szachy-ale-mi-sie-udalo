@@ -3,12 +3,13 @@ import { NgIf, NgOptimizedImage } from '@angular/common';
 
 @Component({
   selector: 'app-ustawienia',
-  imports: [NgIf, NgOptimizedImage],
+  imports: [NgOptimizedImage],
   templateUrl: './ustawienia.component.html',
   styleUrl: './ustawienia.component.css'
 })
 export class UstawieniaComponent implements OnInit {
   settingsOpened: boolean = false;
+  availableThemes: string[] = ['light', 'dark', 'mocha'];
 
   constructor(private element: ElementRef) {}
 
@@ -21,8 +22,12 @@ export class UstawieniaComponent implements OnInit {
 
   changeTheme(event: Event): void {
     const target = event.target as HTMLSelectElement;
-    const value : string = target.value;
-    this.element.nativeElement.ownerDocument.body.classList.remove('light', 'dark');
+    const value: string = target.value;
+
+    this.availableThemes.forEach(theme => {
+      this.element.nativeElement.ownerDocument.body.classList.remove(theme);
+    });
+
     this.element.nativeElement.ownerDocument.body.classList.add(value);
     localStorage.setItem('theme', value);
   }
