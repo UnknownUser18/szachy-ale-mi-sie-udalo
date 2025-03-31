@@ -9,11 +9,11 @@ Nasza gra "Szachy" to implementacja gry w szachy przeznaczona do uruchamiania w 
 ## Uruchamianie projektu
 
 ### Wymagania systemowe
-- Node.js (zalecana wersja: v16.13.0)
-- Angular CLI
+- Node.js (zalecana wersja: v22.14.0)
+- Angular CLI (wymagana wersja >19.2.3)
 
 ### Instalacja
-1. Pobierz projekt.
+1. Pobierz projekt `https://github.com/UnknownUser18/szachy-ale-mi-sie-udalo.git`.
 2. Przejdź do katalogu głównego (tam, gdzie znajduje się `package.json`).
 	```
 	cd ./szachy
@@ -39,7 +39,7 @@ Sekcja ta opisuje różnorodne możliwości aplikacji szachowej, która umożliw
 ### Panel główny menu
 Po uruchomieniu aplikacji użytkownik przenoszony jest do panelu głównego, który zawiera:
 - **Wybór trybu gry** – cztery różne tryby rozgrywki.
-- **Wyjście** – pozwala na zamknięcie aplikacji.
+- **Muzyka** - możliwość słuchania, zatrzymania, zmiany głośności oraz zmiany utworu.
 
 ### Tryby gry
 
@@ -53,8 +53,14 @@ Po uruchomieniu aplikacji użytkownik przenoszony jest do panelu głównego, kt�
    W tym trybie gracz rywalizuje z komputerem, który korzysta z algorytmu **MiniMax z Alfa-Beta Pruning**. AI ocenia możliwe ruchy, przewidując najlepszą strategię, a dzięki Alfa-Beta Pruning optymalizuje analizę, przyspieszając decyzje. Gracz może wybrać poziom trudności, od początkującego po zaawansowany, co zapewnia dynamiczną i wymagającą rozgrywkę.
 
 4. **Gracz vs Arcymistrz**  
-   Tryb dla zaawansowanych graczy. Sztuczna inteligencja korzysta z bazy partii szachowych w formacie **PGN**, symulując poziom gry arcymistrzów. Użytkownik może także dodawać własne pliki **PGN**, co umożliwia personalizację rozgrywki.
-
+   Tryb dla zaawansowanych graczy. Sztuczna inteligencja korzysta z bazy partii szachowych w formacie **.pgn**, symulując poziom gry arcymistrzów. Użytkownik może także użyć własne pliki **.pgn**, co umożliwia personalizację rozgrywki.
+  #### Każdy tryb zawiera
+  
+  - notację szachową
+  - ewaluacje pozycji
+  - podpowiedzi (możliwe do właczenia)
+  - widok dla nerdów
+  - 
 ### Rozgrywka
 
 
@@ -98,7 +104,6 @@ Aplikacja zapewnia pełną analizę i weryfikację dostępnych ruchów, dbając 
 	- Kolor danego gracza  
 	- Następne ruchy gracza i arcymistrza  
   
-
 ---
 
 ## Notacja szachowa
