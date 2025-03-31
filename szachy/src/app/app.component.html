@@ -25,18 +25,18 @@
       <div>
         <app-notation #notation></app-notation>
         <app-nerd-view [game]="game" [moves]="moves"></app-nerd-view>
-        <app-podpowiedzi [moveOccurred]="moveOccured"></app-podpowiedzi>
+<!--        <app-podpowiedzi [moveOccurred]="moveOccured"></app-podpowiedzi>-->
         <app-position-evaluator></app-position-evaluator>
       </div>
   </main>
-  } @else if(game === null && !gameType) {
+  } @else if (gameType) {
+    <app-game-selector [game]="gameType" (time)="timerService.setTime($event)"></app-game-selector>
+  } @else if(game === null || !gameType) {
     <div class="welcome">
       <h1>Witaj w Szachy</h1>
       <p>Aby rozpocząć grę, wybierz jeden z czterech trybów na panelu z lewej strony.</p>
     </div>
   }
-  @if (gameType) {
-    <app-game-selector [game]="gameType" (time)="timerService.setTime($event)"></app-game-selector>
-  }
+
 </div>
 <app-local-game></app-local-game>

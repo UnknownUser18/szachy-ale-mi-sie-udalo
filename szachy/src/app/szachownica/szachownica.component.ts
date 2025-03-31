@@ -1,5 +1,5 @@
 import {Component, ElementRef, Renderer2, Output, EventEmitter, Input, OnChanges, SimpleChanges} from '@angular/core';
-import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position, GameEndType, SpecialMove} from '../chess.service';
+import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position} from '../chess.service';
 import { pieces } from '../app.component';
 import { LocalConnectionService } from '../local-connection.service';
 import { ChessAiService } from '../chess-ai.service';
@@ -26,7 +26,7 @@ export interface Game {
 export class SzachownicaComponent implements OnChanges {
   public currentGame!: Game;
   @Output() next_moves : EventEmitter<any> = new EventEmitter();
-  @Input() game!: Game;
+  @Input() game: Game | undefined;
   @Output() currentGameChange : EventEmitter<Game> = new EventEmitter<Game>();
   @Output() moveExecuted : EventEmitter<MoveAttempt> = new EventEmitter<MoveAttempt>();
   @Output() moveExectued_boolean : EventEmitter<string> = new EventEmitter<string>();
@@ -35,19 +35,17 @@ export class SzachownicaComponent implements OnChanges {
   private focusedLegalMoves: legalMove[][] = [];
   constructor(private chessService : ChessService, private renderer : Renderer2, private element : ElementRef, private aiChessService : ChessAiService, private connection: LocalConnectionService) {
     this.chessService.updateBoard.subscribe(() : void => this.loadBoard())
-    this.chessService.gameStart.subscribe((gameAttributes: Game) : void => {
-      this.startGame(gameAttributes);
-    })
     this.chessService.currentTurnColor.subscribe((gameTurnColor: PieceColor) : PieceColor => this.focusedColor = gameTurnColor);
   }
   focusedColor: PieceColor = 'white';
   number_move : number = 0;
   cashedGrandmasterGames : string[] = [];
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges) : void {
     if (changes['game'] && changes['game'].currentValue) {
       this.startGame(changes['game'].currentValue);
     }
   }
+
   loadBoard(): void {
   let board: HTMLElement = this.element.nativeElement.querySelector('main');
   (board.childNodes as NodeListOf<HTMLElement>).forEach((row: HTMLElement): void => {
@@ -161,7 +159,7 @@ export class SzachownicaComponent implements OnChanges {
         });
         const executeForGameType = {
           "GraczVsGracz": () => this.PlayerVsPlayerLocal(element, board),
-          "GraczVsAi": () => this.PlayerVsAi(element, board, gameAttributes),
+          "GraczVsAi": () => this.PlayerVsAi(element, board),
           "GraczVsSiec": () => this.PlayerVsNetwork(element, board, gameAttributes),
           "GraczVsGrandmaster": () => this.PlayerVSGrandMaster(element, board, gameAttributes),
         };
@@ -196,11 +194,7 @@ export class SzachownicaComponent implements OnChanges {
     }
   }
 
-  PlayerVsPlayerLocal(
-    element: HTMLElement,
-    board: HTMLElement,
-    callback?: (movedPieceColor: PieceColor) => void
-  ): void {
+  PlayerVsPlayerLocal(element: HTMLElement, board: HTMLElement,): void {
     let position: Position = {
       row: parseInt(element.getAttribute('data-row')!),
       col: parseInt(element.getAttribute('data-column')!),
@@ -247,7 +241,7 @@ export class SzachownicaComponent implements OnChanges {
   }
 
   // For cases where a human click should trigger the same logic as a drag action
-  public PlayerVsAi(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
+  public PlayerVsAi(element: HTMLElement, board: HTMLElement): void {
     let position: Position = {
       row: parseInt(element.getAttribute('data-row')!),
       col: parseInt(element.getAttribute('data-column')!),

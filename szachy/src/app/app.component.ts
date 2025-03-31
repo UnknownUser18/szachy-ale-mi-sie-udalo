@@ -1,4 +1,4 @@
-import { Component, ElementRef, Renderer2, ViewChild, ViewContainerRef } from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild, ViewContainerRef} from '@angular/core';
 import {Game, GameType, SzachownicaComponent} from './szachownica/szachownica.component';
 import {ChessService, MoveAttempt} from './chess.service';
 import { ChessAiService } from './chess-ai.service';
@@ -12,7 +12,6 @@ import {NerdViewComponent} from './nerd-view/nerd-view.component';
 import {PositionEvaluatorComponent} from './position-evaluator/position-evaluator.component';
 import {PodpowiedziComponent} from './podpowiedzi/podpowiedzi.component';
 import { TimerService } from './timer.service';
-// import {LocalGameComponent} from './local-game/local-game.component';
 // import {GameEndComponent} from './game-end/game-end.component';
 
 export let pieces: { [key: string]: string } = {
@@ -37,31 +36,34 @@ export let pieces: { [key: string]: string } = {
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   moves : any
   gameType : GameType | null = null;
   moveOccured : string | undefined;
   game : Game | null = null;
   black : string = "black";
   white : string = "white";
-  
+
 
   @ViewChild('gameSelectorContainer', { read: ViewContainerRef, static: true }) gameSelectorContainer!: ViewContainerRef;
     constructor(
     private chessService: ChessService,
     private chessAiService: ChessAiService,
     public timerService: TimerService,
-    private renderer: Renderer2,
     private element: ElementRef
   ) {
     this.chessService.setAiService(this.chessAiService);
     this.chessService.gameStart.subscribe((game : Game) : void => {
+      this.gameType = game.type;
       this.game = game;
-      this.selectGame(null);
     })
-      this.chessService.gameClose.subscribe((game : Game) : void => {
+      this.chessService.gameClose.subscribe(() : void => {
         this.game = null;
       })
+  }
+  ngOnInit() : void {
+      this.gameType = null;
+      this.game = null;
   }
 
   protected convert_name() : void {
@@ -74,35 +76,18 @@ export class AppComponent {
   }
 
 
-  selectGame(game: GameType | null): void {
-    let chessboard: HTMLElement = this.element.nativeElement.querySelector('main > div');
-    let zegar: NodeListOf<HTMLElement> = this.element.nativeElement.querySelectorAll('app-zegar');
+  selectGame(game: GameType | null) : void {
+    this.game = null;
     this.gameType = game;
-    if(!chessboard) return;
-    if (game === null) {
-      this.renderer.setStyle(chessboard, 'display', 'flex');
-      zegar.forEach((z: HTMLElement): void => {
-        this.renderer.setStyle(z, 'display', 'block');
-      });
-    } else if (chessboard.childNodes && chessboard.childNodes[1].nodeName.toLowerCase() === 'app-szachownica' && zegar) {
-      this.game = null;
-      this.renderer.setStyle(chessboard, 'display', 'none');
-      zegar.forEach((z: HTMLElement): void => {
-        this.renderer.setStyle(z, 'display', 'none');
-      });
-    }
-
   }
   setGame(game : Game) : void {
     this.game = game;
-    // this.initialTime = game.duration ? game.duration  : 600;
-    // alert(this.whiteTime)
     this.timerService.setTime(game.duration)
     this.timerService.resetTimers();
     this.timerService.startTimer();
   }
 
- 
+
   setMoves(data : any) : void {
     this.moves = data;
   }

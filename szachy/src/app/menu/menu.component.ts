@@ -31,8 +31,9 @@ export class MenuComponent implements AfterViewInit {
   select_game(event: MouseEvent): void {
     let target: HTMLElement = event.target as HTMLElement;
     if (target.tagName === "UL") return;
-    if (target.tagName === "EM")
+    if (target.tagName === "EM" || target.tagName === 'svg') {
       target = target.parentElement as HTMLElement;
+    }
     (target.parentElement!.childNodes as NodeListOf<HTMLElement>).forEach((el: HTMLElement): void => {
       el.classList.remove('selected');
     })

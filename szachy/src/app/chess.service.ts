@@ -1229,10 +1229,10 @@ export class ChessService {
   /**
    * @method startGame
    * @description Startuje grę z podanymi
-   * @param {Game} gameAtributes - Pozycja początkowa
+   * @param {Game} gameAttributes - Pozycja początkowa
    * @returns {void} Nowa plansza po symulowanym ruchu
    */
-  public startGame(gameAtributes: Game): void{
-    if(gameAtributes) this.gameStart.next(gameAtributes);
+  public startGame(gameAttributes : Game): void {
+    this.gameStart.next(gameAttributes);
   }
 }

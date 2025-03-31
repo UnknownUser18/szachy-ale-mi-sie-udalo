@@ -190,10 +190,12 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['game']) {
       this.pawns = this.defaultChessBoard();
-      setTimeout(() : void => {
-        let button : HTMLButtonElement = this.element.nativeElement.querySelector('.start');
-        button.disabled = changes['game'].currentValue === 'GraczVsGrandmaster';
-      }, 10)
+      if(changes['game'].currentValue !== 'GraczVsSiec') {
+        setTimeout(() : void => {
+          let button : HTMLButtonElement = this.element.nativeElement.querySelector('.start');
+          button.disabled = changes['game'].currentValue === 'GraczVsGrandmaster';
+        }, 10);
+      }
       if(changes['game'].previousValue === 'GraczVsGrandmaster') {
         setTimeout(() : void => {
           let chessboard : HTMLElement = this.renderer.createElement('div');
@@ -214,11 +216,10 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     }
   }
 
-  gameConstructor(): Game
-  {
+  gameConstructor(): Game {
     return {
-      board: this.transformChessBoard(this.pawns) ?? this.transformChessBoard(this.pawns),
-      type: this.game ?? 'GraczVsGracz',
+      board: this.transformChessBoard(this.pawns),
+      type: this.game!,
       duration: this.universalTime,
       mainPlayerColor: this.kolorGracza,
       grandmaster: this.grandmasterFile ?? undefined,

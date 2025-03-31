@@ -92,7 +92,7 @@
         }
       </div>
     }
-    <button *ngIf="game !== 'GraczVsSiec'" (click)="startGame()">Rozpocznij grę</button>
+    <button *ngIf="game !== 'GraczVsSiec'" (click)="startGame()" class="start">Rozpocznij grę</button>
     <ol *ngIf="game === 'GraczVsSiec'" class="users-list">
       <li *ngFor="let user of connection.users.value">
         {{ user.username }}

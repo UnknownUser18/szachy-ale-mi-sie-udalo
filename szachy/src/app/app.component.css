@@ -1,3 +1,7 @@
+h1 {
+  margin-block: 0.67em;
+  font-size: 1.6em;
+}
 .promotion-dialog-container .mat-dialog-container {
   padding: 0;
   background: none;
