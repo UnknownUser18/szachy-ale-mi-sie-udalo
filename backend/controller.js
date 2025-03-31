@@ -32,7 +32,7 @@ app.get('/start-server', (req, res) => {
         });
     }
 
-    serverProcess = exec(`node ${serverPath}`, (error, stdout, stderr) => {
+    serverProcess = exec(`node ./index.js`, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error: ${error.message}`);
             return;

@@ -1,0 +1,52 @@
+<mat-dialog-content class="dialog-container">
+  <div class="content-wrapper" [ngSwitch]="data.type">
+    <!-- Mate -->
+    <div *ngSwitchCase="'mate'" class="result-box" [class.victory]="true">
+      <div class="icon-background"></div>
+      <mat-icon class="icon animate">{{ iconMap[data.type] }}</mat-icon>
+      <h1 mat-dialog-title>{{ titleMap[data.type] }}</h1>
+      <p class="message">{{ formattedMessage }}</p>
+    </div>
+
+    <!-- Stalemate -->
+    <div *ngSwitchCase="'stalemate'" class="result-box" [class.draw]="true">
+      <div class="icon-background"></div>
+      <mat-icon class="icon animate">{{ iconMap[data.type] }}</mat-icon>
+      <h1 mat-dialog-title>{{ titleMap[data.type] }}</h1>
+      <p class="message">{{ formattedMessage }}</p>
+    </div>
+
+    <!-- Draw Repetition -->
+    <div *ngSwitchCase="'draw-repetition'" class="result-box" [class.draw]="true">
+      <div class="icon-background"></div>
+      <mat-icon class="icon animate">{{ iconMap[data.type] }}</mat-icon>
+      <h1 mat-dialog-title>{{ titleMap[data.type] }}</h1>
+      <p class="message">{{ formattedMessage }}</p>
+    </div>
+
+    <!-- 50 Moves -->
+    <div *ngSwitchCase="'draw-50-moves'" class="result-box" [class.draw]="true">
+      <div class="icon-background"></div>
+      <mat-icon class="icon animate">{{ iconMap[data.type] }}</mat-icon>
+      <h1 mat-dialog-title>{{ titleMap[data.type] }}</h1>
+      <p class="message">{{ formattedMessage }}</p>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button *ngIf="data.type === 'check'" mat-raised-button color="warn" (click)="handleAction('continue')">
+    <mat-icon>arrow_forward</mat-icon>
+    Kontynuuj
+  </button>
+
+  <button *ngIf="data.type !== 'check'" mat-raised-button color="primary" (click)="handleAction('new-game')">
+    <mat-icon>refresh</mat-icon>
+    Nowa Gra
+  </button>
+
+  <button mat-stroked-button mat-dialog-close>
+    <mat-icon>close</mat-icon>
+    Zamknij
+  </button>
+</mat-dialog-actions>

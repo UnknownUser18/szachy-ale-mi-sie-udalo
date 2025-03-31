@@ -1,9 +1,9 @@
 import {Component, ElementRef, Renderer2, Output, EventEmitter, Input, OnChanges, SimpleChanges} from '@angular/core';
 import {ChessPiece, ChessService, legalMove, MoveAttempt, PieceColor, Position, GameEndType, SpecialMove} from '../chess.service';
 import { pieces } from '../app.component';
+import { LocalConnectionService } from '../local-connection.service';
 import { ChessAiService } from '../chess-ai.service';
-
-export type GameType = 'GraczVsGracz' | 'GraczVsSiec' | 'GraczVsAi' | 'GraczVsGrandmaster';
+export type GameType = | 'GraczVsGracz' | 'GraczVsSiec' | 'GraczVsAi' | 'GraczVsGrandmaster';
 
 export interface Game {
   type: GameType;
@@ -33,7 +33,7 @@ export class SzachownicaComponent implements OnChanges {
   private focusedPiece: HTMLElement | null = null;
   private focusedChessPiece: ChessPiece | null = null;
   private focusedLegalMoves: legalMove[][] = [];
-  constructor(private chessService : ChessService, private renderer : Renderer2, private element : ElementRef, private aiChessService : ChessAiService) {
+  constructor(private chessService : ChessService, private renderer : Renderer2, private element : ElementRef, private aiChessService : ChessAiService, private connection: LocalConnectionService) {
     this.chessService.updateBoard.subscribe(() : void => this.loadBoard())
     this.chessService.gameStart.subscribe((gameAttributes: Game) : void => {
       this.startGame(gameAttributes);
@@ -48,7 +48,6 @@ export class SzachownicaComponent implements OnChanges {
       this.startGame(changes['game'].currentValue);
     }
   }
-
   loadBoard(): void {
   let board: HTMLElement = this.element.nativeElement.querySelector('main');
   (board.childNodes as NodeListOf<HTMLElement>).forEach((row: HTMLElement): void => {
@@ -89,9 +88,9 @@ export class SzachownicaComponent implements OnChanges {
           this.renderer.appendChild(cell, span);
         }
       }
-    });
-  });
-}
+    })
+  })
+  }
 
   styleLegalMoves(board: HTMLElement): void {
     board.querySelectorAll('.moved').forEach((cell: Element): void => { cell.classList.remove('moved') });
@@ -161,11 +160,11 @@ export class SzachownicaComponent implements OnChanges {
           event.preventDefault();
         });
         const executeForGameType = {
-            "GraczVsGracz": () => this.PlayerVsPlayerLocal(element, board),
-            "GraczVsSiec": () => {},
-            "GraczVsAi": () => this.PlayerVsAi(element, board),
-            "GraczVsGrandmaster": () : void => this.PlayerVSGrandMaster(element, board, gameAttributes),
-          }
+          "GraczVsGracz": () => this.PlayerVsPlayerLocal(element, board),
+          "GraczVsAi": () => this.PlayerVsAi(element, board, gameAttributes),
+          "GraczVsSiec": () => this.PlayerVsNetwork(element, board, gameAttributes),
+          "GraczVsGrandmaster": () => this.PlayerVSGrandMaster(element, board, gameAttributes),
+        };
         element.addEventListener('drop', (event: DragEvent): void => {
           if (event.dataTransfer!.getData('text/plain').match('http://')) return;
           event.preventDefault();
@@ -179,26 +178,39 @@ export class SzachownicaComponent implements OnChanges {
       this.renderer.appendChild(board, row);
     }
     this.loadBoard();
-    if(gameAttributes.mainPlayerColor === 'black' && (gameAttributes.type === 'GraczVsGrandmaster' || gameAttributes.type === 'GraczVsAi')) {
-      setTimeout(() : void => {
-        if(gameAttributes.type === 'GraczVsGrandmaster') {
+    if (
+      gameAttributes.mainPlayerColor === 'black' &&
+      (gameAttributes.type === 'GraczVsGrandmaster' ||
+        gameAttributes.type === 'GraczVsAi')
+    ) {
+      setTimeout((): void => {
+        if (gameAttributes.type === 'GraczVsGrandmaster') {
           this.GrandMasterMove(board, gameAttributes, null, null);
         } else {
-          this.chessService.attemptAiMove('black');
+          this.chessService.attemptAiMove('black', gameAttributes.difficulty!);
         }
-      this.chessService.currentTurnColor.next(gameAttributes.mainPlayerColor === 'black' ? 'black' : 'white'); // flip turn
+        this.chessService.currentTurnColor.next(
+          gameAttributes.mainPlayerColor === 'black' ? 'black' : 'white'
+        );
       }, Math.floor(Math.random() * 1000) + 1000);
     }
-
   }
 
-  PlayerVsPlayerLocal(element: HTMLElement, board: HTMLElement): void {
-    let position: Position = { row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!) };
-    let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
+  PlayerVsPlayerLocal(
+    element: HTMLElement,
+    board: HTMLElement,
+    callback?: (movedPieceColor: PieceColor) => void
+  ): void {
+    let position: Position = {
+      row: parseInt(element.getAttribute('data-row')!),
+      col: parseInt(element.getAttribute('data-column')!),
+    };
+    let piece: ChessPiece | null =
+      this.chessService.getPieceFromPosition(position);
     if (piece && piece.color === this.focusedColor) {
       this.focusedChessPiece = piece;
       this.focusedPiece = element;
-      let legalMoves = this.chessService.getLegalMovesForColor(piece.color).find((distinctPieceLegalMoves: { piece: ChessPiece, legalMoves: legalMove[][] }) => distinctPieceLegalMoves.piece === piece)?.legalMoves;
+      let legalMoves = this.chessService.getLegalMovesForColor(piece.color).find((distinctPieceLegalMoves: { piece: ChessPiece; legalMoves: legalMove[][]; }) => distinctPieceLegalMoves.piece === piece)?.legalMoves;
       if (!(legalMoves && legalMoves.length > 0)) return;
       this.focusedLegalMoves = legalMoves;
       this.styleLegalMoves(board);
@@ -208,11 +220,37 @@ export class SzachownicaComponent implements OnChanges {
       this.movePiece(this.focusedChessPiece!.position, position);
   }
 
-  // For cases where a human click should trigger the same logic as a drag action
-  public PlayerVsAi(element: HTMLElement, board: HTMLElement): void {
+  PlayerVsNetwork(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
     let position: Position = {
       row: parseInt(element.getAttribute('data-row')!),
-      col: parseInt(element.getAttribute('data-column')!)
+      col: parseInt(element.getAttribute('data-column')!),
+    };
+    let piece: ChessPiece | null =
+      this.chessService.getPieceFromPosition(position);
+    if (
+      piece &&
+      piece.color === this.focusedColor &&
+      piece.color === gameAttributes.mainPlayerColor
+    ) {
+      this.focusedChessPiece = piece;
+      this.focusedPiece = element;
+      let legalMoves = this.chessService.getLegalMovesForColor(piece.color).find((distinctPieceLegalMoves: { piece: ChessPiece; legalMoves: legalMove[][]; }) => distinctPieceLegalMoves.piece === piece)?.legalMoves;
+      if (!(legalMoves && legalMoves.length > 0)) return;
+      this.focusedLegalMoves = legalMoves;
+      this.styleLegalMoves(board);
+      return;
+    }
+    if (this.focusedChessPiece) {
+      this.connection.attemptMove(this.focusedChessPiece!.position, position);
+      this.movePiece(this.focusedChessPiece!.position, position);
+    }
+  }
+
+  // For cases where a human click should trigger the same logic as a drag action
+  public PlayerVsAi(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
+    let position: Position = {
+      row: parseInt(element.getAttribute('data-row')!),
+      col: parseInt(element.getAttribute('data-column')!),
     };
     let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
 
@@ -247,37 +285,45 @@ export class SzachownicaComponent implements OnChanges {
     let attempt: boolean = this.chessService.tryMove(moveAttempt);
     let movedPieceColor: PieceColor = this.focusedChessPiece!.color;
     if (attempt) {
+      this.chessService.currentTurnColor.next(
+        this.focusedColor === 'white' ? 'black' : 'white'
+      );
       console.log(`Move executed: from (${from.row}, ${from.col}) to (${to.row}, ${to.col})`);
       this.convertPositionToNotation(from);
       this.convertPositionToNotation(to);
       this.moveExecuted.emit({
         from: { row: from.row, col: from.col },
         to: { row: to.row, col: to.col },
-        specialMove: this.chessService.getSpecialMove(from, to) || undefined // Convert null to undefined
       });
       this.moveExectued_boolean.emit("true");
       // After a valid human move, switch turn.
-      this.focusedColor = movedPieceColor === "white" ? "black" : "white";
-      if (this.currentGame.type === "GraczVsAi") {
-        const aiColor: PieceColor = movedPieceColor === "white" ? "black" : "white";
+      this.focusedColor = movedPieceColor === 'white' ? 'black' : 'white';
+      if (this.currentGame.type === 'GraczVsAi') {
+        const aiColor: PieceColor =
+          movedPieceColor === 'white' ? 'black' : 'white';
         console.log(`AI's turn to move as ${aiColor}`);
         setTimeout(() => {
-          this.chessService.attemptAiMove(aiColor);
+          this.chessService.attemptAiMove(aiColor, 1);
+          // Zmienic
           // After AI move, switch turn back to human and update board
           this.focusedColor = movedPieceColor;
           this.resetFocus();
           this.loadBoard();
-          this.styleLegalMoves(this.element.nativeElement.querySelector("main"));
+          this.styleLegalMoves(
+            this.element.nativeElement.querySelector('main')
+          );
         }, 1000); // Delay in milliseconds (adjust as needed)
       }
       this.resetFocus();
     }
-    this.chessService.currentTurnColor.next(this.focusedColor)
+    // this.chessService.currentTurnColor.next(this.focusedColor)
     this.loadBoard();
-    this.styleLegalMoves(this.element.nativeElement.querySelector("main"));
+    this.styleLegalMoves(this.element.nativeElement.querySelector('main'));
   }
 
-  resetFocus(board: HTMLElement = this.element.nativeElement.querySelector('main')): void {
+  resetFocus(
+    board: HTMLElement = this.element.nativeElement.querySelector('main')
+  ): void {
     this.focusedPiece = null;
     this.focusedChessPiece = null;
     this.focusedLegalMoves = [];
@@ -287,13 +333,20 @@ export class SzachownicaComponent implements OnChanges {
   public startGame(gameAttributes: Game): void {
     this.currentGame = gameAttributes;
     this.currentGameChange.emit(gameAttributes);
+    this.chessService.currentTurnColor.next('white');
     this.initializeChessBoard(gameAttributes);
   }
-  private GrandMasterMove(board : HTMLElement, gameAttributes : Game, lastMove : Position | null, piece : string | null): void {
-    const rows: any = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7 };
-    const pieces_local : any = {'pawn' : '', 'knight' : 'N', 'bishop' : 'B', 'rook' : 'R', 'queen' : 'Q', 'king' : 'K'};
+  private GrandMasterMove(board: HTMLElement, gameAttributes: Game, lastMove: Position | null, piece: string | null): void {
+    const rows: any = { a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7 };
+    const pieces_local: any = {pawn: '', knight: 'N', bishop: 'B', rook: 'R', queen: 'Q', king: 'K',};
     function setMoveAttempt(finalPosition: Position, n_rows: number, n_columns: number): MoveAttempt {
-      return { from: { row: finalPosition.row + n_rows, col: finalPosition.col + n_columns }, to: { row: finalPosition.row, col: finalPosition.col } };
+      return {
+        from: {
+          row: finalPosition.row + n_rows,
+          col: finalPosition.col + n_columns,
+        },
+        to: { row: finalPosition.row, col: finalPosition.col },
+      };
     }
 
     let findMoves = (moves: Array<Position>, finalPosition: Position, name: string): MoveAttempt | void => {

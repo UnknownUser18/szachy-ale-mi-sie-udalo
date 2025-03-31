@@ -2,8 +2,9 @@ import {AfterViewInit, Component, ElementRef, Input, OnChanges, Output, Renderer
 import {NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {Game, GameType} from '../szachownica/szachownica.component';
 import {FormsModule} from '@angular/forms';
-import {HttpClient} from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import {ChessService,ChessPiece, PieceColor, PieceType} from '../chess.service';
+import {LocalConnectionService} from '../local-connection.service';
 
 @Component({
     selector: 'app-game-selector',
@@ -21,7 +22,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   @Output() time : EventEmitter<number> = new EventEmitter<number>();
   universalTime: number = 0;
   kolorGracza: PieceColor = 'white';
-  constructor(private renderer: Renderer2, private element: ElementRef, private chessService: ChessService, private http : HttpClient) {}
+  constructor(private renderer: Renderer2, private element: ElementRef, private chessService: ChessService, protected connection: LocalConnectionService, private http: HttpClient) {}
   pawns : Array<string[]> = this.defaultChessBoard();
   pawns_string : string[] = ['cw','cs','cg','ch','ck','cp','bw','bs','bg','bh','bk','bp'];
   pawns_names: { [key: string]: string } = {
@@ -213,9 +214,9 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     }
   }
 
-  startGame() : void {
-    console.log('Starting Game');
-    let gameAttributes: Game = {
+  gameConstructor(): Game
+  {
+    return {
       board: this.transformChessBoard(this.pawns) ?? this.transformChessBoard(this.pawns),
       type: this.game ?? 'GraczVsGracz',
       duration: this.universalTime,
@@ -223,6 +224,11 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       grandmaster: this.grandmasterFile ?? undefined,
       difficulty: this.ai_difficulty ?? undefined
     }
+  }
+
+  startGame(attr?: Game) : void {
+    console.log('Starting Game');
+    let gameAttributes: Game = attr ?? this.gameConstructor()
     if(this.game === 'GraczVsGrandmaster') {
       gameAttributes.mainPlayerColor = this.mainPlayerColor as PieceColor;
       if(this.mainPlayerColor === 'white') {
@@ -322,6 +328,11 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     }
     this.kolorGracza = type === 'white' ? 'white' : 'black';
   }
+
+  challengeUser(userId: string) {
+    this.connection.initializeGame(userId, this.gameConstructor());
+  }
+
   grandmasterChange(type : Event) : void {
     let target : HTMLSelectElement = type.target as HTMLSelectElement;
     let button : HTMLButtonElement = this.element.nativeElement.querySelector('.start') as HTMLButtonElement;

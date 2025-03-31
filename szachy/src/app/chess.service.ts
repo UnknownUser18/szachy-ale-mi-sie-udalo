@@ -4,94 +4,223 @@ import {MatDialog} from '@angular/material/dialog';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {ChessAiService} from './chess-ai.service';
 import {Game} from './szachownica/szachownica.component';
+import {GameEndDialogComponent} from './game-end-dialog/game-end-dialog.component';
+import {AudioHandlerService} from './audio-handler.service';
 
-// Typ wyróżniający każdy typ bierki występujący w standardowych szachach
+/**
+ * Reprezentuje typ figury szachowej.
+ *
+ * @description
+ * Typ wyróżniający każdy typ bierki występujący w standardowych szachach:
+ * - `pawn`   : Pionek
+ * - `rook`   : Wieża
+ * - `knight` : Skoczek
+ * - `bishop` : Goniec
+ * - `queen`  : Królowa
+ * - `king`   : Król
+ *
+ * @example
+ * const figure: PieceType = 'queen';
+ *
+ */
 export type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
 
-// Typ wyróżniający przeciwne kolory graczy na szachownicy - biały i czarny
+/**
+ * Reprezentuje kolor figury szachowej.
+ *
+ * @description
+ * Typ wyróżniający kolory graczy:
+ * - `white` : Białe figury
+ * - `black` : Czarne figury
+ *
+ * @example
+ * const playerColor: PieceColor = 'white';
+ *
+ */
 export type PieceColor = 'white' | 'black';
 
-// Typ wyróżniający specjalne ruchy w grze
+/**
+ * Reprezentuje specjalne ruchy w grze w szachy.
+ *
+ * @description
+ * Specjalne mechaniki ruchów:
+ * - `enpassant` : Bicie w przelocie (tylko dla pionów)
+ * - `O-O`       : Krótka roszada
+ * - `O-O-O`     : Długa roszada
+ *
+ * @example
+ * const special: SpecialMove = 'O-O';
+ *
+ */
 export type SpecialMove = 'enpassant' | 'O-O' | 'O-O-O';
 
-//Typ wyróżniający możliwe zakończenia gry
+/**
+ * Możliwe stany zakończenia gry.
+ *
+ * @description
+ * Typ określający zakończenie partii:
+ * - `none`            : Gra trwa
+ * - `check`           : Szach
+ * - `mate`            : Mat
+ * - `stalemate`       : Pat
+ * - `draw-repetition` : Remis przez powtórzenie pozycji
+ * - `draw-50-moves`   : Remis przez regułę 50 posunięć
+ *
+ * @example
+ * const gameStatus: GameEndType = 'mate';
+ *
+ */
 export type GameEndType = 'none' | 'check' | 'mate' | 'stalemate' | 'draw-repetition' | 'draw-50-moves';
 
-/*
-* Interfejs Danych
-* Nazwa: legalMove
-* Pola:
-* isLegal: boolean - stan ruchu - wartość warunku czy konkretny ruch jest legalny
-* special?: SpecialMove - jeżeli dany ruch zwiera się w ruchach specjalnych, wtedy występuje atrybut zmieniający działanie wykonywania ruchu
-*/
-export interface legalMove{
+/**
+ * Interfejs opisujący legalny ruch.
+ *
+ * @interface legalMove
+ *
+ * @property {boolean} isLegal - Czy ruch jest dozwolony przez zasady gry
+ * @property {SpecialMove} [special] - Opcjonalny specyficzny typ ruchu
+ *
+ * @description
+ * Używany do walidacji i wykonywania ruchów, zawiera dodatkowe
+ * informacje o specjalnych mechanikach.
+ *
+ * @example
+ * const move: legalMove = {
+ *   isLegal: true,
+ *   special: 'enpassant'
+ * };
+ *
+ */
+export interface legalMove {
   isLegal: boolean;
   special?: SpecialMove;
 }
 
-
-/*
-* Interfejs Danych
-* Nazwa: Position
-* Pola:
-* row: number - wiersz liczony od góry, w którym jest dana bierka - Indeksy 0-7 ( np. indeks 0 oznacza 8-my wiersz w notacji algebraicznej czyli startowy wiersz czarnych, 7 analogicznie oznacza 1-wszy wiersz, czyli startowy wiersz białych
-* col: number - kolumna liczona od lewej, w którym jest dana bierka - Indeksy 0-7 ( np. indeks 0 oznacza pierwszą kolumnę od lewej - standardowo oznaczaną literą 'a' ; indeks 7 oznacza ostatnią kolumnę od lewej - standardowo oznaczoną literą 'h'
-*/
-export interface Position{
+/**
+ * Reprezentuje pozycję na szachownicy.
+ *
+ * @interface Position
+ *
+ * @property {number} row - Wiersz (0-7), gdzie 0 = pierwszy rząd w notacji algebraicznej
+ * @property {number} col - Kolumna (0-7), gdzie 0 = kolumna 'a', 7 = kolumna 'h'
+ *
+ * @description
+ * System współrzędnych dla 8x8 szachownicy.
+ *
+ * @example
+ * const kingPosition: Position = { row: 0, col: 4 }; // Początkowa pozycja czarnego króla
+ *
+ */
+export interface Position {
   row: number;
   col: number;
 }
 
-/*
-* Interfejs Danych
-* Nazwa: MoveAttempt
-* Pola:
-* from: Position - Pozycja startowa z której występuja próba ruchu
-* to: Position - Pozycja końcowa na której miałaby się znajdować bierka
-*/
+/**
+ * Reprezentuje próbę wykonania ruchu.
+ *
+ * @interface MoveAttempt
+ *
+ * @property {Position} from - Pozycja początkowa
+ * @property {Position} to - Pozycja docelowa
+ *
+ * @description
+ * Używany do przesyłania informacji o próbach ruchu między komponentami.
+ *
+ * @example
+ * const attempt: MoveAttempt = {
+ *   from: { row: 1, col: 0 },
+ *   to: { row: 3, col: 0 }
+ * };
+ *
+ */
 export interface MoveAttempt {
   from: Position;
   to: Position;
-  specialMove?: SpecialMove;
 }
 
-/*
-* Interfejs Danych
-* Nazwa: CastleAtributes
-* Pola:
-* col: number - kolumna na której powinna znajdować się wierza do konkretnej roszady
-* deltaCol: number - zmiana, czyli przesunięcie króla po kolumnach w stronę wierzy
-* special: SpecialMove - określenie czy jest to krótka roszada, czy też długa
-*/
+/**
+ * Atrybuty potrzebne do wykonania roszady.
+ *
+ * @interface CastleAtributes
+ *
+ * @property {number} col - Kolumna wieży uczestniczącej w roszadzie
+ * @property {number} deltaCol - Przesunięcie króla w poziomie
+ * @property {SpecialMove} special - Typ roszady (krótka/długa)
+ *
+ * @description
+ * Parametry potrzebne do prawidłowego wykonania ruchu roszady.
+ *
+ * @example
+ * const castle: CastleAtributes = {
+ *   col: 7,
+ *   deltaCol: -2,
+ *   special: 'O-O'
+ * };
+ *
+ */
 export interface CastleAtributes {
   col: number;
   deltaCol: number;
   special: SpecialMove;
 }
 
-
-/*
-* Interfejs Danych
-* Nazwa: ChessPiece
-* Pola:
-* type: PieceType - oznaczenie jakiego typu jest dana bierka
-* color: PieceColor - rozróżnienie, którego gracza jest dana bierka w zależności od koloru bierki
-* position: Position - aktualna pozycja bierki na szachownicy
-* lastPosition: Position - pozycja bierki przed ostatnim ruchem na szachownicy - szczególnie przydatne do notacji szachowej i cofania ruchu
-* hasMoved?: boolean - stan bierki - czy została poruszona - szczególnie przydatne do sprawdzania legalnści roszady podczas gry
-* moveTurn?: boolean - stan bierki - czy została poruszona w ostatnim ruchu - szczególnie przydatne przy implementacji en passant
-* */
-export interface ChessPiece{
+/**
+ * Pełna reprezentacja bierki szachowej.
+ *
+ * @interface ChessPiece
+ *
+ * @property {PieceType} type - Typ figury
+ * @property {PieceColor} color - Kolor figury
+ * @property {Position} position - Aktualna pozycja
+ * @property {Position} lastPosition - Poprzednia pozycja
+ * @property {boolean} [hasMoved] - Czy figura była poruszana
+ * @property {boolean} [moveTurn] - Czy figura była poruszona w ostatniej turze
+ *
+ * @description
+ * Kompletny obiekt zawierający wszystkie informacje o stanie bierki.
+ *
+ * @example
+ * const pawn: ChessPiece = {
+ *   type: 'pawn',
+ *   color: 'white',
+ *   position: { row: 1, col: 0 },
+ *   lastPosition: { row: 1, col: 0 },
+ *   hasMoved: false
+ * };
+ *
+ */
+export interface ChessPiece {
   type: PieceType;
   color: PieceColor;
   position: Position;
   lastPosition: Position;
   hasMoved?: boolean;
   moveTurn?: boolean;
-
 }
 
-export interface LowEffortChessPiece{
+/**
+ * Uproszczona reprezentacja bierki szachowej.
+ *
+ * @interface LowEffortChessPiece
+ *
+ * @property {PieceType} type - Typ figury
+ * @property {PieceColor} color - Kolor figury
+ * @property {Position} position - Aktualna pozycja
+ *
+ * @description
+ * Minimalistyczna wersja ChessPiece bez historii ruchów.
+ * Używana w przypadkach wymagających optymalizacji.
+ *
+ * @example
+ * const simplePiece: LowEffortChessPiece = {
+ *   type: 'rook',
+ *   color: 'black',
+ *   position: { row: 0, col: 0 }
+ * };
+ *
+ */
+export interface LowEffortChessPiece {
   type: PieceType;
   color: PieceColor;
   position: Position;
@@ -101,7 +230,6 @@ export interface LowEffortChessPiece{
   providedIn: 'root'
 })
 export class ChessService {
-  // @ViewChild('notation') notationComponent!: NotationComponent;
   public board: (ChessPiece | null)[][] = []; // Initialize the board as needed
   public previousBoard: (ChessPiece | null)[][] = [];
   public canUndo: boolean = false;
@@ -112,36 +240,41 @@ export class ChessService {
   public currentTurnColor = new BehaviorSubject<PieceColor>('white');
   public gameEnd = new Subject<GameEndType>()
   public gameStart = new Subject<Game>()
+  public gameClose = new EventEmitter<void>();
   public aiMoveExecuted = new EventEmitter<{
     from: { row: number; col: number },
     to: { row: number; col: number },
     color: PieceColor
   }>();
-  constructor(private dialog: MatDialog) {
+
+  /**
+   * Inicjalizuje serwis
+   * @constructor
+   * @param {MatDialog} dialog - Serwis dialogowy Angular Material
+   * @param {AudioHandlerService} AudioService - Handler odtwarzania dźwięków
+   */
+  constructor(private dialog: MatDialog, private AudioService: AudioHandlerService) {
     this.gameEnd.subscribe((gameEnd: GameEndType) => this.showGameEnding(gameEnd))
     this.initializeChessBoard();
   }
 
+  /**
+   * @method setAiService
+   * @description Ustawia ChessAiService z podanej instacji
+   * @param {ChessAiService} aiService - Podana instancja ChessAiService
+   * @returns {void}
+   */
   public setAiService(aiService: ChessAiService): void {
     this.chessAiService = aiService;
   }
 
-  isCheck(): boolean {
-    const kingPosition = this.findKing(this.currentTurnColor.value);
-    // alert("Check"+this.isSquareUnderAttack(kingPosition, this.currentTurnColor.value === 'white' ? 'black' : 'white'))
-    return this.isSquareUnderAttack(kingPosition, this.currentTurnColor.value === 'white' ? 'black' : 'white');
-  }
-
-  isCheckmate(): boolean {
-    if (!this.isCheck()) return false;
-
-
-    const legalMoves = this.getLegalMovesForColor(this.currentTurnColor.value);
-    // alert(legalMoves.length === 0)
-    return legalMoves.length === 0;
-  }
-
-  // Pomocnicza metoda do znalezienia pozycji króla
+  /**
+   * @method findKing
+   * @description Próbuje znaleźć króla podanego koloru
+   * @param {PieceColor} color - Kolor, dla którego metoda próbuje znaleźć króla
+   * @returns {Position} Pozycja znalezionego króla
+   * @throws {Error} Jeśli nie znaleziono króla
+   */
   private findKing(color: PieceColor): Position {
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
@@ -154,61 +287,14 @@ export class ChessService {
     throw new Error('King not found');
   }
 
-  // Funkcja pole atakowane
-  private isSquareUnderAttack(position: Position, attackingColor: PieceColor): boolean {
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
-        const piece = this.board[row][col];
-        if (piece && piece.color === attackingColor) {
-          const legalMoves = this.calculateLegalMoves(piece);
-          if (legalMoves[position.row][position.col].isLegal) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
 
-  getSpecialMove(from: Position, to: Position): SpecialMove | null {
-    // Sprawdź, czy ruch jest roszadą
-    if (this.isCastle(from, to)) {
-      return to.col === 6 ? 'O-O' : 'O-O-O';
-    }
-
-    // enpassant
-    if (this.isEnPassant(from, to)) {
-      return 'enpassant';
-    }
-
-    return null;
-  }
-
-
-  private isCastle(from: Position, to: Position): boolean {
-    const piece = this.getPieceFromPosition(from);
-    return piece?.type === 'king' && Math.abs(to.col - from.col) === 2;
-  }
-
-
-  private isEnPassant(from: Position, to: Position): boolean {
-    const piece = this.getPieceFromPosition(from);
-    const targetPiece = this.getPieceFromPosition(to);
-    return piece?.type === 'pawn' && !targetPiece && Math.abs(to.col - from.col) === 1;
-  }
-
-
-  /*
-  * Metoda
-  * Nazwa: initializeChessBoard
-  * Pola:
-  * Nie pobiera żadnych pól
-  * Działanie:
-  * Nuluje aktualą szachownicę oraz wypełnia ją domyślnym ustawieniem
-  * Dodatkowo wyświetla w konsoli ustawienie szachownicy
-  * Zwracana Wartość:
-  * Nie zwraca żadnej wartości
-  * */
+  /**
+   * @method initializeChessBoard
+   * @description Inicjalizuje szachownicę - Ustawia standardową pozycję z wszystkimi bierkami
+   * @returns {void}
+   * @example
+   * this.initializeChessBoard()
+   */
   initializeChessBoard(): void {
     // Wynulowanie szachownicy
     this.board = Array.from({ length: 8 }, () => Array(8).fill(null));
@@ -234,19 +320,27 @@ export class ChessService {
     // Pokazanie w konsoli ustawienia szachownicy
   }
 
-  /*
-  * Metoda
-  * Nazwa: getPieceFromPosition
-  * Pola:
-  * position: Position - pozycja, z której chcemy znaleźć bierkę
-  * Działanie:
-  * Znajduje bierkę lub wartość null w danej pozycji na szachownicy
-  * Zwracana wartość:
-  * ChessPiece | null - w zależności czy znajdzie się tam bierka, zwróci ją lub null
-  * */
+  /**
+   * @method getPiece
+   * @description Zwraca bierkę znajdującą się na pozycji (row, col)
+   * @param {number} row - Wiersz, na którym znajduje się docelowa bierka
+   * @param {number} col - Kolumna, na którym znajduje się docelowa bierka
+   * @returns {ChessPiece | null} Potencjalna bierka na podanej pozycji
+   */
   public getPiece(row: number, col: number): ChessPiece | null{
     return this.board[row][col];
   }
+
+  //ważne
+  /**
+   * @method simulateMove
+   * @description Wykonuje symulację ruchu bez modyfikowania aktualnego stanu gry
+   * @param {Position} from - Pozycja początkowa
+   * @param {Position} to - Pozycja docelowa
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Opcjonalna plansza do symulacji
+   * @returns {(ChessPiece | null)[][]} Nowa plansza po symulowanym ruchu
+   * @throws {Error} Jeśli pozycje są nieprawidłowe
+   */
 
   /*
   * Metoda
@@ -436,7 +530,7 @@ export class ChessService {
         }
         if(piece.position.row === startRow + direction * 3){
           const enPassantTarget = board[piece.position.row][diagPos.col];
-          if (enPassantTarget && enPassantTarget.color !== piece.color && enPassantTarget.moveTurn) {
+          if (enPassantTarget && enPassantTarget.color !== piece.color && enPassantTarget.moveTurn && enPassantTarget.type === 'pawn') {
             moves[diagPos.row][diagPos.col] = {isLegal: true, special: 'enpassant'};
           }
         }
@@ -662,26 +756,41 @@ export class ChessService {
       }
     }
     // Roszady
-    if(!piece.hasMoved)
-      for (let possibleRookCol of [{col: 0, deltaCol: -2, special: 'O-O-O' as SpecialMove}, {col: 7, deltaCol: 2, special: 'O-O' as SpecialMove}])
-      {
-        const newPos: Position = { row: piece.position.row, col: possibleRookCol.col };
-        let col = piece.position.col;
-        let possibleTarget: ChessPiece | null = null;
-        while(col !== newPos.col)
-        {
-          const target = board[newPos.row][col];
-          if(target)
-            possibleTarget = target;
-          col += newPos.col - col;
+    // Roszady
+    if (!piece.hasMoved) {
+      for (const possibleRook of [
+        { rookCol: 0, deltaKingCol: -2, special: 'O-O-O' as SpecialMove },
+        { rookCol: 7, deltaKingCol: 2, special: 'O-O' as SpecialMove }
+      ]) {
+        const rookPos: Position = { row: piece.position.row, col: possibleRook.rookCol };
+        if (!this.isValidPosition(rookPos)) continue;
+
+        const rook = board[rookPos.row][rookPos.col];
+        if (!rook || rook.type !== 'rook' || rook.color !== piece.color || rook.hasMoved) continue;
+
+        const delta = possibleRook.rookCol === 0 ? -1 : 1;
+        let currentCol = piece.position.col + delta;
+        let pathClear = true;
+
+        while (currentCol !== possibleRook.rookCol) {
+          if (board[piece.position.row][currentCol] !== null) {
+            pathClear = false;
+            break;
+          }
+          currentCol += delta;
         }
-        if(this.isValidPosition(newPos) && !possibleTarget)
-        {
-          const target = board[newPos.row][newPos.col];
-          if(target?.type === 'rook' && target?.color === piece.color && !target.hasMoved)
-            moves[piece.position.row][piece.position.col + possibleRookCol.deltaCol] = {isLegal: true, special: possibleRookCol.special};
+
+        if (pathClear) {
+          const newKingCol = piece.position.col + possibleRook.deltaKingCol;
+          if (this.isValidPosition({ row: piece.position.row, col: newKingCol })) {
+            moves[piece.position.row][newKingCol] = {
+              isLegal: true,
+              special: possibleRook.special
+            };
+          }
         }
       }
+    }
     // this.logLegalMoves(piece, moves);
     return moves;
   }
@@ -866,8 +975,10 @@ export class ChessService {
         specialExecutes[`${currentLegalMove.special}`]();
     }
     console.log('Czy jest mat?', this.isMate(piece.color === 'white' ? 'black' : 'white'));
+    this.gameEnd.next(this.isMate(piece.color === 'white' ? 'black' : 'white'))
     // console.log('Ilość pionków : ', this.countChessPieces());
     // console.log(this.lowEffortBoards)
+    this.updateBoard.next(this.board)
     this.checkForDraw();
     return true;
   }
@@ -896,21 +1007,16 @@ export class ChessService {
 
   private showGameEnding(gameEnd: GameEndType)
   {
-    // if(['none', 'check'].includes(gameEnd)) return;
-    // console.log(gameEnd)
-    // const dialogRef = this.dialog.open(GameEndComponent, {
-    //   data: {
-    //     gameEnd: this.gameEnd,
-    //     currentTurn: 'white'
-    //   },
-    //   disableClose: true,
-    //   backdropClass: 'chess-dialog-backdrop'
-    // });
-    //
-    // dialogRef.afterClosed().subscribe(result => {
-      // if (result === 'new') this.newGame();
-      // if (result === 'analyze') this.analyzeGame();
-    // })
+    this.AudioService.playSoundForType(gameEnd)
+    if(gameEnd === 'none' || gameEnd === 'check') return;
+    const dialogRef = this.dialog.open(GameEndDialogComponent, {
+      data: { type: gameEnd, winner: this.currentTurnColor.value === 'black' ? 'czarny' : 'biały' },
+      panelClass: 'modern-dialog'
+    });
+
+    dialogRef.afterClosed().subscribe(action => {
+      this.gameClose.emit();
+    });
 
   }
 
@@ -1148,7 +1254,6 @@ export class ChessService {
     let isDraw: GameEndType = this.checkForDraw();
     if(isDraw !== 'none')
     {
-      this.gameEnd.next(isDraw)
       return isDraw
     }
     const legalMovesForColor = this.getLegalMovesForColor(color);
@@ -1157,11 +1262,9 @@ export class ChessService {
         for (let col = 0; col < 8; col++)
           if (legalMoves[row][col].isLegal)
           {
-            this.gameEnd.next(this.isKingInCheck(color) ? 'check' : 'none')
             return this.isKingInCheck(color) ? 'check' : 'none';
           } // Znaleziono legalny ruch – nie jest to mat, ale może być pat.
     // Nie znaleziono legalnego ruchu — jest mat albo pat!
-    this.gameEnd.next(this.isKingInCheck(color) ? 'mate' : 'stalemate')
     return this.isKingInCheck(color) ? 'mate' : 'stalemate';
   }
   /*
@@ -1183,12 +1286,12 @@ export class ChessService {
         if(board[row][col]) count++;
     return count;
   }
-  public attemptAiMove(color: PieceColor): void {
+  public attemptAiMove(color: PieceColor, difficulty: number): void {
     if (!this.chessAiService) {
       console.warn(`AI service not set yet.`);
       return;
     }
-    const bestMove = this.chessAiService.findBestMove(color, 3);
+    const bestMove = this.chessAiService.findBestMove(color, difficulty);
     if (bestMove) {
       console.log(`AI selected move: from (${bestMove.from.row}, ${bestMove.from.col}) to (${bestMove.to.row}, ${bestMove.to.col})`);
       this.tryMove(bestMove);

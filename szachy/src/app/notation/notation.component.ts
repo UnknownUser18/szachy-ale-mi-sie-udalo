@@ -1,7 +1,16 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { ChessService, MoveAttempt, SpecialMove, PieceType, Position, PieceColor, ChessPiece } from '../chess.service';
+import {
+  ChessService,
+  MoveAttempt,
+  SpecialMove,
+  PieceType,
+  Position,
+  PieceColor,
+  ChessPiece,
+  legalMove
+} from '../chess.service';
 import { Game } from '../szachownica/szachownica.component';
 
 @Component({
@@ -65,13 +74,15 @@ export class NotationComponent implements OnInit, OnDestroy {
         return `B`;
       case 'queen':
         return `Q`;
+      case 'pawn':
+        return '';
       default:
         return null;
     }
   }
 
   addMove(move: MoveAttempt): void {
-   
+
     const from = this.convertPositionToNotation(move.from);
     const to = this.convertPositionToNotation(move.to);
     const piece = this.chessService.getPieceFromPosition(move.to);
@@ -79,8 +90,12 @@ export class NotationComponent implements OnInit, OnDestroy {
     // alert(this.chessService.executeEnpassant(piece!));
     let moveNotation = '';
     let longmoveNotation = '';
-    if (move.specialMove) {
-      moveNotation = this.handleSpecialMove(move.specialMove, from, to);
+    const legalMoves = this.chessService.getLegalMovesForColor(piece?.color!).find((item: {piece: ChessPiece, legalMoves: legalMove[][]}) => item.piece === piece)?.legalMoves
+    if(!legalMoves) return;
+    const legalToPosition = legalMoves[move.to.row][move.to.col];
+
+    if (legalToPosition.special) {
+      moveNotation = this.handleSpecialMove(legalToPosition.special, from, to);
       longmoveNotation = moveNotation;
     } else {
       if (this.isCapture(move)) {
@@ -89,26 +104,39 @@ export class NotationComponent implements OnInit, OnDestroy {
       } else {
         moveNotation = `${this.PieceName(piece!) || ''}${to}`;
         longmoveNotation = `${this.PieceName(piece!) || ''}${from}-${to}`
-        
-
       }
+
+
+      if (legalToPosition.special) {
+        moveNotation = this.handleSpecialMove(legalToPosition.special, from, to);
+      } else {
+        if (this.isCapture(move)) {
+          moveNotation = `${this.PieceName(piece!) || ''}${from}x${to}`;
+        } else {
+          moveNotation = `${this.PieceName(piece!) || ''}${to}`;
+
+        }
+      }
+
+
+      const movingColor = piece?.color;
+      const opponentColor = movingColor === 'white' ? 'black' : 'white';
+
+      const gameState = this.chessService.isMate('black') || this.chessService.isMate('white');
+
+      if (gameState === 'mate') {
+
+        longmoveNotation += "#";
+        moveNotation += '#';
+      } else if (gameState === 'check' || this.chessService.isKingInCheck(opponentColor)) {
+
+        longmoveNotation += "+";
+        moveNotation += '+';
+      }
+
+      this.moves.push(moveNotation);
+      this.longmoves.push(longmoveNotation);
     }
-
-    const movingColor = piece?.color;
-    const opponentColor = movingColor === 'white' ? 'black' : 'white';
-
-    const gameState = this.chessService.isMate('black') || this.chessService.isMate('white');
-
-    if (gameState === 'mate') {
-      longmoveNotation += "#";
-      moveNotation += '#';
-    } else if (gameState === 'check' || this.chessService.isKingInCheck(opponentColor)) {
-      longmoveNotation += "+";
-      moveNotation += '+';
-    }
-
-    this.moves.push(moveNotation);
-    this.longmoves.push(longmoveNotation);
   }
 
   getMovePairs(): string[][] {
@@ -144,6 +172,7 @@ export class NotationComponent implements OnInit, OnDestroy {
         return `${from}:${to}`;
     }
   }
+
 
   private isCapture(move: MoveAttempt): boolean {
     const previousPiece = this.chessService.previousBoard[move.to.row][move.to.col];

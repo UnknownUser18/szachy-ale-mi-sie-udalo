@@ -1,0 +1,141 @@
+.dialog-container {
+  padding: 1.5rem 2.5rem;
+  max-height: 95vh;
+  min-width: 450px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  .result-box {
+    padding: 2rem;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    background: white;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+    .icon-background {
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      opacity: 0.1;
+    }
+
+    .icon {
+      font-size: 4rem;
+      width: 4rem;
+      height: 4rem;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+
+      &.animate {
+        animation: iconEntrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+    }
+
+    h1 {
+      font-family: 'Roboto Condensed', sans-serif;
+      font-weight: 900;
+      margin: 0 0 0.75rem;
+      font-size: 2.2rem;
+      letter-spacing: -1px;
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .message {
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #666;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    &.warning {
+      .icon-background { background: #ff5252; }
+      h1 { background-image: linear-gradient(135deg, #ff5252, #d32f2f); }
+      .icon { color: #ff5252; }
+    }
+
+    &.victory {
+      .icon-background { background: #4caf50; }
+      h1 { background-image: linear-gradient(135deg, #4caf50, #2e7d32); }
+      .icon { color: #4caf50; }
+    }
+
+    &.draw {
+      .icon-background { background: #ff9800; }
+      h1 { background-image: linear-gradient(135deg, #ff9800, #ef6c00); }
+      .icon { color: #ff9800; }
+    }
+  }
+}
+
+.dialog-actions {
+  flex-wrap: nowrap;
+  border-top: none;
+  gap: 8px;
+
+  button {
+    transition: all 0.2s ease;
+    padding: 6px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+@keyframes iconEntrance {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  80% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+
+}
+@media (max-height: 600px) {
+  .dialog-container {
+    padding: 1rem 2rem;
+
+    .result-box {
+      padding: 1rem;
+
+      .icon {
+        font-size: 3.5rem;
+        width: 3.5rem;
+        height: 3.5rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .message {
+        font-size: 0.95rem;
+        max-width: 280px;
+      }
+    }
+  }
+}

@@ -14,13 +14,13 @@ export class ZegarComponent implements OnDestroy {
   @Input() set time(value: number) {
     this._time = value;
     if (value <= 0) {
-      this.timeEnded.emit();
+      this.timeEnded.emit(this.color);
     }
   }
   get time(): number {
     return this._time;
   }
-  @Output() timeEnded = new EventEmitter<void>();
+  @Output() timeEnded = new EventEmitter<PieceColor>();
 
   private _time: number = 0;
   private intervalId: any;

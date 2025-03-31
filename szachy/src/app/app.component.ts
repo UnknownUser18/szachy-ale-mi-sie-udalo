@@ -6,6 +6,7 @@ import {ZegarComponent} from './zegar/zegar.component';
 import {MenuComponent} from './menu/menu.component';
 import {NgOptimizedImage} from '@angular/common';
 import { GameSelectorComponent } from './game-selector/game-selector.component';
+import {LocalGameComponent} from './local-game/local-game.component';
 import { NotationComponent } from './notation/notation.component';
 import {NerdViewComponent} from './nerd-view/nerd-view.component';
 import {PositionEvaluatorComponent} from './position-evaluator/position-evaluator.component';
@@ -29,7 +30,7 @@ export let pieces: { [key: string]: string } = {
 }
 @Component({
     selector: 'app-root',
-  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent, PositionEvaluatorComponent, PodpowiedziComponent],
+    imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent, LocalGameComponent, PositionEvaluatorComponent, PodpowiedziComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
 })
@@ -58,6 +59,9 @@ export class AppComponent {
       this.game = game;
       this.selectGame(null);
     })
+      this.chessService.gameClose.subscribe((game : Game) : void => {
+        this.game = null;
+      })
   }
 
   protected convert_name() : void {
