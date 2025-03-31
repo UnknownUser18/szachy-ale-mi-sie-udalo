@@ -60,7 +60,7 @@ Po uruchomieniu aplikacji użytkownik przenoszony jest do panelu głównego, kt�
   - ewaluacje pozycji
   - podpowiedzi (możliwe do właczenia)
   - widok dla nerdów
-  - zegar szachowy
+  - 
 ### Rozgrywka
 
 
@@ -122,14 +122,25 @@ W trakcie rozgrywki aplikacja wyświetla zapis partii w **notacji algebraicznej*
 ### Opis folderów i plików:
 
 ```
-public  // Pliki dostępne publicznie (obrazy, czcionki, ikony)
-
-src  // Główny folder zawierający kod źródłowy
-| - app  // Główna część aplikacji – komponenty i logika interfejsu użytkownika
-|   | - game-selector  // Komponent umożliwiający wybór trybu gry
-|   | - menu  // Komponent wyświetlający główne menu aplikacji
+.idea - pliki do edytowania (nieważne dla projektu)
+backend // folder obsługujący tryb gry Gracz vs Gracz w sieci
+| - controler.js - obsługa tworzenia oraz usuwanie hosta (serwera)
+| - index.js - sam serwer (wywoływany przez controller.js) 
+| - package-lock.json - paczki node
+| - package.json - paczki node
+szachy // frontend oraz cała logika szachów
+| - .vscode - pliki Visual Studio Code (niewazne dla projektu)
+| - public // Plik favicon.svg
+|   | - favicon.svg - plik dla ikonki strony
+| - src
+| - public  // Pliki dostępne publicznie (obrazy, czcionki, ikony)
+| - src  // Główny folder zawierający kod źródłowy
+|   | - app  // Główna część aplikacji – komponenty i logika interfejsu użytkownika
+|   	| - game-selector  // Komponent umożliwiający wybór trybu gry
+|   	| - menu  // Komponent wyświetlający główne menu aplikacji
 |	| - pawn-promotion  // Komponent odpowiedzialny za promocję pionka
 |	| - szachownica  // Komponent reprezentujący planszę szachową
 |	| - zegar  // Komponent do śledzenia czasu gry
-| - assets  // Pliki statyczne (obrazy, dźwięki, czcionki)
+    | - assets  // Pliki statyczne (obrazy, dźwięki, czcionki)
+    | - enviroments
 ```
