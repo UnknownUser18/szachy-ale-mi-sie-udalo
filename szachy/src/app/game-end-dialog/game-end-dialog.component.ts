@@ -28,6 +28,9 @@ export type GameResult = 'warning' | 'victory' | 'draw';
   styleUrls: ['./game-end-dialog.component.css']
 })
 export class GameEndDialogComponent {
+  /**
+   * @description Mapa tytułów dla różnych typów zakończenia gry.
+   */
   titleMap = {
     'check': 'Szach!',
     'mate': 'Mat!',
@@ -36,7 +39,9 @@ export class GameEndDialogComponent {
     'draw-50-moves': 'Remis - 50 Posunięć',
     'none': ''
   };
-
+  /**
+   * @description Mapa wiadomości dla różnych typów zakończenia gry.
+   */
   messageMap = {
     'check': 'Twój król jest zagrożony!',
     'mate': 'Gracz {winner} wygrywa partię!',
@@ -45,7 +50,9 @@ export class GameEndDialogComponent {
     'draw-50-moves': '50 posunięć bez bicia lub ruchu pionem',
     'none': ''
   };
-
+  /**
+   * @description Mapa ikon dla różnych typów zakończenia gry.
+   */
   iconMap = {
     'check': 'error_outline',
     'mate': 'emoji_events',
@@ -55,25 +62,20 @@ export class GameEndDialogComponent {
     'none': ''
   };
 
-  constructor(
-    public dialogRef: MatDialogRef<GameEndDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { type: GameEndType, winner?: string },
-  ) {
-  }
+  constructor(public dialogRef: MatDialogRef<GameEndDialogComponent>, @Inject(MAT_DIALOG_DATA) public data: { type: GameEndType, winner?: string }) {}
 
+  /**
+   * @description Zwraca tytuł zakończenia gry na podstawie typu zakończenia.
+   */
   get formattedMessage(): string {
     return this.messageMap[this.data.type].replace('{winner}', this.data.winner || '');
   }
 
+  /**
+   * @description Zwraca ikonę zakończenia gry na podstawie typu zakończenia.
+   * @param action - Typ zakończenia gry.
+   */
   handleAction(action: string): void {
     this.dialogRef.close(action);
   }
-  get resultType(): GameResult {
-    switch(this.data.type) {
-      case 'check': return 'warning';
-      case 'mate': return 'victory';
-      default: return 'draw';
-    }
-  }
-
 }

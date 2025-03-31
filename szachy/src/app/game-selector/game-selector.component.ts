@@ -18,33 +18,77 @@ import {LocalConnectionService} from '../local-connection.service';
     styleUrls: ['./game-selector.component.css']
 })
 export class GameSelectorComponent implements OnChanges, AfterViewInit {
+  /**
+   * @description Typ gry, który jest aktualnie wybrany przez użytkownika.
+   */
   @Input({ required: true }) game: GameType | undefined;
+  /**
+   * @description Czas gry w sekundach, emitowany dla innych komponentów.
+   */
   @Output() time : EventEmitter<number> = new EventEmitter<number>();
+  /**
+   * @description Czas gry w sekundach.
+   */
   universalTime: number = 0;
+  /**
+   * @description Kolor gracza, który jest aktualnie wybrany przez użytkownika.
+   */
   kolorGracza: PieceColor = 'white';
   constructor(private renderer: Renderer2, private element: ElementRef, private chessService: ChessService, protected connection: LocalConnectionService, private http: HttpClient) {}
+  /**
+   * @description Tablica z figurami szachowymi.
+   */
   pawns : Array<string[]> = this.defaultChessBoard();
+  /**
+   * @description Tablica z figurami szachowymi w formie stringów, używana dla `loadBoard()`.
+   */
   pawns_string : string[] = ['cw','cs','cg','ch','ck','cp','bw','bs','bg','bh','bk','bp'];
+  /**
+   * @description Nazwy figur szachowych, używane dla wstawiania figur na szachownicę.
+   */
   pawns_names: { [key: string]: string } = {
     'cw': 'Czarna Wieża', 'cs': 'Czarny Skoczek', 'cg': 'Czarny Goniec', 'ch': 'Czarny Hetman', 'ck': 'Czarny Król', 'cp': 'Czarny Pionek',
     'bw': 'Biała Wieża', 'bs': 'Biały Skoczek', 'bg': 'Biały Goniec', 'bh': 'Biały Hetman', 'bk': 'Biały Król', 'bp': 'Biały Pionek'
   };
-  mainPlayerColor : string = 'white';
+  /**
+   * @description AI trudność, używana dla `GraczVsAi`.
+   */
   ai_difficulty : number = 2;
+  /**
+   * @description Nazwa czarnego mistrza, używana dla `GraczVsGrandmaster`.
+   */
   black_grandmaster: string | undefined = undefined;
+  /**
+   * @description Nazwa białego mistrza, używana dla `GraczVsGrandmaster`.
+   */
   white_grandmaster: string | undefined = undefined;
+  /**
+   * @description Tablica asocjacyjna, używana w heading, aby wyświetlić informacje o aktualnym trybie użytkownika.
+   */
   type : { [key in GameType] : string } = {
     GraczVsGracz: 'Gracz vs Gracz (1 komputer)',
     GraczVsSiec: 'Gracz vs Gracz (Sieć lokalna)',
     GraczVsGrandmaster: 'Gracz vs Grandmaster',
     GraczVsAi: 'Gracz vs Komputer',
   };
+  /**
+   * @description Plik `.pgn` z bazą danych, używany dla `GraczVsGrandmaster`.
+   */
   grandmasterFile : File | null = null;
+
+  /**
+   * @description Metoda wywoływana po załadowaniu komponentu. Inicjalizuje szachownicę i ustawia czas gry.
+   * @returns {void}
+   */
   ngAfterViewInit() : void {
     this.initializeChessboard().then(() : void => this.loadBoard());
     this.setTime(5400, 0, 1);
     this.chessService.currentTurnColor.next('white');
   }
+  /**
+   * @description Metoda inicjalizująca szachownicę.
+   * @returns {Promise<void>}
+   */
   async initializeChessboard() : Promise<void> {
     let chessboard: HTMLElement = this.element.nativeElement.querySelector('.chessboard');
     if (!chessboard) return;
@@ -74,6 +118,10 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
   });
   }
 
+  /**
+   * @description Metoda zwracająca domyślną szachownicę.
+   * @returns {Array<string[]>}
+   */
   defaultChessBoard(): Array<string[]> {
     return [
       ['cw','cs','cg','ch','ck','cg','cs','cw'],
@@ -86,7 +134,10 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       ['bw','bs','bg','bh','bk','bg','bs','bw']
     ];
   }
-
+  /**
+   * @description Metoda ładujące pionki oraz `EventListener` odpowiedzialne za przesuwanie pionków.
+   * @returns {void}
+   */
   loadBoard() : void {
     let chessboard: HTMLElement = this.element.nativeElement.querySelector('.chessboard');
     if (!chessboard) return;
@@ -149,7 +200,10 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     });
   }
 
-
+  /**
+   * @description Metoda transformująca szachownicę z formatu stringowego na format obiektowy.
+   * @param board
+   */
   transformChessBoard(board: Array<string[]>): (ChessPiece | null)[][] {
     const colorDictionary: { [key: string]: PieceColor | null } = { 'c': 'black', 'b': 'white', '': null };
     const pieceTypeDictionary: { [key: string]: PieceType | null } = {'p': 'pawn', 'r': 'rook', 's': 'knight', 'g': 'bishop', 'h': 'queen', 'k': 'king', 'w': 'rook', '': null};
@@ -175,11 +229,18 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
           moveTurn: false
         }
       }
-    console.log(board, chessBoard)
     return chessBoard
   }
 
-
+  /**
+   * @description Metoda przesuwająca pionek na szachownicy.
+   * @param fromRow
+   * @param fromCol
+   * @param toRow
+   * @param toCol
+   * @return {void}
+   * @description Przesuwa pionek z pozycji (fromRow, fromCol) na pozycję (toRow, toCol) na szachownicy.
+   */
   movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
   if (this.pawns[toRow][toCol] === '') {
     this.pawns[toRow][toCol] = this.pawns[fromRow][fromCol];
@@ -187,6 +248,11 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     this.loadBoard();
   }
 }
+
+  /**
+   * @description Metoda wywoływana po zmianie wartości `game`. Inicjalizuje szachownicę oraz ustawia czas gry.
+   * @param changes
+   */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['game']) {
       this.pawns = this.defaultChessBoard();
@@ -216,6 +282,9 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     }
   }
 
+  /**
+   * @description Metoda tworząca obiekt gry.
+   */
   gameConstructor(): Game {
     return {
       board: this.transformChessBoard(this.pawns),
@@ -226,13 +295,17 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       difficulty: this.ai_difficulty ?? undefined
     }
   }
-
+  /**
+   * @description Metoda rozpoczynająca grę.
+   * @param attr - Atrybuty gry, które mają być użyte do rozpoczęcia gry.
+   * @returns {void}
+   */
   startGame(attr?: Game) : void {
     console.log('Starting Game');
     let gameAttributes: Game = attr ?? this.gameConstructor()
     if(this.game === 'GraczVsGrandmaster') {
-      gameAttributes.mainPlayerColor = this.mainPlayerColor as PieceColor;
-      if(this.mainPlayerColor === 'white') {
+      gameAttributes.mainPlayerColor = this.kolorGracza;
+      if(this.kolorGracza === 'white') {
         gameAttributes.black_player = this.black_grandmaster;
         gameAttributes.white_player = 'Gracz';
       } else {
@@ -243,42 +316,40 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     this.chessService.startGame(gameAttributes);
   }
 
+  /**
+   * @description Metoda ładująca plik `.pgn` od użytkownika.
+   * @param event - Zdarzenie `change` wywoływane po wybraniu pliku.
+   * @returns {void}
+   * @description Umożliwia użytkownikowi załadowanie pliku `.pgn` z bazą danych.
+   * @throws {Error} - Jeśli plik nie jest w formacie `.pgn`, wyrzuca błąd.
+   * @example
+   * ```typescript
+   * loadFile(event: Event): void {
+   *  // ...
+   *  }
+   *  ```
+   *  @example
+   *  ```html
+   *  <input type="file" (change)="loadFile($event)" />
+   *  ```
+   */
   loadFile(event : Event) : void {
    let input : HTMLInputElement = event.target as HTMLInputElement;
    if(input.files && input.files.length > 0) {
      let file : File = input.files[0];
      if(!file.name.endsWith('pgn')) throw new Error("Plik musi być w formacie PGN, a nie " + file.name.split('.').pop());
-     let reader : FileReader = new FileReader();
      let select : HTMLSelectElement = this.renderer.createElement('select');
-     reader.onload = () : void => {
-       let fileContent : string[] = (reader.result as string).split('\n');
-       let option_default : HTMLOptionElement = this.renderer.createElement('option');
-       option_default.value = 'NA';
-       option_default.textContent = 'Wybierz przeciwnika:';
-       option_default.selected = true;
-       option_default.disabled = true;
-       select.appendChild(option_default);
-       fileContent.forEach((line : string) : void => {
-         let option : HTMLOptionElement = this.renderer.createElement('option');
-         if(line.startsWith('[White ')) {
-           let value : string = `Biali : ${line.split('"')[1]}`;
-           option.value = value;
-           option.textContent = value;
-           this.white_grandmaster = line.split('"')[1];
-           select.appendChild(option);
-         } else if(line.startsWith('[Black ')) {
-           let value : string = `Czarni : ${line.split('"')[1]}`;
-           option.value = value;
-           option.textContent = value;
-           this.black_grandmaster = line.split('"')[1];
-           select.appendChild(option);
-         }
-       });
-     }
-     reader.readAsText(file);
+     let option_dark : HTMLOptionElement = this.renderer.createElement('option');
+     option_dark.value = 'Czarni';
+     option_dark.textContent = 'Czarni';
+     let option_light : HTMLOptionElement = this.renderer.createElement('option');
+     option_light.value = 'Biali';
+     option_light.textContent = 'Biali';
+     select.appendChild(option_dark);
+     select.appendChild(option_light);
      this.grandmasterFile = file;
      select.addEventListener('change', () : void => {
-       this.mainPlayerColor = select.value.startsWith('Czarni') ? 'white' : 'black';
+       this.kolorGracza = select.value.startsWith('Czarni') ? 'white' : 'black';
      });
      setTimeout(() : void => {
       let lastChild : HTMLElement = this.element.nativeElement.querySelector('.grandmaster > div:last-child')!;
@@ -287,6 +358,12 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
      }, 10) // musi być timeout, bo inaczej dodaje do "wybierz plik"
    }
   }
+
+  /**
+   * @description Metoda dodająca `EventListener` do pionków, aby umożliwić ich przesuwanie.
+   * @returns {void}
+   * @description Umożliwia przesuwanie pionków na szachownicy za pomocą przeciągania i upuszczania.
+   */
   attachDragEventListeners(): void {
   const pawns: NodeListOf<HTMLImageElement> = this.element.nativeElement.querySelectorAll('.pawns > img');
   pawns.forEach((pawn: HTMLImageElement): void => {
@@ -295,6 +372,12 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     });
   });
 }
+  /**
+   * @description Metoda zmieniająca czas gry.
+   * @param type - Typ czasu, który ma być ustawiony.
+   * @returns {void}
+   * @description Umożliwia zmianę czasu gry na szachownicy.
+   */
   changeTime(type : number) : void {
     switch(type) {
     case 1:
@@ -305,6 +388,14 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
       break;
     }
   }
+
+  /**
+   * @description Metoda ustawiająca przyciski na szachownicy.
+   * @param css - Klasa CSS przycisku, który ma być ustawiony.
+   * @param selected - Indeks przycisku, który ma być ustawiony jako wybrany.
+   * @param unselected - Indeks przycisku, który ma być ustawiony jako nie wybrany.
+   * @private
+   */
   private setButtons(css : string, selected : number, unselected : number) : void {
     let buttons : Array<HTMLElement> = this.element.nativeElement.querySelectorAll(`.${css}`);
     if(buttons.length === 0) return;
@@ -318,6 +409,12 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     this.setButtons('time', selectedIndex, unselectedIndex);
   }
 
+  /**
+   * @description Metoda zmieniająca kolor gracza.
+   * @param type - Typ koloru, który ma być ustawiony.
+   * @returns {void}
+   * @description Umożliwia zmianę koloru gracza na szachownicy.
+   */
   changeColor(type : string) : void {
     switch (type) {
       case 'white':
@@ -330,10 +427,21 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     this.kolorGracza = type === 'white' ? 'white' : 'black';
   }
 
-  challengeUser(userId: string) {
+  /**
+   * @description Metoda rozpoczynająca grę z przeciwnikiem.
+   * @param userId
+   */
+  challengeUser(userId: string) : void {
     this.connection.initializeGame(userId, this.gameConstructor());
   }
 
+  /**
+   * @description Metoda zmieniająca mistrza.
+   * @param type - Typ mistrza, który ma być ustawiony.
+   * @returns {void}
+   * @description Zmienia ona plik `.pgn` wbudowany w `assets`.
+   * @throws {Error} - Jeśli nie znajduje się plik `.pgn`, wyrzuca błąd.
+   */
   grandmasterChange(type : Event) : void {
     let target : HTMLSelectElement = type.target as HTMLSelectElement;
     let button : HTMLButtonElement = this.element.nativeElement.querySelector('.start') as HTMLButtonElement;
@@ -353,7 +461,7 @@ export class GameSelectorComponent implements OnChanges, AfterViewInit {
     select.appendChild(option_dark);
     select.appendChild(option_light);
     select.addEventListener('change', () : void => {
-      this.mainPlayerColor = select.value === 'Czarni' ? 'white' : 'black';
+      this.kolorGracza = select.value === 'Czarni' ? 'white' : 'black';
     });
     setTimeout(() : void => {
       let lastChild : HTMLElement = this.element.nativeElement.querySelector('.grandmaster > div:last-child')!;

@@ -1,8 +1,6 @@
-import { Injectable, forwardRef, Inject } from '@angular/core';
-import {ChessService, ChessPiece, MoveAttempt, PieceColor, Position} from './chess.service';
-import { NotationComponent } from './notation/notation.component';
-import { TimerService } from './timer.service';
-import { Game } from './szachownica/szachownica.component';
+import {forwardRef, Inject, Injectable} from '@angular/core';
+import {ChessPiece, ChessService, MoveAttempt, PieceColor, Position} from './chess.service';
+import {TimerService} from './timer.service';
 
 @Injectable({
   providedIn: 'root'
@@ -150,10 +148,7 @@ export class ChessAiService {
 
     if (!this.isValidPosition(move.from) || !this.isValidPosition(move.to)) return false;
 
-    const piece = board[move.from.row][move.from.col];
-    if (!piece) return false;
-
-    return true;
+    return board[move.from.row][move.from.col] !== null;
   }
 
 
@@ -265,7 +260,7 @@ export class ChessAiService {
 
     if (gamePhase === 'endgame') {
       if (pawnCounts.white + pawnCounts.black < 8) {
-        positionalScore += this.endgameAdjustments(board, color);
+        positionalScore += this.endgameAdjustments(board);
       }
     }
 
@@ -402,13 +397,13 @@ export class ChessAiService {
     if (color === 'white') {
       if (piece.type === 'knight' && row < 6) return true;
       if (piece.type === 'bishop' && row < 6) return true;
-      if (piece.type === 'rook' && row === 7 && (col === 3 || col === 4)) return true;
-      return false;
+      return piece.type === 'rook' && row === 7 && (col === 3 || col === 4);
+
     } else {
       if (piece.type === 'knight' && row > 1) return true;
       if (piece.type === 'bishop' && row > 1) return true;
-      if (piece.type === 'rook' && row === 0 && (col === 3 || col === 4)) return true;
-      return false;
+      return piece.type === 'rook' && row === 0 && (col === 3 || col === 4);
+
     }
   }
 
@@ -597,7 +592,7 @@ export class ChessAiService {
     return score;
   }
 
-  private endgameAdjustments(board: (ChessPiece | null)[][], color: PieceColor): number {
+  private endgameAdjustments(board: (ChessPiece | null)[][]): number {
     let score = 0;
 
     let whiteKing: {row: number, col: number} | null = null;
@@ -658,20 +653,6 @@ export class ChessAiService {
 
     return mobilityCount * mobilityMultiplier * 5 * phaseMultiplier;
   }
-
-  private getBaseImportance(type: string): number {
-    switch (type) {
-      case 'pawn': return 1;
-      case 'knight': return 3;
-      case 'bishop': return 3;
-      case 'rook': return 5;
-      case 'queen': return 9;
-      case 'king': return 100;
-      default: return 0;
-    }
-  }
-
-
   private getAllLegalMoves(board: (ChessPiece | null)[][], color: PieceColor): MoveAttempt[] {
     const legalMoves: MoveAttempt[] = [];
     for (let row = 0; row < 8; row++) {
