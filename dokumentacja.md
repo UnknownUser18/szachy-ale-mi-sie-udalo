@@ -60,7 +60,7 @@ Po uruchomieniu aplikacji użytkownik przenoszony jest do panelu głównego, kt�
   - ewaluacje pozycji
   - podpowiedzi (możliwe do właczenia)
   - widok dla nerdów
-  - 
+  - zegar szachowy
 ### Rozgrywka
 
 
