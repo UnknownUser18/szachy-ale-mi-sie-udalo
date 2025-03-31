@@ -122,7 +122,6 @@ W trakcie rozgrywki aplikacja wyświetla zapis partii w **notacji algebraicznej*
 ### Opis folderów i plików:
 
 ```
-.idea - pliki do edytowania (nieważne dla projektu)
 backend // folder obsługujący tryb gry Gracz vs Gracz w sieci
 | - controler.js - obsługa tworzenia oraz usuwanie hosta (serwera)
 | - index.js - sam serwer (wywoływany przez controller.js) 
@@ -136,11 +135,19 @@ szachy // frontend oraz cała logika szachów
 | - public  // Pliki dostępne publicznie (obrazy, czcionki, ikony)
 | - src  // Główny folder zawierający kod źródłowy
 |   | - app  // Główna część aplikacji – komponenty i logika interfejsu użytkownika
-|   	| - game-selector  // Komponent umożliwiający wybór trybu gry
-|   	| - menu  // Komponent wyświetlający główne menu aplikacji
-|	| - pawn-promotion  // Komponent odpowiedzialny za promocję pionka
-|	| - szachownica  // Komponent reprezentujący planszę szachową
-|	| - zegar  // Komponent do śledzenia czasu gry
-    | - assets  // Pliki statyczne (obrazy, dźwięki, czcionki)
-    | - enviroments
+|	|	| - game-end-dialog // Komponent odpowiedzialny za koniec gry
+|	|	| - game-invite-dialog // Komponent odpowiedzialny za wyzywania gracza w sieci do gry
+|   |	| - game-selector  // Komponent umożliwiający wybór trybu gry
+|   |	| - menu  // Komponent wyświetlający główne menu aplikacji
+|	|	| - nerd-view // Komponent wyświetlający widok dla nerda
+|	|	| - notation // Komponent wyświetlający notację szachową
+|	|	| - pawn-promotion  // Komponent odpowiedzialny za promocję pionka
+|	|	| - podpowiedzi // Komponent odpowiedzialny za podpowiedzi użytkownika w partii
+|	|	| - position-evaluator // Komponent odpowiedzialny za ewaluacje pozycji w partii
+|	|	| - szachownica  // Komponent reprezentujący planszę szachową
+|	|	| - ustawienia // Komponent odpowiedzialny za motyw na stronie
+|	|	| - zegar  // Komponent do śledzenia czasu gry
+|   | - assets  // Pliki statyczne (obrazy, dźwięki, czcionki)
+|   | - enviroments // ustawia port do serwera
+
 ```
