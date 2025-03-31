@@ -59,7 +59,19 @@ export class ChessAiService {
         to: { row: bestMove.to.row, col: bestMove.to.col },
         color: color
       });
+      const currentGame = this.chessService.gameStart.value.type;
+      const cGextra = this.chessService.gameStart.value;
+      if(currentGame=='GraczVsGrandmaster'){
+        if(this.timerService.currentTimer == "white"){
+          this.timerService.currentTimer = "black";
+        }else if(this.timerService.currentTimer == "black"){
+          this.timerService.currentTimer = "white";
+        }
+          
+      }
+     
     }
+   
 
     return bestMove;
   }
@@ -693,8 +705,12 @@ export class ChessAiService {
       piece.position = { row: to.row, col: to.col };
     }
     const currentGame = this.chessService.gameStart.value.type;
-    if(currentGame!='GraczVsGracz'){
+    if(currentGame=='GraczVsAi'){
       this.timerService.currentTimer = "white";
+    }else if(currentGame=='GraczVsGrandmaster'){
+
+      this.timerService.switchTimer()
+
     }
 
     // this.timerService.currentTimer = this.timerService.currentTimer === 'white' ? 'black' : 'white';

@@ -246,6 +246,11 @@ export class ChessService {
     to: { row: number; col: number },
     color: PieceColor
   }>();
+  public pawnPromoted = new EventEmitter<{
+    position: Position;
+    promotedTo: PieceType;
+    color: PieceColor;
+  }>();
 
   /**
    * Inicjalizuje serwis
@@ -857,6 +862,7 @@ export class ChessService {
    * @throws {Error} Jeśli - Brak bierki na pozycji startowej
    * @throws {Error} Jeśli - Ruch niedozwolony lub pozostawi króla w szachu
    */
+  public currentSpecialForNotationOnly: string = '';
   public tryMove(moveAttempt: MoveAttempt): boolean {
     console.log('Czy jest bierka?', moveAttempt.to.row, moveAttempt.to.col);
     if (!this.isValidPosition(moveAttempt.from) || !this.isValidPosition(moveAttempt.to))
@@ -876,6 +882,8 @@ export class ChessService {
       this.executeStandardMove(moveAttempt, piece);
     else
     {
+      this.currentSpecialForNotationOnly = currentLegalMove.special;
+      
       const specialExecutes = {
         'enpassant': () => this.executeEnpassant(piece),
         'O-O': () => this.executeCastle(piece, {col: 7, deltaCol: 2, special: 'O-O'}),
@@ -915,6 +923,12 @@ export class ChessService {
         piece.type = result;
         console.warn(selectedPiece)
         this.updateBoard.next(this.board);
+
+        this.pawnPromoted.emit({
+          position: piece.position,
+          promotedTo: result,
+          color: piece.color
+        });
       }
     });
 
@@ -1094,7 +1108,10 @@ export class ChessService {
     piece.position = { ...moveAttempt.to };
     piece.moveTurn = true;
     piece.hasMoved = true;
-    if(piece.type === 'pawn' && (piece.position.row === 0 || piece.position.row === 7)) this.promotePawn(piece);
+    if(piece.type === 'pawn' && (piece.position.row === 0 || piece.position.row === 7)){
+      this.promotePawn(piece);
+
+    } 
     // this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
