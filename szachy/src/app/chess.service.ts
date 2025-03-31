@@ -331,41 +331,24 @@ export class ChessService {
     return this.board[row][col];
   }
 
-  //ważne
-  /**
-   * @method simulateMove
-   * @description Wykonuje symulację ruchu bez modyfikowania aktualnego stanu gry
-   * @param {Position} from - Pozycja początkowa
-   * @param {Position} to - Pozycja docelowa
-   * @param {(ChessPiece | null)[][]} [board=this.board] - Opcjonalna plansza do symulacji
-   * @returns {(ChessPiece | null)[][]} Nowa plansza po symulowanym ruchu
-   * @throws {Error} Jeśli pozycje są nieprawidłowe
-   */
 
-  /*
-  * Metoda
-  * Nazwa: getPieceFromPosition
-  * Pola:
-  * position: Position - pozycja, z której chcemy znaleźć bierkę
-  * Działanie:
-  * Znajduje bierkę lub wartość null w danej pozycji na szachownicy
-  * Zwracana wartość:
-  * ChessPiece | null - w zależności czy znajdzie się tam bierka, zwróci ją lub null
-  * */
+  /**
+   * @method getPiece
+   * @description Zwraca bierkę znajdującą się na podanej pozycji o typie Position
+   * @param {Position} position - Podana pozycja o typie Position
+   * @returns {ChessPiece | null} Potencjalna bierka na podanej pozycji
+   */
   public getPieceFromPosition(position: Position): ChessPiece | null{
     return this.board[position.row][position.col];
   }
 
-  /*
-  * Metoda
-  * Nazwa: logChessBoard
-  * Pola:
-  * board: (ChessPiece | null)[][] - szachownica, którą chcemy wypisać, domyślnie jest to globalna szachownica this.board
-  * Działanie:
-  * Wypisuje każde pole na szachownicy i dany typ bierki na danym polu
-  * Zwracana wartość:
-  * Nie zwraca żadnej wartości
-  * */
+
+  /**
+   * @method logChessBoard
+   * @description Wypisuje każde pole na szachownicy i dany typ bierki na danym polu
+   * @param {(ChessPiece | null)[][]} board - Szachownica, z którą chcemy pracować
+   * @returns {void}
+   */
   logChessBoard(board: (ChessPiece | null)[][] = this.board): void {
     console.warn(`Chess Board Log`);
     console.log('Row 0: Col a, Col b, Col c, Col d, Col e, Col f, Col g, Col h')
@@ -384,62 +367,49 @@ export class ChessService {
     console.log(this.getLegalMovesForColor('black').reverse())
   }
 
-  /*
-  * Metoda
-  * Nazwa: restartChessBoard
-  * Pola:
-  * Nie pobiera pól
-  * Działanie:
-  * Inicjalizuje ponownie szachownicę przygotowując na nową rozgrywkę
-  * Zwracana wartość:
-  * Nie zwraca żadnej wartości
-  * */
+
+  /**
+   * @method restartChessBoard
+   * @description Restaruje pozycje bierek na szachownicy
+   * @returns {void}
+   */
   public restartChessBoard(): void {
     this.initializeChessBoard();
     this.logChessBoard()
   }
 
-  /*
-  * Metoda
-  * Nazwa: isValidPosition
-  * Pola:
-  * pos: Position - pobranie pozycji do sprawdzenia
-  * Działanie:
-  * Sprawdza czy dana pozycja mieści się na naszej planszy
-  * Zwracana wartość:
-  * boolean - zwraca czy podana pozycja spełnia warunek - true/false
-  * */
+
+  /**
+   * @method isValidPosition
+   * @description Sprawdza czy dana pozycja mieści się na naszej planszy
+   * @param {Position} pos - Pozycja początkowa
+   * @returns {(ChessPiece | null)[][]} Nowa plansza po symulowanym ruchu
+   */
   isValidPosition(pos: Position): boolean {
     return pos.row >= 0 && pos.row < 8 && pos.col >= 0 && pos.col < 8;
   }
 
-  /*
-  * Metoda
-  * Nazwa: cloneBoard
-  * Pola:
-  * board: (ChessPiece | null)[][] - pobranie szachownicy do skopiowania
-  * Działanie:
-  * Kopiuje wszystkie dane z podanej szachownicy, gdyż w JS/TS większość operacji jak przypisanie (Array2) = (Array1), zachodzi przez referencję
-  * Zwracana wartość:
-  * (ChessPiece | null)[][] - zwraca skopiowaną szachownicę
-  * */
+
+  /**
+   * @method cloneBoard
+   * @description Kopiuje wszystkie dane z podanej szachownicy, gdyż w JS/TS większość operacji jak przypisanie (Array2) = (Array1), zachodzi przez referencję
+   * @param {(ChessPiece | null)[][]} board - Pobrana szachownica do skopiowowania
+   * @returns {(ChessPiece | null)[][]} Nowa plansza po symulowanym ruchu
+   * @throws {Error} Jeśli pozycje są nieprawidłowe
+   */
   cloneBoard(board: (ChessPiece | null)[][]): (ChessPiece | null)[][] {
     return board.map(row => row.map(piece => piece ? { ...piece, position: { ...piece.position } } : null));
   }
 
-  /*
-  * Metoda
-  * Nazwa: simulateMove
-  * Pola:
-  * from: Position - pozycją, z której chcemy symulować ruch
-  * to: Position - końcowa pozycją, na której chcemy wylądować
-  * board: (ChessPiece | null)[][] = this.board - szachownica, na której chcemy symulować - domyślnie używana jest globalna aktualna szachownica
-  * Działanie:
-  * Na skopiowanej szachownicy wykonujemy posunięcie bez sprawdzenia czy jest legalne
-  * Jest ona kluczowa do sprawdzania szachowania króla
-  * Zwracana wartość:
-  * (ChessPiece | null)[][] - zwraca skopiowaną szachownicę
-  * */
+
+  /**
+   * @method simulateMove
+   * @description Wykonuje symulację ruchu bez modyfikowania aktualnego stanu gry
+   * @param {Position} from - Pozycja początkowa
+   * @param {Position} to - Pozycja docelowa
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Opcjonalna plansza do symulacji
+   * @returns {(ChessPiece | null)[][]} Nowa plansza po symulowanym ruchu
+   */
   simulateMove(
     from: Position,
     to: Position,
@@ -461,19 +431,13 @@ export class ChessService {
     return newBoard;
   }
 
-  /*
-  * Metoda
-  * Nazwa: calculateLegalMoves
-  * Pola:
-  * from: Position — pozycją, z której chcemy symulować ruch
-  * to: Position — końcową pozycją, na której chcemy wylądować
-  * board: (ChessPiece | null)[][] = this.board — szachownica, na której chcemy symulować — domyślnie używana jest globalna aktualna szachownica
-  * Działanie:
-  * Na skopiowanej szachownicy wykonujemy posunięcie bez sprawdzenia, czy jest legalne
-  * Jest ona kluczowa do sprawdzania szachowania króla
-  * Zwracana wartość:
-  * (ChessPiece | null)[][] - zwraca skopiowaną szachownicę
-  * */
+  /**
+   * @method calculateLegalMoves
+   * @description Na skopiowanej szachownicy wykonujemy posunięcie bez sprawdzenia, czy jest legalne
+   * @param {ChessPiece} piece - Bierka, dla której chcemy sprawdzić legalne ruchy
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Opcjonalna plansza do symulacji
+   * @returns {legalMove[][]} Nowa plansza po symulowanym ruchu
+   */
   public calculateLegalMoves(
     piece: ChessPiece,
     board: (ChessPiece | null)[][] = this.board
@@ -492,17 +456,14 @@ export class ChessService {
     return this.nullLegalMovesTable();
   }
 
-  /*
-  * Metoda
-  * Nazwa: calculatePawnMoves
-  * Pola:
-  * piece: ChessPiece — pionek, dla którego chcemy sprawdzać legalne ruchy
-  * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
-  * Działanie:
-  * Sprawdza wszystkie ruchy do przodu, na skos — zbicie, i specjalny ruch — en passant
-  * Zwracana wartość:
-  * legalMove[][] - zwraca dwuwymiarową tablicę legalnych ruchów
-  * */
+
+  /**
+   * @method calculatePawnMoves
+   * @description Sprawdza wszystkie ruchy do przodu, na skos — zbicie, i specjalny ruch — en passant
+   * @param {ChessPiece} piece - Pionek, dla którego chcemy sprawdzać legalne ruchy
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Opcjonalna plansza do symulacji
+   * @returns {legalMove[][]} - zwraca dwuwymiarową tablicę legalnych ruchów
+   */
   private calculatePawnMoves(
     piece: ChessPiece,
     board: (ChessPiece | null)[][]
@@ -540,31 +501,12 @@ export class ChessService {
     return moves;
   }
 
-  /*
-  * Metoda
-  * Nazwa: logLegalMoves
-  * Pola:
-  * piece: ChessPiece — bierka, dla której chcemy wypisać legalne ruchy do konsoli
-  * moves: legalMove[][] - obliczone legalne ruchy dla konkretnej bierki
-  * Działanie:
-  * Wypisuje 'typ bierki legal moves: legalne ruchy' w konsoli dla danych podanych pól
-  * Zwracana wartość:
-  * Nie zwraca żadnej wartości
-  * */
-  // private logLegalMoves(piece: ChessPiece, moves: legalMove[][]) {
-  //   console.log(`${piece.type} legal moves: `, moves)
-  // }
 
-  /*
-  * Metoda
-  * Nazwa: nullLegalMovesTable
-  * Pola:
-  * Nie pobiera żadnych pól
-  * Działanie:
-  * Przez dziwny błąd z referencją TS i JS, zwraca dwuwymiarową tablicę z legalnymi ruchami cała wypełniona nielegalnymi posunięciami
-  * Zwracana wartość:
-  * legalMove[][] - 'wynulowana' dwuwymiarowa tablica dwuwymiarowa
-  * */
+  /**
+   * @method nullLegalMovesTable
+   * @description Przez dziwny błąd z referencją TS i JS, zwraca dwuwymiarową tablicę z legalnymi ruchami cała wypełniona nielegalnymi posunięciami
+   * @returns {legalMove[][]} 'wynulowana' dwuwymiarowa tablica
+   */
   private nullLegalMovesTable(): legalMove[][] {
     let moves: legalMove[][] = Array.from({ length: 8 }, () => new Array(8));
     for(let row: number = 0; row < 8 ; row++)
@@ -575,17 +517,14 @@ export class ChessService {
     return moves;
   }
 
-  /*
-  * Metoda
-  * Nazwa: calculateKnightMoves
-  * Pola:
-  * piece: ChessPiece — skoczek, dla którego chcemy obliczyć legalne ruchy
-  * board: (ChessPiece | null)[][] - szachowanica, na której chcemy sprawdzać legalne ruchy
-  * Działanie:
-  * Sprawdza dla każdego możliwego ruchu skoczka, ruchy legalne
-  * Zwracana wartość:
-  * legalMove[][] - zwraca legalne ruchy podanego skoczka
-  * */
+
+  /**
+   * @method calculateKnightMoves
+   * @description Sprawdza dla każdego możliwego ruchu skoczka, ruchy legalne
+   * @param {ChessPiece} piece - skoczek, dla którego chcemy obliczyć legalne ruchy
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Plansza, dla której chcemy sprawdzać legalne ruchy
+   * @returns {legalMove[][]} - zwraca legalne ruchy podanego skoczka
+   */
   private calculateKnightMoves(
     piece: ChessPiece,
     board: (ChessPiece | null)[][]
@@ -611,17 +550,14 @@ export class ChessService {
     return moves;
   }
 
-  /*
-  * Metoda
-  * Nazwa: calculateBishopMoves
-  * Pola:
-  * piece: ChessPiece — goniec, dla którego chcemy obliczyć legalne ruchy
-  * board: (ChessPiece | null)[][] - szachowanica, na której chcemy sprawdzać legalne ruchy
-  * Działanie:
-  * Sprawdza dla każdego możliwego ruchu gońca, ruchy legalne
-  * Zwracana wartość:
-  * legalMove[][] - zwraca legalne ruchy podanego gońca
-  * */
+
+  /**
+   * @method calculateBishopMoves
+   * @description Sprawdza dla każdego możliwego ruchu gońca, ruchy legalne
+   * @param {ChessPiece} piece - Pozycja początkowa
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Szachownica, na której chcemy sprawdzać legalne ruchy
+   * @returns {legalMove[][]} zwraca legalne ruchy podanego gońca
+   */
   private calculateBishopMoves(
     piece: ChessPiece,
     board: (ChessPiece | null)[][]
@@ -654,17 +590,14 @@ export class ChessService {
     return moves
   }
 
-  /*
-  * Metoda
-  * Nazwa: calculateRookMoves
-  * Pola:
-  * piece: ChessPiece — wieża, dla której chcemy obliczyć legalne ruchy
-  * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
-  * Działanie:
-  * Sprawdza, dla każdego możliwego ruchu wierzy, ruchy legalne
-  * Zwracana wartość:
-  * legalMove[][] - zwraca legalne ruchy podanej wieży
-  * */
+
+  /**
+   * @method calculateRookMoves
+   * @description Sprawdza, dla każdego możliwego ruchu wierzy, ruchy legalne
+   * @param {ChessPiece} piece - Wieża, dla której chcemy sprawdzić legalne ruchy
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Szachownica, na której chcemy sprawdzać legalne ruchy
+   * @returns {legalMove[][]} Legalne ruchy dla podanej wieży
+   */
   private calculateRookMoves(
     piece: ChessPiece,
     board: (ChessPiece | null)[][]
@@ -697,17 +630,14 @@ export class ChessService {
     return moves;
   }
 
-  /*
-  * Metoda
-  * Nazwa: calculateQueenMoves
-  * Pola:
-  * piece: ChessPiece — hetman, dla którego chcemy obliczyć legalne ruchy
-  * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
-  * Działanie:
-  * Dodaje, legalne ruchy wierzy i gońca z pozycji hetmana
-  * Zwracana wartość:
-  * legalMove[][] - zwraca legalne ruchy podanego hetmana
-  * */
+
+  /**
+   * @method calculateQueenMoves
+   * @description Dodaje, legalne ruchy wierzy i gońca z pozycji hetmana
+   * @param {ChessPiece} piece - Pozycja początkowa
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Szachownica, na której chcemy sprawdzać legalne ruchy
+   * @returns {legalMove[][]} Legalne ruchy dla podanego hetmana
+   */
   private calculateQueenMoves(
     piece: ChessPiece,
     board: (ChessPiece | null)[][]
@@ -727,17 +657,14 @@ export class ChessService {
     return moves;
   }
 
-  /*
-  * Metoda
-  * Nazwa: calculateKingMoves
-  * Pola:
-  * piece: ChessPiece — król, dla którego chcemy obliczyć legalne ruchy
-  * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
-  * Działanie:
-  * Sprawdza dla każdego możliwego ruchu króla, ruchy legalne oraz roszady
-  * Zwracana wartość:
-  * legalMove[][] - zwraca legalne ruchy podanego króla
-  * */
+
+  /**
+   * @method calculateKingMoves
+   * @description Sprawdza dla każdego możliwego ruchu króla, ruchy legalne oraz roszady
+   * @param {ChessPiece} piece - Pozycja początkowa
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Szachownica, na której chcemy sprawdzać legalne ruchy
+   * @returns {legalMove[][]} Legalne ruchy dla podanego króla
+   */
   private calculateKingMoves(
     piece: ChessPiece,
     board: (ChessPiece | null)[][]
@@ -755,7 +682,6 @@ export class ChessService {
         }
       }
     }
-    // Roszady
     // Roszady
     if (!piece.hasMoved) {
       for (const possibleRook of [
@@ -795,17 +721,14 @@ export class ChessService {
     return moves;
   }
 
-  /*
-  * Metoda
-  * Nazwa: isKingInCheck
-  * Pola:
-  * color: PieceColor — kolor króla, dla którego chcemy sprawdzić czy jest on szachowany
-  * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
-  * Działanie:
-  * Sprawdza, czy z perspektywy przeciwnika mógłby legalnie zbić króla
-  * Zwracana wartość:
-  * boolean — zwraca prawda/fałsz w zależności od spełnienia warunków
-  * */
+
+  /**
+   * @method isKingInCheck
+   * @description Sprawdza, czy z perspektywy przeciwnika mógłby legalnie zbić króla
+   * @param {PieceColor} color - Kolor gracza, dla którego sprawdzamy, czy jest szachowany
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Szachownica, na której chcemy sprawdzać potencjalny szach
+   * @returns {boolean} True/False czy jest szachowany
+   */
   public isKingInCheck(
     color: PieceColor,
     board: (ChessPiece | null)[][] = this.board
@@ -838,16 +761,13 @@ export class ChessService {
     return false;
   }
 
-  /*
-  * Metoda
-  * Nazwa: checkEnemyKingInCheck
-  * Pola:
-  * movingPiece: ChessPiece — pobranie poruszonej bierki, aby określić kolor przeciwnego króla
-  * Działanie:
-  * Sprawdza, czy z perspektywy przeciwnika mógłby legalnie zbić króla
-  * Zwracana wartość:
-  * boolean — zwraca prawda/fałsz w zależności od spełnienia warunków
-  * */
+
+  /**
+   * @method checkEnemyKingInCheck
+   * @description Sprawdza, czy z perspektywy przeciwnika mógłby legalnie zbić króla
+   * @param {ChessPiece} movingPiece - Bierka, którą ruszamy i sprawdzamy, czy przeciwnik jest szachowany
+   * @returns {void}
+   */
   private checkEnemyKingInCheck(movingPiece: ChessPiece): void {
     const enemyColor: PieceColor = movingPiece.color === 'white' ? 'black' : 'white';
     if (this.isKingInCheck(enemyColor)) {
@@ -855,19 +775,16 @@ export class ChessService {
     }
   }
 
-  /*
-  * Metoda
-  * Nazwa: moveLeavesKingInCheck
-  * Pola:
-  * piece: ChessPiece — pobranie ruszanej bierki
-  * from: Position — pozycja startowa bierki
-  * to: Position — pozycja końcowa bierki
-  * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
-  * Działanie:
-  * Sprawdza, czy po zasymulowanym ruchu, własny król byłby zaszachowany
-  * Zwracana wartość:
-  * boolean — zwraca prawda/fałsz w zależności od spełnienia warunków
-  * */
+
+  /**
+   * @method moveLeavesKingInCheck
+   * @description Sprawdza, czy po zasymulowanym ruchu, własny król byłby zaszachowany
+   * @param {ChessPiece} piece - Bierka, którą próbujemy się ruszyć
+   * @param {Position} from - Pozycja początkowa
+   * @param {Position} to - Pozycja docelowa
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Opcjonalna plansza do symulacji
+   * @returns {boolean} True/False czy końcowo król jest szachowany
+   */
   private moveLeavesKingInCheck(
     piece: ChessPiece,
     from: Position,
@@ -878,18 +795,15 @@ export class ChessService {
     return this.isKingInCheck(piece.color, simulatedBoard);
   }
 
-  /*
-  * Metoda
-  * Nazwa: filterMovesByKingSafety
-  * Pola:
-  * piece: ChessPiece — pobranie ruszanej bierki
-  * moves: legalMove[][] - obliczone wcześniej 'legalne' ruchy, dla których się sprawdza czy nie pozostawią króla w szachu po ruchu
-  * board: (ChessPiece | null)[][] - szachownica, na której chcemy sprawdzać legalne ruchy
-  * Działanie:
-  * Sprawdza, czy po zasymulowanym ruchów po całej szachownicy, własny król byłby zaszachowany dla jakiegokolwiek przypadku, wtedy zachodzi anulowanie legalności ruchu
-  * Zwracana wartość:
-  * boolean — zwraca prawda/fałsz w zależności od spełnienia warunków
-  * */
+
+  /**
+   * @method calculateLegalMoves
+   * @description Sprawdza, czy po zasymulowanym ruchów po całej szachownicy, własny król byłby zaszachowany dla jakiegokolwiek przypadku, wtedy zachodzi anulowanie legalności ruchu
+   * @param {ChessPiece} piece - Bierka, dla której chcemy przefiltrować ruchy
+   * @param {legalMove[][]} moves - Początkowe legalne, które nie są przefiltrowane z szachowania króla
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Opcjonalna plansza do symulacji
+   * @returns {legalMove[][]} Przefiltrowane legalne ruchy
+   */
   private filterMovesByKingSafety(
     piece: ChessPiece,
     moves: legalMove[][],
@@ -909,16 +823,13 @@ export class ChessService {
     return filtered;
   }
 
-  /*
-  * Metoda
-  * Nazwa: getLegalMovesForColor
-  * Pola:
-  * color: PieceColor — kolor, dla którego chcemy pobrać legalne ruchy
-  * Działanie:
-  * Oblicza wszystkie legalne ruchy dla każdej bierki podanego koloru
-  * Zwracana wartość:
-  * { piece: ChessPiece, legalMoves: legalMove[][] }[] - zwaraca tablicę z określeniem legalnych ruchów(dwuwymiarowa tablica) dla konkretnej bierki
-  * */
+
+  /**
+   * @method getLegalMovesForColor
+   * @description Oblicza wszystkie legalne ruchy dla każdej bierki podanego koloru
+   * @param {PieceColor} color - Kolor, dla którego chcemy obliczyć legalne ruchy
+   * @returns {{ piece: ChessPiece, legalMoves: legalMove[][] }[]} Tablica, z legalnymi ruchami, dla każdej bierki
+   */
   public getLegalMovesForColor(
     color: PieceColor
   ): { piece: ChessPiece, legalMoves: legalMove[][] }[] {
@@ -937,16 +848,15 @@ export class ChessService {
   }
 
 
-  /*
-  * Metoda
-  * Nazwa: tryMove
-  * Pola:
-  * moveAttempt: MoveAttempt — próba ruchu przez gracza
-  * Działanie:
-  * Sprawdza różne warunki, dla których gracz nie mógłby wykonać ruchu
-  * Zwracana wartość:
-  * boolean — zawraca prawda/fałsz w zależności czy może wykonać ruch, czy też nie
-  * */
+  /**
+   * @method tryMove
+   * @description Sprawdza różne warunki, dla których gracz nie mógłby wykonać ruchu
+   * @param {MoveAttempt} moveAttempt - Pozycja początkowa
+   * @returns {boolean} True/False w zależności czy może wykonać ruch, czy też nie
+   * @throws {Error} Jeśli - Pozycja poza planszą
+   * @throws {Error} Jeśli - Brak bierki na pozycji startowej
+   * @throws {Error} Jeśli - Ruch niedozwolony lub pozostawi króla w szachu
+   */
   public tryMove(moveAttempt: MoveAttempt): boolean {
     console.log('Czy jest bierka?', moveAttempt.to.row, moveAttempt.to.col);
     if (!this.isValidPosition(moveAttempt.from) || !this.isValidPosition(moveAttempt.to))
@@ -984,8 +894,13 @@ export class ChessService {
   }
 
 
-
-  private promotePawn(piece: ChessPiece){
+  /**
+   * @method promotePawn
+   * @description Inicjalizuje dialog do awansu piona
+   * @param {ChessPiece} piece - Pionek, który chcemy awansować
+   * @returns {void}
+   */
+  private promotePawn(piece: ChessPiece): void{
     let selectedPiece: PieceType = 'pawn';
 
     const dialogRef = this.dialog.open(PawnPromotionComponent, {
@@ -1005,7 +920,14 @@ export class ChessService {
 
   }
 
-  private showGameEnding(gameEnd: GameEndType)
+
+  /**
+   * @method showGameEnding
+   * @description Wyświetla użytkownikowi różne scenariusze zakończenia gry graficznie
+   * @param {GameEndType} gameEnd - Opcjonalna plansza do symulacji
+   * @returns {void}
+   */
+  private showGameEnding(gameEnd: GameEndType): void
   {
     this.AudioService.playSoundForType(gameEnd)
     if(gameEnd === 'none' || gameEnd === 'check') return;
@@ -1020,6 +942,12 @@ export class ChessService {
 
   }
 
+
+  /**
+   * @method checkForDraw
+   * @description Sprawdza wszystkie możliwe zakończenia gry poza czasowymi
+   * @returns {GameEndType} Nowa plansza po symulowanym ruchu
+   */
   checkForDraw(): GameEndType {
     if (this.lowEffortBoards.length >= 50) return 'draw-50-moves';
 
@@ -1037,6 +965,13 @@ export class ChessService {
     return 'none';
   }
 
+
+  /**
+   * @method serializeBoard
+   * @description Zamiana mniejszej struktury szachownicy na formę string
+   * @param {(LowEffortChessPiece | null)[][]} board - Szachownica, którą chcemy zamienić na string
+   * @returns {string} Tekstowa forma szachownicy
+   */
   private serializeBoard(board: (LowEffortChessPiece | null)[][]): string {
     return board.map(row =>
       row.map(square => {
@@ -1047,6 +982,14 @@ export class ChessService {
     ).join('|');
   }
 
+
+  /**
+   * @method compareBoardsLowEffort
+   * @description Porównuje każde pole z pierwszej szachownicy a drugiej
+   * @param {(LowEffortChessPiece|null)[][]} board1 - Pierwsza szachownicy pomniejszonej struktury
+   * @param {(LowEffortChessPiece|null)[][]} board2 - Druga szachownicy pomniejszonej struktury
+   * @returns {boolean} True/False w zależności czy są takie same
+   */
   compareBoardsLowEffort(board1:(LowEffortChessPiece|null)[][], board2: (LowEffortChessPiece | null)[][]): boolean
   {
     for(let row = 0 ; row < 8 ; row++)
@@ -1056,20 +999,16 @@ export class ChessService {
   }
 
 
-  /*
-  * Metoda
-  * Nazwa: executeCastle
-  * Pola:
-  * piece: ChessPiece — pobranie ruszanego króla
-  * atributes: CastleAtributes — atrybuty roszady — gdzie miałaby znajdować się wieża oraz o ile miałby poruszyć się król podczas roszady
-  * Działanie:
-  * Sprawdza, czy król i potencjalna wieża się już ruszyły, jeśli nie próbuje wykonać roszadę.
-  * Obsługuje krótkie i długie roszady w zależności od atributes
-  * Zwracana wartość:
-  * Nie zwraca żadnych wartości
-  * */
-  private executeCastle(piece: ChessPiece, atributes:CastleAtributes) {
-    const castleAtributes = atributes;
+  /**
+   * @method executeCastle
+   * @description Sprawdza, czy król i potencjalna wieża się już ruszyły, jeśli nie próbuje wykonać roszadę.
+   * @description Obsługuje krótkie i długie roszady w zależności od atributes
+   * @param {ChessPiece} piece - Bierka króla, którą próbujemy się ruszyć
+   * @param {CastleAtributes} attributes - Atrybuty roszady, którą próbujemy wykonać
+   * @returns {void}
+   */
+  private executeCastle(piece: ChessPiece, attributes:CastleAtributes): void {
+    const castleAtributes = attributes;
     const newPos: Position = { row: piece.position.row, col: castleAtributes.col };
     if(!this.isValidPosition(newPos))
       return
@@ -1095,17 +1034,14 @@ export class ChessService {
     this.canUndo = true;
   }
 
-  /*
-  * Metoda
-  * Nazwa: executeEnpassant
-  * Pola:
-  * piece: ChessPiece — pobranie ruszanego pionka
-  * Działanie:
-  * Sprawdza, czy legalnie został przypisany legalny ruch en passant, jeśli tak szuka sąsiedniego pionka, na którym gracz może wykonać bicie w przelocie i go zbija
-  * Zwracana wartość:
-  * Nie zwraca żadnych wartości
-  * */
-  private executeEnpassant(piece: ChessPiece) {
+
+  /**
+   * @method executeEnpassant
+   * @description Sprawdza, czy legalnie został przypisany legalny ruch en passant, jeśli tak szuka sąsiedniego pionka, na którym gracz może wykonać bicie w przelocie i go zbija
+   * @param {ChessPiece} piece - Pozycja początkowa
+   * @returns {void}
+   */
+  private executeEnpassant(piece: ChessPiece): void {
     let enPassantPiece: ChessPiece | null = null;
     const direction = piece.color === 'black' ? -1 : 1;
     for (const deltaCol of [-1, 1]){
@@ -1137,18 +1073,15 @@ export class ChessService {
     this.lowEffortBoards = [];
   }
 
-  /*
-  * Metoda
-  * Nazwa: executeStandardMove
-  * Pola:
-  * piece: ChessPiece — pobranie ruszanego króla
-  * moveAttempt: MoveAttempt — dokładne opisanie próby ruchu
-  * Działanie:
-  * Wykonuje posunięcie
-  * Zwracana wartość:
-  * Nie zwraca żadnych wartości
-  * */
-  private executeStandardMove(moveAttempt: MoveAttempt, piece: ChessPiece) {
+
+  /**
+   * @method executeStandardMove
+   * @description Wykonuje standardowe posunięcie, to znaczy nie specjalne
+   * @param {MoveAttempt} moveAttempt - Pozycja początkowa
+   * @param {ChessPiece} piece - Pozycja docelowa
+   * @returns {void}
+   */
+  private executeStandardMove(moveAttempt: MoveAttempt, piece: ChessPiece): void {
     let numberOfPieces = this.countChessPieces(this.board);
     this.previousBoard = this.copyChessBoard(this.board);
     this.board.map((distinctRow: (ChessPiece | null)[]) => {distinctRow.map((distinctSquare: (ChessPiece | null)) => {
@@ -1171,16 +1104,13 @@ export class ChessService {
       this.lowEffortBoards = [];
   }
 
-  /*
-  * Metoda
-  * Nazwa: copyChessBoard
-  * Pola:
-  * board: (ChessPiece | null)[][] - szachownica, którą chcemy kopiować
-  * Działanie:
-  * Głeboko kopiuje każdą wartość z pierwszej tabeli to drugiej
-  * Zwracana wartość:
-  * (ChessPiece | null)[][] - zwraca skopiowaną tabelę
-  * */
+
+  /**
+   * @method copyChessBoard
+   * @description Głeboko kopiuje każdą wartość z pierwszej tabeli to drugiej
+   * @param {(ChessPiece | null)[][]} board - Szachownica do skopiowania
+   * @returns {(ChessPiece | null)[][]} Nowa skopiowana szachownica
+   */
   public copyChessBoard(board: (ChessPiece | null)[][]): (ChessPiece | null)[][] {
     return board.map(row => row.map(piece => {
       if (piece) {
@@ -1194,16 +1124,13 @@ export class ChessService {
     }));
   }
 
-  /*
-  * Metoda
-  * Nazwa: copyChessBoardLowEffort
-  * Pola:
-  * board: (ChessPiece | null)[][] - szachownica, którą chcemy kopiować
-  * Działanie:
-  * Głeboko kopiuje każdą wartość z pierwszej tabeli to drugiej
-  * Zwracana wartość:
-  * (LowEffortChessPiece | null)[][] - zwraca skopiowaną ograniczoną tabelę
-  * */
+
+  /**
+   * @method copyChessBoardLowEffort
+   * @description Głęboko kopiuje każdą wartość z pierwszej tabeli to drugiej
+   * @param {(ChessPiece | null)[][] | (LowEffortChessPiece | null)[][]} board - Pozycja początkowa
+   * @returns {(LowEffortChessPiece | null)[][]} Nowa plansza po symulowanym ruchu
+   */
   private copyChessBoardLowEffort(board: (ChessPiece | null)[][] | (LowEffortChessPiece | null)[][]): (LowEffortChessPiece | null)[][] {
     return board.map(row => row.map(piece => {
       if (piece) {
@@ -1218,16 +1145,12 @@ export class ChessService {
   }
 
 
-  /*
-  * Metoda
-  * Nazwa: undoMove
-  * Pola:
-  * Nie pobiera żadnych pól
-  * Działanie:
-  * Wraca szachownicą do poprzedniej
-  * Zwracana wartość:
-  * Nie zwraca żadnej wartości
-  * */
+  /**
+   * @method undoMove
+   * @description Wraca szachownicą do poprzedniej
+   * @returns {boolean} True/False w zależności od tego, czy udało się cofnąć ruch
+   * @throws {Error} Jeśli pozycje są nieprawidłowe
+   */
   public undoMove(): boolean{
     console.warn(`Can undo: ${this.canUndo}`);
     if(!this.canUndo)
@@ -1238,17 +1161,14 @@ export class ChessService {
     return true
   }
 
-  /*
-  * Metoda
-  * Nazwa: isMate
-  * Pola:
-  * color: PieceColor — sprawdzenie mata, dla konkretnego koloru
-  * Działanie:
-  * Sprawdza czy ma legalne ruchy, możliwe są dwie opcję: nic się nie stało albo jest szach
-  * Jeśli nie znajdzie legalnych ruchów, wtedy jest mat albo pat
-  * Zwracana wartość:
-  * Nie zwraca żadnych wartości
-  * */
+
+  /**
+   * @method isMate
+   * @description Sprawdza czy ma legalne ruchy, możliwe są dwie opcję: nic się nie stało albo jest szach
+   * @description Jeśli nie znajdzie legalnych ruchów, wtedy jest mat albo pat
+   * @param {PieceColor} color - Pozycja początkowa
+   * @returns {GameEndType} Nowa plansza po symulowanym ruchu
+   */
   public isMate(color: PieceColor): GameEndType {
     // Pobieramy wszystkie legalne ruchy dla danego koloru.
     let isDraw: GameEndType = this.checkForDraw();
@@ -1267,18 +1187,14 @@ export class ChessService {
     // Nie znaleziono legalnego ruchu — jest mat albo pat!
     return this.isKingInCheck(color) ? 'mate' : 'stalemate';
   }
-  /*
-  * Metoda
-  * Nazwa: countChessPieces
-  * Pola:
-  * board: (ChessPiece | null)[][] — pobierana szachownica
-  * Działanie:
-  * Sprawdza, czy król jest w szachu
-  * Jeśli jest, wtedy sprawdza legalne ruchy
-  * Jeśli nie znajdzie legalnych ruchów, wtedy jest mat
-  * Zwracana wartość:
-  * number - zwraca ile jest bierek na szachownicy
-  * */
+
+
+  /**
+   * @method countChessPieces
+   * @description Zlicza ile jest bierek na szachownicy
+   * @param {(ChessPiece | null)[][]} [board=this.board] - Szachownica, na której chcemy zliczać
+   * @returns {number} Nowa plansza po symulowanym ruchu
+   */
   public countChessPieces(board: (ChessPiece | null)[][] = this.board): number{
     let count: number = 0;
     for (let row = 0; row < 8; row++)
@@ -1286,6 +1202,15 @@ export class ChessService {
         if(board[row][col]) count++;
     return count;
   }
+
+
+  /**
+   * @method attemptAiMove
+   * @description Wykonuje ruch Ai
+   * @param {PieceColor} color - Kolor "gracza" ai
+   * @param {number} difficulty - Trudność i poziom gry "gracza" ai
+   * @returns {void}
+   */
   public attemptAiMove(color: PieceColor, difficulty: number): void {
     if (!this.chessAiService) {
       console.warn(`AI service not set yet.`);
@@ -1301,11 +1226,13 @@ export class ChessService {
   }
 
 
-  // getCurrentTurnColor(): PieceColor{
-  //
-  // }
-
-  public startGame(gameAtributes: Game){
+  /**
+   * @method startGame
+   * @description Startuje grę z podanymi
+   * @param {Game} gameAtributes - Pozycja początkowa
+   * @returns {void} Nowa plansza po symulowanym ruchu
+   */
+  public startGame(gameAtributes: Game): void{
     if(gameAtributes) this.gameStart.next(gameAtributes);
   }
 }
