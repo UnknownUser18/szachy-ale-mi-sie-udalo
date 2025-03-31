@@ -12,7 +12,7 @@ export class ChessAiService {
     @Inject(forwardRef(() => ChessService))
     private chessService: ChessService,
     public timerService: TimerService
-    
+
   ) {}
 
   private memo: Map<string, number> = new Map();
@@ -117,7 +117,7 @@ export class ChessAiService {
         continue;
       }
 
-      const evalScore = this.minimax(newBoard, depth -2, alpha, beta, !isMaximizingPlayer, nextColor);
+      const evalScore = this.minimax(newBoard, depth - 1, alpha, beta, !isMaximizingPlayer, nextColor);
 
       if (isMaximizingPlayer) {
         bestValue = Math.max(bestValue, evalScore);
@@ -715,7 +715,7 @@ export class ChessAiService {
     if(currentGame!='GraczVsGracz'){
       this.timerService.currentTimer = "white";
     }
-   
+
     // this.timerService.currentTimer = this.timerService.currentTimer === 'white' ? 'black' : 'white';
     return newBoard;
   }

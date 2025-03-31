@@ -345,10 +345,11 @@ export class SzachownicaComponent implements OnChanges {
 
     let findMoves = (moves: Array<Position>, finalPosition: Position, name: string): MoveAttempt | void => {
       if(!(moves && finalPosition && name)) throw new Error("Invalid arguments passed to findMoves");
+      console.log(name);
       for (let directions of moves) {
         let newRow: number = finalPosition.row;
         let newCol: number = finalPosition.col;
-        while(true) {
+        while (true) {
           newRow += directions.row;
           newCol += directions.col;
           if (newRow < 0 || newRow >= 8 || newCol < 0 || newCol >= 8) {
@@ -378,7 +379,7 @@ export class SzachownicaComponent implements OnChanges {
           return part.match(`\\b${this.number_move+1}. ${lastPlayerPosition} {2}[a-zA-Z0-9]{1,4}.`) !== null;
       });
       if(partie.length === 0) {
-        this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!+1)!);
+        this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!)!);
         this.next_moves.emit({player: null, grandmaster: null})
         this.loadBoard();
         return;
@@ -388,11 +389,11 @@ export class SzachownicaComponent implements OnChanges {
       }
       let moves: string[] = partie.split(/\d+\.\s/).filter(Boolean);
       moves.shift();
-      for (let i : number = 0; i < moves.length; i++) {
-        let nextMovesPlayer : string[] = [];
-        let nextMovesGrandmaster : string[] = [];
-        for(let j : number = i ; j < i+5 ; j++) {
-          if(gameAttributes.mainPlayerColor === 'white') {
+      for (let i: number = 0; i < moves.length; i++) {
+        let nextMovesPlayer: string[] = [];
+        let nextMovesGrandmaster: string[] = [];
+        for (let j: number = i + 1; j < i + 5; j++) {
+          if (gameAttributes.mainPlayerColor === 'white') {
             nextMovesGrandmaster.push(moves[j].trimEnd().split('  ')[1]);
             nextMovesPlayer.push(moves[j].trimEnd().split('  ')[0]);
           } else {
@@ -400,52 +401,47 @@ export class SzachownicaComponent implements OnChanges {
             nextMovesPlayer.push(moves[j].trimEnd().split('  ')[1]);
           }
         }
-        const data = {player : nextMovesPlayer, grandmaster : nextMovesGrandmaster};
+        const data = {player: nextMovesPlayer, grandmaster: nextMovesGrandmaster};
         this.next_moves.emit(data)
         let moveArray: string | string[] = moves[i].split('  ').filter(Boolean);
 
         if (i === this.number_move) {
           moveArray = gameAttributes.mainPlayerColor === 'white' ? moveArray[1] : moveArray[0];
           moveArray = moveArray.trimEnd().split(' ')[0].replace(/[+#]/g, '');
-          let finalPosition: Position = { row: parseInt(moveArray[2]) - 1, col: rows[moveArray[1]] };
+          let finalPosition: Position = {row: parseInt(moveArray[2]) - 1, col: rows[moveArray[1]]};
           if (moveArray.includes('x')) {
             finalPosition.row = parseInt(moveArray[3]) - 1;
             finalPosition.col = rows[moveArray[2]];
           }
-          let moveAttempt: MoveAttempt | null = null;
-          switch (moveArray[0]) {
-            case 'N':
-              moveAttempt = findMoves([{ row: 2, col: -1 }, { row: 2, col: 1 }, { row: 1, col: 2 }, { row: -1, col: 2 }, { row: -2, col: -1 }, { row: -2, col: 1 }, { row: 1, col: -2 }, { row: -1, col: -2 }], finalPosition, 'knight')!;
-              break;
-            case 'B':
-              moveAttempt = findMoves([{ row: 1, col: 1 }, { row: 1, col: -1 }, { row: -1, col: 1 }, { row: -1, col: -1 }], finalPosition, 'bishop')!;
-              break;
-            case 'R':
-              moveAttempt = findMoves([{ row: 1, col: 0 }, { row: -1, col: 0 }, { row: 0, col: 1 }, { row: 0, col: -1 }], finalPosition, 'rook')!;
-              break;
-            case 'Q':
-              moveAttempt = findMoves([{ row: 1, col: 1 }, { row: 1, col: -1 }, { row: -1, col: 1 }, { row: -1, col: -1 }, { row: 1, col: 0 }, { row: -1, col: 0 }, { row: 0, col: 1 }, { row: 0, col: -1 }], finalPosition, 'queen')!;
-              break;
-            case 'K':
-              moveAttempt = findMoves([{ row: 1, col: 1 }, { row: 1, col: -1 }, { row: -1, col: 1 }, { row: -1, col: -1 }, { row: 1, col: 0 }, { row: -1, col: 0 }, { row: 0, col: 1 }, { row: 0, col: -1 }], finalPosition, 'king')!;
-              break;
-            default:
-              let pawn_attempt : Array<Position> = [{ row: 1, col: 0 }, { row: 2, col: 0 }];
-              if (moveArray.includes('x')) {
-                pawn_attempt = [{ row: 1, col: 1 }, { row: 1, col: -1 }];
-              } else {
-                finalPosition = { row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]] };
-              }
-              if(gameAttributes.mainPlayerColor === 'black')
-                pawn_attempt = pawn_attempt.map((position: Position) : Position => ({ row: -position.row, col: position.col }));
-              moveAttempt = findMoves(pawn_attempt, finalPosition, 'pawn')!;
+          const pieces_local: { [key: string]: [string, Position[]] } = {
+            'N': ['knight', [{row: 2, col: -1}, {row: 2, col: 1}, {row: 1, col: 2}, {row: -1, col: 2}, {row: -2, col: -1}, {row: -2, col: 1}, {row: 1, col: -2}, {row: -1, col: -2}]],
+            'B': ['bishop', [{row: 1, col: 1}, {row: 1, col: -1}, {row: -1, col: 1}, {row: -1, col: -1}]],
+            'R': ['rook', [{row: 1, col: 0}, {row: -1, col: 0}, {row: 0, col: 1}, {row: 0, col: -1}]],
+            'Q': ['queen', [{row: 1, col: 1}, {row: 1, col: -1}, {row: -1, col: 1}, {row: -1, col: -1}, {row: 1, col: 0}, {row: -1, col: 0}, {row: 0, col: 1}, {row: 0, col: -1}]],
+            'K': ['king', [{row: 1, col: 1}, {row: 1, col: -1}, {row: -1, col: 1}, {row: -1, col: -1}, {row: 1, col: 0}, {row: -1, col: 0}, {row: 0, col: 1}, {row: 0, col: -1}]],
+            '': ['pawn', [{row: 1, col: 0}, {row: 2, col: 0}]]
           }
+          let moveAttempt: MoveAttempt | null = null;
+          if (pieces_local[moveArray[0]] === undefined) {
+            let pawn_attempt: Array<Position> = pieces_local[''][1];
+            if (moveArray.includes('x')) {
+              pawn_attempt = [{row: 1, col: 1}, {row: 1, col: -1}];
+            } else {
+              finalPosition = {row: parseInt(moveArray[1]) - 1, col: rows[moveArray[0]]};
+            }
+            if (gameAttributes.mainPlayerColor === 'black')
+              pawn_attempt = pawn_attempt.map((position: Position): Position => ({row: -position.row, col: position.col}));
+            moveAttempt = findMoves(pawn_attempt, finalPosition, 'pawn')!;
+          } else {
+            moveAttempt = findMoves(pieces_local[moveArray[0]][1],finalPosition,pieces_local[moveArray[0]][0])!;
+          }
+          console.log(moveAttempt)
           try {
             this.chessService.tryMove(moveAttempt!);
-          } catch(err) {
+          } catch (err) {
             console.error("Error while executing grandmaster move", err);
             console.log("Switching to AI move");
-            this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!+1)!);
+            this.chessService.tryMove(this.aiChessService.findBestMove(gameAttributes.mainPlayerColor === 'white' ? 'black' : 'white', gameAttributes.difficulty!)!);
           }
           this.loadBoard();
           this.number_move++;

@@ -93,7 +93,6 @@ export class AppComponent implements OnInit {
   }
 
   setMove(data : string) : void {
-      console.log(data);
     this.moveOccured = data;
   }
 }
