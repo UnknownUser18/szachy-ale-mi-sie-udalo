@@ -112,7 +112,7 @@ W trakcie rozgrywki aplikacja wyświetla zapis partii w **notacji algebraicznej*
 
 **Przykłady:**
 - **Notacja krótka**: `e4 e5 Nf3 Nc6 Bb5`
-- **Notacja długa**: `e2-e4 e7-e5 g1-f3 b8-c6 f1-b5`
+- **Notacja długa**: `Re2-e4 e7-e5 Ng1-f3 b8-c6 f1-b5`
 
 ---
 
