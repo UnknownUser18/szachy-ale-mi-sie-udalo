@@ -24,7 +24,7 @@ export class LocalGameComponent implements OnDestroy {
     this.errorMessage = null;
 
     try {
-      const response = await fetch(`${environment.apiUrl}/start-server`);
+      const response = await fetch(`localhost:2222/start-server`);
 
       if (!response.ok) {
         const errorResponse = await response.text();
