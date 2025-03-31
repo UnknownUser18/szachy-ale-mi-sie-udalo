@@ -8,16 +8,16 @@
     <main>
       <div>
         <div>
-        <app-zegar [color]="'black'" [time]="blackTime" (timeEnded)="onTimeEnded('black')"></app-zegar>
+        <app-zegar [color]="'black'" [time]="timerService.blackTime" (timeEnded)="timerService.onTimeEnded('black')"></app-zegar>
         </div>
         <app-szachownica [game]="game"
         (currentGameChange)="setGame($event)"
-        (moveExecuted)="notation.addMove($event); switchTimer();"
-        (next_moves)="setMoves($event)"
+        (moveExecuted)="notation.addMove($event); timerService.switchTimer();"
+        (next_moves)="setMoves($event);"
         (moveExectued_boolean)="setMove($event)">
         </app-szachownica>
         <div>
-          <app-zegar [color]="'white'" [time]="whiteTime" (timeEnded)="onTimeEnded('white')"></app-zegar>
+          <app-zegar [color]="'white'" [time]="timerService.whiteTime" (timeEnded)="timerService.onTimeEnded('white')"></app-zegar>
         </div>
       </div>
 
@@ -36,7 +36,7 @@
     </div>
   }
   @if (gameType) {
-    <app-game-selector [game]="gameType" (time)="setTime($event)"></app-game-selector>
+    <app-game-selector [game]="gameType" (time)="timerService.setTime($event)"></app-game-selector>
   }
 </div>
 <app-local-game></app-local-game>

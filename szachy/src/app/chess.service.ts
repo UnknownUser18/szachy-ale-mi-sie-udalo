@@ -239,7 +239,7 @@ export class ChessService {
   public updateGameEnd = new Subject<GameEndType>()
   public currentTurnColor = new BehaviorSubject<PieceColor>('white');
   public gameEnd = new Subject<GameEndType>()
-  public gameStart = new Subject<Game>()
+  public gameStart = new BehaviorSubject<Game>({type: 'GraczVsGracz', duration: 0})
   public gameClose = new EventEmitter<void>();
   public aiMoveExecuted = new EventEmitter<{
     from: { row: number; col: number },
