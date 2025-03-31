@@ -11,6 +11,7 @@ import { NotationComponent } from './notation/notation.component';
 import {NerdViewComponent} from './nerd-view/nerd-view.component';
 import {PositionEvaluatorComponent} from './position-evaluator/position-evaluator.component';
 import {PodpowiedziComponent} from './podpowiedzi/podpowiedzi.component';
+import { TimerService } from './timer.service';
 // import {LocalGameComponent} from './local-game/local-game.component';
 // import {GameEndComponent} from './game-end/game-end.component';
 
@@ -28,6 +29,8 @@ export let pieces: { [key: string]: string } = {
   'black_king': `assets/pieces/ck.svg`,
   'white_king': `assets/pieces/bk.svg`
 }
+
+
 @Component({
     selector: 'app-root',
     imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent, LocalGameComponent, PositionEvaluatorComponent, PodpowiedziComponent],
@@ -41,16 +44,13 @@ export class AppComponent {
   game : Game | null = null;
   black : string = "black";
   white : string = "white";
-  initialTime: number = 5400;
-  whiteTime: number = this.initialTime;
-  blackTime: number = this.initialTime;
-  currentTimer: 'white' | 'black' = 'white';
-  timerInterval: any;
+  
 
   @ViewChild('gameSelectorContainer', { read: ViewContainerRef, static: true }) gameSelectorContainer!: ViewContainerRef;
     constructor(
     private chessService: ChessService,
     private chessAiService: ChessAiService,
+    public timerService: TimerService,
     private renderer: Renderer2,
     private element: ElementRef
   ) {
@@ -95,50 +95,14 @@ export class AppComponent {
   }
   setGame(game : Game) : void {
     this.game = game;
-    this.initialTime = game.duration ? game.duration  : 600;
+    // this.initialTime = game.duration ? game.duration  : 600;
     // alert(this.whiteTime)
-    this.resetTimers();
-    this.startTimer();
+    this.timerService.setTime(game.duration)
+    this.timerService.resetTimers();
+    this.timerService.startTimer();
   }
 
-  resetTimers(): void {
-    this.whiteTime = this.initialTime;
-    this.blackTime = this.initialTime;
-    clearInterval(this.timerInterval);
-    this.currentTimer = 'white';
-  }
-
-
-  setTime(minutes: number): void {
-    this.initialTime = minutes * 60;
-    this.resetTimers();
-  }
-
-  startTimer(): void {
-    clearInterval(this.timerInterval);
-    this.timerInterval = setInterval(() => {
-      if (this.currentTimer === 'white') {
-        this.whiteTime--;
-      } else if(this.currentTimer === 'black') {
-        this.blackTime--;
-      }
-      if ((this.whiteTime <= 0 || this.blackTime <= 0)) {
-        this.onTimeEnded(this.currentTimer);
-      }
-    }, 1000);
-  }
-
-  switchTimer(): void {
-    this.currentTimer = this.currentTimer === 'white' ? 'black' : 'white';
-    this.startTimer();
-  }
-
-  onTimeEnded(color: 'white' | 'black'): void {
-    clearInterval(this.timerInterval);
-    console.log(`Czas gracza ${color} się skończył!`);
-
-  }
-
+ 
   setMoves(data : any) : void {
     this.moves = data;
   }

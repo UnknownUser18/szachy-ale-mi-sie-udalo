@@ -1,6 +1,8 @@
 import { Injectable, forwardRef, Inject } from '@angular/core';
 import {ChessService, ChessPiece, MoveAttempt, PieceColor, Position} from './chess.service';
 import { NotationComponent } from './notation/notation.component';
+import { TimerService } from './timer.service';
+import { Game } from './szachownica/szachownica.component';
 
 @Injectable({
   providedIn: 'root'
@@ -8,11 +10,12 @@ import { NotationComponent } from './notation/notation.component';
 export class ChessAiService {
   constructor(
     @Inject(forwardRef(() => ChessService))
-    private chessService: ChessService
+    private chessService: ChessService,
+    public timerService: TimerService
+    
   ) {}
 
   private memo: Map<string, number> = new Map();
-
   public findBestMove(color: PieceColor, depth: number): MoveAttempt | null {
     this.memo.clear();
     const board = this.chessService.copyChessBoard(this.chessService.board);
@@ -708,6 +711,12 @@ export class ChessAiService {
     if (piece) {
       piece.position = { row: to.row, col: to.col };
     }
+    const currentGame = this.chessService.gameStart.value.type;
+    if(currentGame!='GraczVsGracz'){
+      this.timerService.currentTimer = "white";
+    }
+   
+    // this.timerService.currentTimer = this.timerService.currentTimer === 'white' ? 'black' : 'white';
     return newBoard;
   }
 }

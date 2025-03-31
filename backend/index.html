@@ -1,7 +1,0 @@
-<script>
-  const ws = new WebSocket('ws://localhost:11111');
-  ws.onmessage = (event) => {
-    const users = JSON.parse(event.data);
-    console.log('Updated user list:', users);
-  };
-</script>
