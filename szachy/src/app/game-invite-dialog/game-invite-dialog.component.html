@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Chess Challenge! ♔</h2>
+<mat-dialog-content class="dialog-content">
+  <div class="invite-container">
+    <mat-icon class="chess-icon">sports_esports</mat-icon>
+    <p>{{ data.inviterUsername }} challenges you to a game!</p>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="warn" (click)="onReject()">Decline</button>
+  <button mat-raised-button color="primary" (click)="onAccept()">Accept</button>
+</mat-dialog-actions>

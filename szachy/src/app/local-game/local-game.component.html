@@ -1,0 +1,78 @@
+<div class="floating-container">
+  <button
+    class="fab"
+    (click)="isExpanded = !isExpanded"
+    [ngClass]="{'expanded': isExpanded}"
+  >
+    <div class="hamburger">
+      <div class="line"></div>
+      <div class="line"></div>
+      <div class="line"></div>
+    </div>
+  </button>
+
+  <div class="content-panel" [class.expanded]="isExpanded">
+    <div class="header">
+      <h3>Połączenie sieciowe</h3>
+      <button class="close-btn" (click)="isExpanded = false">&times;</button>
+    </div>
+
+    <div class="content">
+      <div class="control-group">
+        <button
+          *ngIf="!connection.isServer; else stopServerButton"
+          (click)="startServer()"
+          [disabled]="connection.isLoading || connection.isClient"
+          class="control-btn"
+        >
+          {{ connection.isLoading ? 'Ładowanie...' : 'Stwórz serwer' }}
+        </button>
+
+        <ng-template #stopServerButton>
+          <button
+            (click)="stopServer()"
+            [disabled]="connection.isLoading"
+            class="control-btn danger"
+          >
+            {{ connection.isLoading ? 'Ładowanie...' : 'Wyłącz serwer' }}
+          </button>
+        </ng-template>
+      </div>
+
+      <div class="control-group">
+        <input
+          #ipInput
+          placeholder="Adres IP serwera"
+          [disabled]="connection.isLoading || connection.isClient"
+          class="ip-input"
+        >
+        <button
+          (click)="connectToServer(ipInput.value)"
+          [disabled]="connection.isLoading || connection.isClient"
+          class="control-btn"
+        >
+          {{ connection.isLoading ? 'Łączenie...' : 'Dołącz' }}
+        </button>
+      </div>
+
+      <div class="status-info">
+        <div *ngIf="connection.isServer" class="status-item server">
+          <span class="status-indicator"></span>
+          Serwer działa: {{ serverIp }}
+        </div>
+
+        <div *ngIf="connection.isClient" class="status-item client">
+          <span class="status-indicator"></span>
+          Połączono z: {{ serverIp }}
+          <button (click)="disconnectClient()" class="small-btn">Rozłącz</button>
+        </div>
+
+        <div *ngIf="!connection.isServer && !connection.isClient" class="status-item disconnected">
+          <span class="status-indicator"></span>
+          Brak aktywnego połączenia
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

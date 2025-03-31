@@ -1,0 +1,214 @@
+/* Floating Container */
+.floating-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+/* FAB Button */
+.fab {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #2196F3;
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab:hover {
+  background: #1976D2;
+  transform: scale(1.1);
+}
+
+.fab.expanded {
+  background: #f44336;
+}
+
+/* Hamburger Icon */
+.hamburger .line {
+  width: 24px;
+  height: 2px;
+  background: white;
+  margin: 4px 0;
+  transition: all 0.3s ease;
+}
+
+.fab.expanded .hamburger .line:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.fab.expanded .hamburger .line:nth-child(2) {
+  opacity: 0;
+}
+
+.fab.expanded .hamburger .line:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Content Panel */
+.content-panel {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  width: 300px;
+  max-height: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+}
+
+.content-panel.expanded {
+  max-height: 600px;
+  opacity: 1;
+}
+
+/* Panel Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 8px;
+}
+
+/* Content Area */
+.content {
+  padding: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Controls */
+.control-group {
+  margin-bottom: 16px;
+}
+
+.control-btn {
+  width: 100%;
+  padding: 8px;
+  margin: 4px 0;
+  border: none;
+  border-radius: 4px;
+  background: #2196F3;
+  color: white;
+  cursor: pointer;
+}
+
+.control-btn:disabled {
+  background: #90CAF9;
+  cursor: not-allowed;
+}
+
+.control-btn.danger {
+  background: #f44336;
+}
+
+.ip-input {
+  width: 100%;
+  padding: 8px;
+  margin: 4px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Status Info */
+.status-info {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  font-size: 0.9rem;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.server .status-indicator {
+  background: #4CAF50;
+}
+
+.client .status-indicator {
+  background: #2196F3;
+}
+
+.disconnected .status-indicator {
+  background: #757575;
+}
+
+.users-list {
+  margin-top: 16px;
+}
+
+.users-list h4 {
+  margin: 8px 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.users-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.users-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin: 4px 0;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.username {
+  font-size: 0.9rem;
+}
+
+.small-btn {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  background: #e0e0e0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.small-btn:hover {
+  background: #bdbdbd;
+}
