@@ -144,9 +144,10 @@ export class NotationComponent implements OnInit, OnDestroy {
       }
 
 
-      if (this.chessService.currentSpecialForNotationOnly) {
+      if (this.chessService.currentSpecialForNotationOnly != "" ) {
         moveNotation = this.handleSpecialMove(this.chessService.currentSpecialForNotationOnly, from, to);
         longmoveNotation = this.handleSpecialMove(this.chessService.currentSpecialForNotationOnly, from, to);
+        this.chessService.currentSpecialForNotationOnly = "";
       } else {
         if (this.isCapture(move)) {
           moveNotation = `${this.PieceName(piece!) || ''}${from}x${to}`;
@@ -223,9 +224,11 @@ export class NotationComponent implements OnInit, OnDestroy {
         return 'O-O-O';
       case 'enpassant':
         return `${from}x${to}`;
+        
       default:
-        return `${from}:${to}`;
+        return `${from}-${to}`;
     }
+    
   }
 
 
