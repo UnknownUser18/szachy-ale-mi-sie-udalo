@@ -297,7 +297,7 @@ export class SzachownicaComponent implements OnChanges {
           movedPieceColor === 'white' ? 'black' : 'white';
         console.log(`AI's turn to move as ${aiColor}`);
         setTimeout(() => {
-          this.chessService.attemptAiMove(aiColor, 1);
+          this.chessService.attemptAiMove(aiColor, this.currentGame.difficulty!);
           // Zmienic
           // After AI move, switch turn back to human and update board
           this.focusedColor = movedPieceColor;

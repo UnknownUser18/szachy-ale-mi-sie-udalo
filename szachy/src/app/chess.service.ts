@@ -241,10 +241,18 @@ export class ChessService {
   public gameEnd = new Subject<GameEndType>()
   public gameStart = new BehaviorSubject<Game>({type: 'GraczVsGracz', duration: 0})
   public gameClose = new EventEmitter<void>();
+  public undoMoveSubject = new Subject();
+  public pawnPromotionSubject = new Subject<{position: Position, type: PieceType}>();
+  public currentSpecialForNotationOnly: string = '';
   public aiMoveExecuted = new EventEmitter<{
     from: { row: number; col: number },
     to: { row: number; col: number },
     color: PieceColor
+  }>();
+  public pawnPromoted = new EventEmitter<{
+    position: Position;
+    promotedTo: PieceType;
+    color: PieceColor;
   }>();
 
   /**
@@ -876,6 +884,8 @@ export class ChessService {
       this.executeStandardMove(moveAttempt, piece);
     else
     {
+      this.currentSpecialForNotationOnly = currentLegalMove.special;
+
       const specialExecutes = {
         'enpassant': () => this.executeEnpassant(piece),
         'O-O': () => this.executeCastle(piece, {col: 7, deltaCol: 2, special: 'O-O'}),
@@ -902,7 +912,7 @@ export class ChessService {
    */
   private promotePawn(piece: ChessPiece): void{
     let selectedPiece: PieceType = 'pawn';
-
+    if(this.gameStart.value.type === 'GraczVsSiec' && this.gameStart.value.mainPlayerColor !== piece.color) return;
     const dialogRef = this.dialog.open(PawnPromotionComponent, {
       width: '650px',
       disableClose: true,
@@ -915,6 +925,13 @@ export class ChessService {
         piece.type = result;
         console.warn(selectedPiece)
         this.updateBoard.next(this.board);
+
+        this.pawnPromotionSubject.next({position: piece.position, type: result})
+        this.pawnPromoted.emit({
+          position: piece.position,
+          promotedTo: result,
+          color: piece.color
+        });
       }
     });
 
@@ -1094,7 +1111,9 @@ export class ChessService {
     piece.position = { ...moveAttempt.to };
     piece.moveTurn = true;
     piece.hasMoved = true;
-    if(piece.type === 'pawn' && (piece.position.row === 0 || piece.position.row === 7)) this.promotePawn(piece);
+    if(piece.type === 'pawn' && (piece.position.row === 0 || piece.position.row === 7)){
+      this.promotePawn(piece);
+    }
     // this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
@@ -1157,7 +1176,11 @@ export class ChessService {
       return false;
     this.board = this.copyChessBoard(this.previousBoard);
     this.logChessBoard()
+    this.currentTurnColor.next(this.currentTurnColor.value === 'white' ? 'black' : 'white');
     console.log(this.board)
+    this.canUndo = false;
+    this.updateBoard.next(this.board);
+    this.undoMoveSubject.next(true);
     return true
   }
 

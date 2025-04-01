@@ -142,14 +142,55 @@ function handleMoveAttempt(userId, gameId, move) {
     game.currentPlayer === "black" ? game.blackUserId : game.whiteUserId;
   const opponentClient = findClientByUserId(opponentId);
 
-  console.log("a", move, game);
-
   opponentClient?.send(
     standarizeData("move", {
       gameId,
       move,
       newTurn: game.currentPlayer,
     })
+  );
+}
+
+function handleUndoMove(userId, gameId) {
+  const game = activeGames.get(gameId);
+  if (!game) return;
+
+  const expectedPlayer =
+      game.currentPlayer === "white" ? game.whiteUserId : game.blackUserId;
+  if (userId !== expectedPlayer) return;
+
+  game.currentPlayer = game.currentPlayer === "white" ? "black" : "white";
+  const opponentId =
+      game.currentPlayer === "black" ? game.blackUserId : game.whiteUserId;
+  const opponentClient = findClientByUserId(opponentId);
+
+  opponentClient?.send(
+      standarizeData("undo", {
+        gameId
+      })
+  );
+}
+
+function handlePawnPromotion(userId, gameId, pawnPosition, promotionType)
+{
+  const game = activeGames.get(gameId);
+  if (!game) return;
+
+  const expectedPlayer =
+      game.currentPlayer === "white" ? game.whiteUserId : game.blackUserId;
+  if (userId !== expectedPlayer) return;
+
+  game.currentPlayer = game.currentPlayer === "white" ? "black" : "white";
+  const opponentId =
+      game.currentPlayer === "black" ? game.blackUserId : game.whiteUserId;
+  const opponentClient = findClientByUserId(opponentId);
+
+  opponentClient?.send(
+      standarizeData("pawnPromotion", {
+        gameId,
+        pawnPos: pawnPosition,
+        promotionType
+      })
   );
 }
 
@@ -191,6 +232,12 @@ wss.on("connection", (ws) => {
           break;
         case "move":
           handleMoveAttempt(userId, data.gameId, data.move);
+          break;
+        case "undoMove":
+          handleUndoMove(userId, data.gameId);
+          break;
+        case "pawnPromotion":
+          handlePawnPromotion(userId, data.gameId, data.pawnPos, data.promotionType);
           break;
       }
     } catch (e) {
