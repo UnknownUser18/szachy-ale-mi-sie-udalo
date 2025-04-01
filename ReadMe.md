@@ -27,9 +27,13 @@ Nasza gra "Szachy" to implementacja gry w szachy przeznaczona do uruchamiania w 
     ```
     npm run build
     ```
-5. Uruchom serwer aplikacji i zainicjalizuj kontroler serwera:
+5. Uruchom serwer aplikacji:
     ```
-    npm start ; node ../backend/controller.js
+    npm start 
+    ```
+6. W osobnym terminalu zainicjuj kontroler serwera
+    ```
+    node ./backend/controller.js
     ```
 ---
 ## Opis funkcjonalności
