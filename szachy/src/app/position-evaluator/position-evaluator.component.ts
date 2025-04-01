@@ -15,6 +15,12 @@ export class PositionEvaluatorComponent {
     private chessAiService: ChessAiService
   ) {}
 
+
+  /**
+   * @method evaluatePosition
+   * @description Aktualizuje ewaluacje pozycji
+   * @returns {void}
+   */
   evaluatePosition(): void {
     this.evaluation = this.chessAiService.evaluatePosition(this.chessService.board, 'white');
   }

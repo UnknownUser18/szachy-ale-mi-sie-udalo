@@ -19,7 +19,12 @@ export class LocalGameComponent implements OnDestroy {
     this.connection.users.subscribe(users => this.users = users);
   }
 
-  async startServer() {
+  /**
+   * @method startServer
+   * @description Startuje serwer przez komunikacje się z controller.js
+   * @returns {Promise<void>}
+   */
+  async startServer(): Promise<void> {
     this.connection.isLoading = true;
     this.errorMessage = null;
 
@@ -48,7 +53,13 @@ export class LocalGameComponent implements OnDestroy {
     }
   }
 
-  async stopServer() {
+
+  /**
+   * @method stopServer
+   * @description Podobnie jak włączanie serwera, poprzez komunikację z controller.js wyłącza serwer
+   * @returns {Promise<void>}
+   */
+  async stopServer(): Promise<void> {
     this.connection.isLoading = true;
     try {
       const response = await fetch(`${environment.apiUrl}/stop-server`);
@@ -65,7 +76,14 @@ export class LocalGameComponent implements OnDestroy {
     }
   }
 
-  async connectToServer(ip: string) {
+
+  /**
+   * @method connectToServer
+   * @description Łączy się z serwerem zainicjalizowanym przez controller.js
+   * @param {string} ip - Adres IP serwera, do którego próbujemy się połączyć
+   * @returns {Promise<void>}
+   */
+  async connectToServer(ip: string): Promise<void> {
     this.connection.isLoading = true;
     this.errorMessage = null;
 
@@ -79,19 +97,37 @@ export class LocalGameComponent implements OnDestroy {
     }
   }
 
-  disconnectClient() {
+
+  /**
+   * @method disconnectClient
+   * @description Kończy komunikację z serwerem zainicjalizowanym przez controller.js
+   * @returns {void}
+   */
+  disconnectClient(): void {
     this.connection.ws?.close();
     this.connection.isClient = false;
     this.serverIp = null;
     this.connection.users.next([]);
   }
 
-  private handleError(error: unknown) {
+
+  /**
+   * @method handleError
+   * @description W przypadku wystąpienia błędu, zostaje on przypisany do zmiennej 'errorMessage' i wypisuje go w konsoli jako error
+   * @param {unknown} error - Pozycja początkowa
+   * @returns {void} Nowa plansza po symulowanym ruchu
+   */
+  private handleError(error: unknown): void {
     this.errorMessage = error instanceof Error ? error.message : 'Nieznany błąd';
     console.error(error);
   }
 
-  ngOnDestroy() {
+  /**
+   * @method ngOnDestroy
+   * @description W przypadku 'końca życia' komponentu, kończy się komunikacja z controller.js
+   * @returns {void}
+   */
+  ngOnDestroy(): void {
     this.connection.ws?.close();
   }
 }

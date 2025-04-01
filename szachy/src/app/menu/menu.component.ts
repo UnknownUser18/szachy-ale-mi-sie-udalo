@@ -28,6 +28,13 @@ export class MenuComponent implements AfterViewInit {
     this.initVisualizer();
   }
 
+
+  /**
+   * @method select_game
+   * @description Wybiera konkretną grę z możliwych 4
+   * @param {MouseEvent} event - Event związany z wybraniem konkretnego trybu gry
+   * @returns {void}
+   */
   select_game(event: MouseEvent): void {
     let target: HTMLElement = event.target as HTMLElement;
     if (target.tagName === "UL") return;
@@ -41,6 +48,12 @@ export class MenuComponent implements AfterViewInit {
     this.game_selected.emit(target.getAttribute("data-game") as GameType);
   }
 
+
+  /**
+   * @method toggleAudio
+   * @description Włącza/Wyłącza muzykę, graną przez oprogramowanie
+   * @returns {void}
+   */
   toggleAudio(): void {
     const audio: HTMLMediaElement = this.element.nativeElement.querySelector('#audio');
     if (audio) {
@@ -53,6 +66,12 @@ export class MenuComponent implements AfterViewInit {
     }
   }
 
+
+  /**
+   * @method playNext
+   * @description Wybiera następną (lub pierwszą, jeśli aktualnie grana jest ostatnia) piosenkę z naszej listy piosenek
+   * @returns {void}
+   */
   playNext(): void {
     this.currentTrackIndex = (this.currentTrackIndex + 1) % this.tracks.length;
     const audioElement = this.element.nativeElement.querySelector('#audio');
@@ -62,6 +81,12 @@ export class MenuComponent implements AfterViewInit {
     audioElement.play();
   }
 
+
+  /**
+   * @method initVisualizer
+   * @description Inicjalizuje graficzną reprezentację granej muzyki
+   * @returns {void}
+   */
   initVisualizer(): void {
     const audio: HTMLMediaElement = this.element.nativeElement.querySelector('#audio');
     const canvas: HTMLCanvasElement = this.visualizerCanvas.nativeElement;

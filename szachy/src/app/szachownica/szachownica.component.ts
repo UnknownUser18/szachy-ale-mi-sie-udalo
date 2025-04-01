@@ -46,6 +46,12 @@ export class SzachownicaComponent implements OnChanges {
     }
   }
 
+
+  /**
+   * @method loadBoard
+   * @description Ładuje szachownicę graficznie w zależności od szachownicy w chessService
+   * @returns {void}
+   */
   loadBoard(): void {
   let board: HTMLElement = this.element.nativeElement.querySelector('main');
   (board.childNodes as NodeListOf<HTMLElement>).forEach((row: HTMLElement): void => {
@@ -90,6 +96,13 @@ export class SzachownicaComponent implements OnChanges {
   })
   }
 
+
+  /**
+   * @method styleLegalMoves
+   * @description Stylizuje szachownicę pod względem legalnych ruchów i ustawienia bierek
+   * @param {HTMLElement} board - HTMLElement szachownicy
+   * @returns {void}
+   */
   styleLegalMoves(board: HTMLElement): void {
     board.querySelectorAll('.moved').forEach((cell: Element): void => { cell.classList.remove('moved') });
     for (let index_row: number = 0; index_row < 8; index_row++) {
@@ -112,6 +125,14 @@ export class SzachownicaComponent implements OnChanges {
     board.querySelectorAll('.active').forEach((cell: Element): void => { cell.classList.remove('active') });
     if (this.focusedChessPiece) this.focusedPiece!.classList.add('active');
   }
+
+
+  /**
+   * @method initializeChessBoard
+   * @description Inicjalizuje szachownicę graficznie w zależności od podanych atrybutów gry
+   * @param {Game} gameAttributes - Atrybuty gry, którą chcemy rozpocząć
+   * @returns {void}
+   */
   initializeChessBoard(gameAttributes: Game): void {
     if(!!gameAttributes.board)
       this.chessService.board = gameAttributes.board
@@ -194,7 +215,15 @@ export class SzachownicaComponent implements OnChanges {
     }
   }
 
-  PlayerVsPlayerLocal(element: HTMLElement, board: HTMLElement,): void {
+
+  /**
+   * @method PlayerVsPlayerLocal
+   * @description Zarządza próbą ruchów, kiedy gramy w tryb Gracza kontra Gracz
+   * @param {HTMLElement} element - Konkretne pole na szachownicy
+   * @param {HTMLElement} board - HTMLElement szachownicy
+   * @returns {void}
+   */
+  PlayerVsPlayerLocal(element: HTMLElement, board: HTMLElement): void {
     let position: Position = {
       row: parseInt(element.getAttribute('data-row')!),
       col: parseInt(element.getAttribute('data-column')!),
@@ -214,6 +243,15 @@ export class SzachownicaComponent implements OnChanges {
       this.movePiece(this.focusedChessPiece!.position, position);
   }
 
+
+  /**
+   * @method PlayerVsNetwork
+   * @description Zarządza próbą ruchów, kiedy gramy w tryb Gracza kontra Gracz w sieci lokalnej
+   * @param {HTMLElement} element - Konkretne pole na szachownicy
+   * @param {HTMLElement} board - HTMLElement szachownicy
+   * @param {Game} gameAttributes - Atrybuty aktualnej gry
+   * @returns {void}
+   */
   PlayerVsNetwork(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
     let position: Position = {
       row: parseInt(element.getAttribute('data-row')!),
@@ -240,7 +278,14 @@ export class SzachownicaComponent implements OnChanges {
     }
   }
 
-  // For cases where a human click should trigger the same logic as a drag action
+
+  /**
+   * @method PlayerVsAi
+   * @description Zarządza próbą ruchów, kiedy gramy w tryb Gracza kontra AI
+   * @param {HTMLElement} element - Konkretne pole na szachownicy
+   * @param {HTMLElement} board - HTMLElement szachownicy
+   * @returns {void}
+   */
   public PlayerVsAi(element: HTMLElement, board: HTMLElement): void {
     let position: Position = {
       row: parseInt(element.getAttribute('data-row')!),
@@ -265,8 +310,15 @@ export class SzachownicaComponent implements OnChanges {
     }
   }
 
+
+  /**
+   * @method movePiece
+   * @description Próbuje wykonać ruch i w zależności od trybu gry wykonuje różne akcje
+   * @param {Position} from - Pozycja początkowa
+   * @param {Position} to - Pozycja docelowa
+   * @returns {void | number} Zwraca numer, jeśli wystąpił jakiś błąd
+   */
   movePiece(from: Position, to: Position): void | number {
-    // Block moves from pieces not matching the focused turn.
     if (this.focusedChessPiece && this.focusedChessPiece.color !== this.focusedColor) {
       console.warn("It is not your turn.");
       return 1;
@@ -290,7 +342,6 @@ export class SzachownicaComponent implements OnChanges {
         to: { row: to.row, col: to.col },
       });
       this.moveExectued_boolean.emit("true");
-      // After a valid human move, switch turn.
       this.focusedColor = movedPieceColor === 'white' ? 'black' : 'white';
       if (this.currentGame.type === 'GraczVsAi') {
         const aiColor: PieceColor =
@@ -298,23 +349,27 @@ export class SzachownicaComponent implements OnChanges {
         console.log(`AI's turn to move as ${aiColor}`);
         setTimeout(() => {
           this.chessService.attemptAiMove(aiColor, this.currentGame.difficulty!);
-          // Zmienic
-          // After AI move, switch turn back to human and update board
           this.focusedColor = movedPieceColor;
           this.resetFocus();
           this.loadBoard();
           this.styleLegalMoves(
             this.element.nativeElement.querySelector('main')
           );
-        }, 1000); // Delay in milliseconds (adjust as needed)
+        }, 1000);
       }
       this.resetFocus();
     }
-    // this.chessService.currentTurnColor.next(this.focusedColor)
     this.loadBoard();
     this.styleLegalMoves(this.element.nativeElement.querySelector('main'));
   }
 
+
+  /**
+   * @method resetFocus
+   * @description Jakakolwiek bierka, która była sfocusowana zostaje odfocusowana
+   * @param {HTMLElement} board - Pozycja początkowa
+   * @returns {void}
+   */
   resetFocus(
     board: HTMLElement = this.element.nativeElement.querySelector('main')
   ): void {
@@ -324,12 +379,30 @@ export class SzachownicaComponent implements OnChanges {
     if (board) this.styleLegalMoves(board);
   }
 
+
+  /**
+   * @method startGame
+   * @description Startuje grę z podanymi atrybutami i zmienia aktualny kolor gracza na biały
+   * @param {Game} gameAttributes - Atrybuty gry, którą chcemy rozpocząć
+   * @returns {void}
+   */
   public startGame(gameAttributes: Game): void {
     this.currentGame = gameAttributes;
     this.currentGameChange.emit(gameAttributes);
     this.chessService.currentTurnColor.next('white');
     this.initializeChessBoard(gameAttributes);
   }
+
+
+  /**
+   * @method GrandMasterMove
+   * @description Zarządza jak rusza się arcymistrz, kiedy gramy w tryb Gracz kontra Arcymistrz
+   * @param {HTMLElement} board - HTMLElement szachownicy
+   * @param {Game} gameAttributes - Atrybuty gry, w której ma się ruszać arcymistrz
+   * @param {Position | null} lastMove - ostatni ruch
+   * @param {string | null} piece - nazwa bierki
+   * @returns {void}
+   */
   private GrandMasterMove(board: HTMLElement, gameAttributes: Game, lastMove: Position | null, piece: string | null): void {
     const rows: any = { a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7 };
     const pieces_local: any = {pawn: '', knight: 'N', bishop: 'B', rook: 'R', queen: 'Q', king: 'K',};
@@ -451,6 +524,16 @@ export class SzachownicaComponent implements OnChanges {
     }
     reader.readAsText(gameAttributes.grandmaster!)
   }
+
+
+  /**
+   * @method PlayerVSGrandMaster
+   * @description Zarządza ruszaniem się bierkami po szachownicy, kiedy gramy w tryb Gracza kontra Arcymistrz
+   * @param {HTMLElement} element - Konkretne pole na szachownicy
+   * @param {HTMLElement} board - HTMLElement szachownicy
+   * @param {Game} gameAttributes - Atrybuty gry, w której ma się ruszać gracz i arcymistrz
+   * @returns {void}
+   */
   private PlayerVSGrandMaster(element: HTMLElement, board: HTMLElement, gameAttributes: Game): void {
     let position: Position = {row: parseInt(element.getAttribute('data-row')!), col: parseInt(element.getAttribute('data-column')!)};
     let piece: ChessPiece | null = this.chessService.getPieceFromPosition(position);
@@ -476,12 +559,25 @@ export class SzachownicaComponent implements OnChanges {
     }, Math.floor(Math.random() * 1000) + 1000);
   }
 
+
+  /**
+   * @method undoMove
+   * @description Wywołuje cofanie ruchu i zmienia sfocusowany kolor
+   * @returns {void}
+   */
   public undoMove(): void {
     if (this.chessService.undoMove()) this.focusedColor = this.focusedColor === 'white' ? 'black' : 'white';
     this.loadBoard();
   }
 
-  convertPositionToNotation(position: { row: number, col: number }): string {
+
+  /**
+   * @method convertPositionToNotation
+   * @description Konwertuje pozycję na notację szachową, dokładniej zmienia zapis kolumny na alfabetyczny
+   * @param {Position} position - Pozycja początkowa
+   * @returns {string} Pozycja gotowa dla notacji szachowej
+   */
+  convertPositionToNotation(position: Position): string {
     const column = String.fromCharCode(97 + position.col); // a-h
     const row = 8 - position.row; // 1-8
     return `${column}${row}`;

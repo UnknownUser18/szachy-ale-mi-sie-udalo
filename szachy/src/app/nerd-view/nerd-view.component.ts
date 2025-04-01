@@ -13,6 +13,13 @@ export class NerdViewComponent implements OnInit {
   currentTurnColor! : PieceColor;
   @Input() moves!: any;
   constructor(private chessService: ChessService) {}
+
+
+  /**
+   * @method ngOnInit
+   * @description Wyświetlanie i zmiana koloru gracza, który teraz wykonuje ruch
+   * @returns {void}
+   */
   ngOnInit() : void {
     this.chessService.currentTurnColor.subscribe((color : PieceColor) : PieceColor => this.currentTurnColor = color);
     if(!this.moves) {

@@ -13,6 +13,14 @@ export class PodpowiedziComponent implements OnChanges {
   rows: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
   @Input() moveOccurred!: string | undefined;
   constructor(protected chessAiService: ChessAiService) {}
+
+
+  /**
+   * @method ngOnChanges
+   * @description Jeżeli zostały wykonane jakieś zmiany, sprawdza nowe najlepsze ruchy dla obu graczy
+   * @param {SimpleChanges} changes - Zmiany
+   * @returns {void}
+   */
   ngOnChanges(changes: SimpleChanges): void {
     console.log(changes);
     if(changes['moveOccurred']) {
