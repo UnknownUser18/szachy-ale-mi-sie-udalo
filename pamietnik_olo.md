@@ -1,13 +1,9 @@
 # Moja opinia na temat pracy podczas projektu "Szachy"
 
-===
-
 Mogę zacząć od tego, iż jest to mój pierwszy projekt grupowy z tworzenia oprogramowania. Było to dla mnie nowe doświadczenie, które będzie mi niezbędne w mojej karierze.
 Ale przechodząc do konkretów.
 
 ## Rola
-
-===
 
 Moją rolą w zespole było interfejs *(z czego szczególnie moi koledzy czasami sie smiali, abym zrobił to jutro)*. A z strony logiki i specyfikacji, miałem dodatkowo zadanie Gracz vs Arcymistrz.
 A więc, ze strony plików:
@@ -39,8 +35,6 @@ Dowodem tego jest to, że ten cały projekt zrobiliśmy w **24 dni**, mimo tego 
 Warto wspomnieć że ja i Żydon *(prosze nie pytać o  źródło tego słowa, to jest taki inner joke)* tylko znaliśmy Angulara, więc naturalnie musieliśmy inne osoby nauczyć albo pokierować dobrze w tym framework'u.
 
 ## Ocena końcowa
-
-===
 
 Ogólnie podsumowując, ten projekt był bardzo ~~*freaky*~~~ fajny. Praca w grupie, jeżeli jest dobrze zorganizowana jest ~~kozą~~ satysfakcjonująca.
 Mam nadzeję, że będę uczestniczył w więcej takich projektów w przyszłości.
