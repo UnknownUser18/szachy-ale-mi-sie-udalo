@@ -1,5 +1,7 @@
-
 # Szachy
+
+## Ten projekt został archiwizowany z powodu nienaruszania kodu źródłowego.
+*2 kwietnia 2025 00:17*
 
 ## Opis projektu
 Nasza gra "Szachy" to implementacja gry w szachy przeznaczona do uruchamiania w przeglądarce. Gra umożliwia rozgrywkę w różnych trybach, w tym w sieci lokalnej oraz przeciwko komputerowi wykorzystującemu algorytmy sztucznej inteligencji.
