@@ -1,13 +1,11 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import {GameEndType} from './chess.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AudioHandlerService {
-  // Your provided sound map with GameEndType keys.
-  private soundMap: Map<GameEndType, string> = new Map<GameEndType, string>([
+  private soundMap: Map<string, string> = new Map<string, string>([
     ['none', ''],
     ['check', '../assets/sfx/szach.mp3'],
     ['mate', '../assets/sfx/mat.mp3'],
@@ -18,14 +16,15 @@ export class AudioHandlerService {
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
+
   /**
-   * Plays the sound associated with the provided game end type.
-   * It creates a new Audio instance to allow simultaneous playback.
-   * @param type - The game end type for which to play the sound.
+   * @method playSoundForType
+   * @description Gra dźwięk w zależności od podanego klucza
+   * @param {string} type - Klucz, dla którego chcemy zagrać dźwięk
+   * @returns {void}
    */
-  playSoundForType(type: GameEndType): void {
+  playSoundForType(type: string): void {
     if (!isPlatformBrowser(this.platformId)) {
-      // Avoid audio playback when not in a browser (e.g. during SSR)
       console.warn('Audio playback is not supported on the server.');
       return;
     }
@@ -36,25 +35,26 @@ export class AudioHandlerService {
       return;
     }
 
-    // If the URL is empty, do nothing.
     if (url === '') {
       console.warn(`No sound file provided for type: ${type}`);
       return;
     }
 
-    // Create a new Audio instance to allow simultaneous playback.
     const audio = new Audio(url);
     audio.play().catch(error => {
       console.error(`Error playing sound for type '${type}':`, error);
     });
   }
 
+
   /**
-   * Updates or adds a sound mapping for a given game end type.
-   * @param type - The game end type key.
-   * @param url - The URL of the sound file.
+   * @method simulateMove
+   * @description Tworzy nową zależność dla podanego klucza adres dźwięku
+   * @param {string} type - Klucz, dla którego chcemy przypisać adres dźwięku
+   * @param {string} url - Adres dźwięku, który chcemy przypisać do klucza
+   * @returns {void}
    */
-  setSoundForType(type: GameEndType, url: string): void {
+  setSoundForType(type: string, url: string): void {
     this.soundMap.set(type, url);
   }
 }

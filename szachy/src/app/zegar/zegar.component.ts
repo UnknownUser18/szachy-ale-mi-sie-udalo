@@ -25,10 +25,23 @@ export class ZegarComponent implements OnDestroy {
   private _time: number = 0;
   private intervalId: any;
 
+
+  /**
+   * @method ngOnDestroy
+   * @description Przy zakończeniu 'życia' komponentu kończy interwał związany z zegarem
+   * @returns {void}
+   */
   ngOnDestroy(): void {
     clearInterval(this.intervalId);
   }
 
+
+  /**
+   * @method formatTime
+   * @description Formatuje aktualny czas w sekundach na chciany format
+   * @param {Position} seconds - Aktualny czas
+   * @returns {string} Sformatowany czas
+   */
   formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;

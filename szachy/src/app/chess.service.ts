@@ -1025,30 +1025,31 @@ export class ChessService {
    * @returns {void}
    */
   private executeCastle(piece: ChessPiece, attributes:CastleAtributes): void {
-    const castleAtributes = attributes;
-    const newPos: Position = { row: piece.position.row, col: castleAtributes.col };
+    const castleAttributes = attributes;
+    const newPos: Position = { row: piece.position.row, col: castleAttributes.col };
     if(!this.isValidPosition(newPos))
       return
 
-    const kingTargetPos: Position = {row: piece.position.row, col: piece.position.col + castleAtributes.deltaCol}
-    const rookTargetPos: Position = {row: piece.position.row, col: kingTargetPos.col - castleAtributes.deltaCol/2}
+    const kingTargetPos: Position = {row: piece.position.row, col: piece.position.col + castleAttributes.deltaCol}
+    const rookTargetPos: Position = {row: piece.position.row, col: kingTargetPos.col - castleAttributes.deltaCol/2}
     let rookPiece = this.board[newPos.row][newPos.col];
     this.previousBoard = this.copyChessBoard(this.board);
     this.board.map((distinctRow: (ChessPiece | null)[]) => {distinctRow.map((distinctSquare: (ChessPiece | null)) => {
       if(distinctSquare)
         distinctSquare.moveTurn = false;
     })})
-    this.board[newPos.row][newPos.col] = null;
     rookPiece!.hasMoved = true;
     this.board[rookTargetPos.row][rookTargetPos.col] = rookPiece;
+    this.board[newPos.row][newPos.col] = null;
 
-    this.board[piece.position.row][piece.position.col] = null;
     piece.hasMoved = true;
     piece.moveTurn = true;
     this.board[kingTargetPos.row][kingTargetPos.col] = piece;
+    this.board[piece.position.row][piece.position.col] = null;
     this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
+    this.updateBoard.next(this.board);
   }
 
 

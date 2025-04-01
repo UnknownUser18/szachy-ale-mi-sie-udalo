@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-// timer.service.ts
+import {PieceColor} from './chess.service';
 
 
 @Injectable({ providedIn: 'root' })
@@ -11,6 +11,12 @@ export class TimerService {
   blackTime: number = this.initialTime;
   constructor() {}
 
+
+  /**
+   * @method resetTimers
+   * @description Resetuje zegary
+   * @returns {void}
+   */
   resetTimers(): void {
     this.whiteTime = this.initialTime;
     this.blackTime = this.initialTime;
@@ -19,11 +25,23 @@ export class TimerService {
   }
 
 
+  /**
+   * @method setTime
+   * @description Rozpoczyna działanie zegarów na daną ilość czasu
+   * @param {number} minutes - Ilość minut, z jaką rozpoczynają gracze
+   * @returns {void}
+   */
   setTime(minutes: number): void {
     this.initialTime = minutes;
     this.resetTimers();
   }
 
+
+  /**
+   * @method startTimer
+   * @description Rozpoczyna działanie zegarów
+   * @returns {void}
+   */
   startTimer(): void {
     clearInterval(this.timerInterval);
     this.timerInterval = setInterval(() => {
@@ -38,19 +56,27 @@ export class TimerService {
     }, 1000);
   }
 
+
+  /**
+   * @method switchTimer
+   * @description Zmienia aktualnego gracza, któremu leci czas
+   * @returns {void}
+   */
   switchTimer(): void {
     this.currentTimer = this.currentTimer === 'white' ? 'black' : 'white';
     this.startTimer();
   }
 
-  onTimeEnded(color: 'white' | 'black'): void {
+
+  /**
+   * @method onTimeEnded
+   * @description Kończy działanie zegara, kiedy skończył się czas
+   * @param {PieceColor} color - Kolor gracza, któremu skończył się czas
+   * @returns {void}
+   */
+  onTimeEnded(color: PieceColor): void {
     clearInterval(this.timerInterval);
     console.log(`Czas gracza ${color} się skończył!`);
 
   }
-
-
-
-
-  // Reszta metod timerowych...
 }
