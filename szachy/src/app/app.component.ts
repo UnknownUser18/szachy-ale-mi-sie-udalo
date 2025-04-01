@@ -12,6 +12,7 @@ import {NerdViewComponent} from './nerd-view/nerd-view.component';
 import {PositionEvaluatorComponent} from './position-evaluator/position-evaluator.component';
 import {PodpowiedziComponent} from './podpowiedzi/podpowiedzi.component';
 import { TimerService } from './timer.service';
+import {UndoMoveComponent} from './undo-move/undo-move.component';
 // import {GameEndComponent} from './game-end/game-end.component';
 
 export let pieces: { [key: string]: string } = {
@@ -32,7 +33,7 @@ export let pieces: { [key: string]: string } = {
 
 @Component({
     selector: 'app-root',
-    imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent, LocalGameComponent, PositionEvaluatorComponent, PodpowiedziComponent],
+  imports: [SzachownicaComponent, ZegarComponent, MenuComponent, NgOptimizedImage, GameSelectorComponent, NerdViewComponent, NotationComponent, LocalGameComponent, PositionEvaluatorComponent, PodpowiedziComponent, UndoMoveComponent],
     templateUrl: './app.component.html',
     styleUrl: './app.component.css',
 })

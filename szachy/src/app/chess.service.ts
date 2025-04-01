@@ -241,6 +241,8 @@ export class ChessService {
   public gameEnd = new Subject<GameEndType>()
   public gameStart = new BehaviorSubject<Game>({type: 'GraczVsGracz', duration: 0})
   public gameClose = new EventEmitter<void>();
+  public undoMoveSubject = new Subject();
+  public pawnPromotionSubject = new Subject<{position: Position, type: PieceType}>();
   public aiMoveExecuted = new EventEmitter<{
     from: { row: number; col: number },
     to: { row: number; col: number },
@@ -902,7 +904,7 @@ export class ChessService {
    */
   private promotePawn(piece: ChessPiece): void{
     let selectedPiece: PieceType = 'pawn';
-
+    if(this.gameStart.value.type === 'GraczVsSiec' && this.gameStart.value.mainPlayerColor !== piece.color) return;
     const dialogRef = this.dialog.open(PawnPromotionComponent, {
       width: '650px',
       disableClose: true,
@@ -911,11 +913,10 @@ export class ChessService {
     });
 
     dialogRef.afterClosed().subscribe((result: PieceType) => {
-      if (result) {
-        piece.type = result;
-        console.warn(selectedPiece)
-        this.updateBoard.next(this.board);
-      }
+      this.pawnPromotionSubject.next({position: piece.position, type: result})
+      piece.type = result;
+      console.warn(selectedPiece)
+      this.updateBoard.next(this.board);
     });
 
   }
@@ -1157,7 +1158,11 @@ export class ChessService {
       return false;
     this.board = this.copyChessBoard(this.previousBoard);
     this.logChessBoard()
+    this.currentTurnColor.next(this.currentTurnColor.value === 'white' ? 'black' : 'white');
     console.log(this.board)
+    this.canUndo = false;
+    this.updateBoard.next(this.board);
+    this.undoMoveSubject.next(true);
     return true
   }
 

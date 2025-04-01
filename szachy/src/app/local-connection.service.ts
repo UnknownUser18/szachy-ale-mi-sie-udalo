@@ -1,19 +1,14 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, Subject} from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { GameInviteDialogComponent } from './game-invite-dialog/game-invite-dialog.component';
 import {Game} from './szachownica/szachownica.component';
-import {ChessService, MoveAttempt, PieceColor, Position} from './chess.service';
+import {ChessService, MoveAttempt, PieceType, Position} from './chess.service';
 
 export interface user{
   id: string;
   username: string;
   connectedAt: string;
-}
-
-export interface serverData{
-  method: string;
-  data: any;
 }
 
 export interface gameInvite{
@@ -28,6 +23,12 @@ export interface moveData {
   newTurn: string;
 }
 
+export interface promotionData{
+  gameId: number;
+  pawnPos: Position;
+  promotionType: PieceType;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -39,13 +40,16 @@ export class LocalConnectionService {
   public isLoading = false;
   public errorMessage = '';
   public gameId: number = 0;
+  public moveExecuted : Subject<MoveAttempt> = new Subject<MoveAttempt>();
   private currentInvite = new BehaviorSubject<gameInvite>({
     inviteId: '',
     fromUser: { id: 0, username: '' },
     gameAttributes: {type: 'GraczVsGracz', duration: 0}
   });
 
-  constructor(private dialog: MatDialog, private chessService: ChessService) {}
+  constructor(private dialog: MatDialog, private chessService: ChessService) {
+    this.chessService.pawnPromotionSubject.asObservable().subscribe((data: {position: Position, type: PieceType}) => this.requestPawnPromotion(data.position, data.type))
+  }
 
   async connect(ipv4: string) {
     try {
@@ -85,11 +89,11 @@ export class LocalConnectionService {
   }
 
   sendAccept(result:any): void {
-    this.send(this.standarizeData('gameAccept', { inviteId: result.inviteId }))
+    this.send(this.standardizeData('gameAccept', { inviteId: result.inviteId }))
   }
 
   sendReject(result:any): void {
-    this.send(this.standarizeData('gameReject', { inviteId: result.inviteId }))
+    this.send(this.standardizeData('gameReject', { inviteId: result.inviteId }))
   }
 
   send(message: string) {
@@ -118,13 +122,31 @@ export class LocalConnectionService {
       case 'move':
         this.handleMoveAttempt(data as moveData);
         break;
+      case 'undo':
+        this.handleUndoMove();
+        break;
+      case 'pawnPromotion':
+        console.log('aaa')
+        this.handlePawnPromotion(data as promotionData);
+        break;
     }
+  }
+
+  handleUndoMove() {
+    this.chessService.undoMove()
+  }
+
+  requestUndoMove(): void
+  {
+    console.log('aaa')
+    this.send(this.standardizeData('undoMove', { gameId: this.gameId }))
   }
 
   handleMoveAttempt(data: moveData)
   {
     let attempt: boolean = this.chessService.tryMove(data.move);
     if (attempt) {
+      this.moveExecuted.next(data.move);
       console.log(`Move executed: from (${data.move.from.row}, ${data.move.from.col}) to (${data.move.to.row}, ${data.move.to.col})`);
       this.chessService.currentTurnColor.next(this.chessService.currentTurnColor.value === 'white' ? 'black' : 'white');
     }
@@ -164,12 +186,22 @@ export class LocalConnectionService {
     });
   }
 
+  handlePawnPromotion(data: promotionData) {
+    this.chessService.board[data.pawnPos.row][data.pawnPos.col]!.type = data.promotionType;
+    this.chessService.updateBoard.next(this.chessService.board);
+  }
+
+  requestPawnPromotion(pawnPos: Position, type: PieceType)
+  {
+    this.send(this.standardizeData('undoMove', { gameId: this.gameId, pawnPos: pawnPos, promotionType: type }))
+  }
+
   public initializeGame(challengedUserId: string, gameAttr: Game) {
-    this.send(this.standarizeData('gameInvite', { toUserId: challengedUserId, gameAttributes: gameAttr }))
+    this.send(this.standardizeData('gameInvite', { toUserId: challengedUserId, gameAttributes: gameAttr }))
   }
 
 
-  public standarizeData (method: string, data: object): string{
+  public standardizeData (method: string, data: object): string{
     return JSON.stringify({ method, data });
   }
 
@@ -177,7 +209,7 @@ export class LocalConnectionService {
   public attemptMove(from: Position, to: Position)
   {
     const moveAttempt: MoveAttempt = {from: from, to: to};
-    this.send(this.standarizeData('move', {
+    this.send(this.standardizeData('move', {
       gameId: this.gameId,
       move: moveAttempt
     }))

@@ -12,6 +12,7 @@ import {
   legalMove
 } from '../chess.service';
 import { Game } from '../szachownica/szachownica.component';
+import {LocalConnectionService} from '../local-connection.service';
 
 @Component({
   selector: 'app-notation',
@@ -25,7 +26,10 @@ export class NotationComponent implements OnInit, OnDestroy {
   @Input() longmoves: string[] = [];
   private gameStartSub: Subscription = new Subscription();
   private aiMoveSub?: Subscription;
-  constructor(private chessService: ChessService) { }
+  constructor(private chessService: ChessService, private connection: LocalConnectionService) {
+    this.connection.moveExecuted.asObservable().subscribe(move => this.addMove(move));
+    this.chessService.undoMoveSubject.asObservable().subscribe(() => this.undoMove())
+  }
 
   public notationType: 'short' | 'long' = 'long';
 
@@ -137,6 +141,12 @@ export class NotationComponent implements OnInit, OnDestroy {
       this.moves.push(moveNotation);
       this.longmoves.push(longmoveNotation);
     }
+  }
+
+  undoMove(): void
+  {
+    this.moves.pop();
+    this.longmoves.pop();
   }
 
   getMovePairs(): string[][] {
