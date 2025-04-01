@@ -36,5 +36,5 @@ Warto wspomnieć że ja i Żydon *(prosze nie pytać o  źródło tego słowa, t
 
 ## Ocena końcowa
 
-Ogólnie podsumowując, ten projekt był bardzo ~~*freaky*~~~ fajny. Praca w grupie, jeżeli jest dobrze zorganizowana jest ~~kozą~~ satysfakcjonująca.
+Ogólnie podsumowując, ten projekt był bardzo ~~*freaky*~~ fajny. Praca w grupie, jeżeli jest dobrze zorganizowana jest ~~kozą~~ satysfakcjonująca.
 Mam nadzeję, że będę uczestniczył w więcej takich projektów w przyszłości.
