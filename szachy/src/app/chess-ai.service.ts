@@ -14,6 +14,22 @@ export class ChessAiService {
   ) {}
 
   private memo: Map<string, number> = new Map();
+  /**
+ * Znajduje najlepszy ruch dla gracza AI.
+ *
+ * @method findBestMove
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {number} depth - Maksymalna głębokość przeszukiwania
+ * @param {PieceColor} color - Kolor gracza AI
+ * @returns {MoveAttempt | null} Najlepszy ruch lub null, jeśli brak ruchów
+ *
+ * @description
+ * Funkcja wykorzystuje algorytm minimax z optymalizacją alfa-beta, aby znaleźć
+ * najlepszy możliwy ruch dla gracza AI. Uwzględnia ocenę planszy i legalność ruchów.
+ *
+ * @example
+ * const bestMove = this.findBestMove(board, 3, 'white');
+ */
   public findBestMove(color: PieceColor, depth: number): MoveAttempt | null {
     this.memo.clear();
     const board = this.chessService.copyChessBoard(this.chessService.board);
@@ -75,6 +91,21 @@ export class ChessAiService {
 
     return bestMove;
   }
+  /**
+ * Ocena pozycji na planszy dla danego gracza.
+ *
+ * @method evaluatePosition
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {PieceColor} color - Kolor gracza, dla którego oceniamy pozycję
+ * @returns {number} Wynik oceny pozycji
+ *
+ * @description
+ * Funkcja ocenia pozycję na planszy, uwzględniając wartość materiału, kontrolę centrum,
+ * bezpieczeństwo króla i inne czynniki strategiczne.
+ *
+ * @example
+ * const score = this.evaluatePosition(board, 'black');
+ */
   public evaluatePosition(board: (ChessPiece | null)[][], color: PieceColor): number {
     if (!this.kingExists(board, 'white') || !this.kingExists(board, 'black')) {
       return color === 'white' ? -10000 : 10000;
@@ -82,7 +113,26 @@ export class ChessAiService {
     const score = this.evaluateBoard(board, color);
     return color === 'white' ? score : -score;
   }
-
+/**
+ * Implementacja algorytmu minimax z optymalizacją alfa-beta.
+ *
+ * @method minimax
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {number} depth - Pozostała głębokość przeszukiwania
+ * @param {boolean} isMaximizingPlayer - Czy obecny gracz maksymalizuje wynik
+ * @param {PieceColor} color - Kolor gracza, dla którego obliczamy wynik
+ * @param {number} alpha - Wartość alfa dla optymalizacji alfa-beta
+ * @param {number} beta - Wartość beta dla optymalizacji alfa-beta
+ * @returns {number} Najlepszy wynik oceny planszy
+ *
+ * @description
+ * Funkcja rekurencyjnie przeszukuje drzewo ruchów, aby znaleźć najlepszy wynik
+ * dla gracza maksymalizującego lub minimalizującego. Wykorzystuje optymalizację
+ * alfa-beta, aby ograniczyć liczbę przeszukiwanych gałęzi.
+ *
+ * @example
+ * const score = this.minimax(board, 3, true, 'white', -Infinity, Infinity);
+ */
   private minimax(
     board: (ChessPiece | null)[][],
     depth: number,
@@ -143,6 +193,22 @@ export class ChessAiService {
     this.memo.set(key, bestValue);
     return bestValue;
   }
+
+/**
+ * Sprawdza, czy król danego koloru istnieje na planszy.
+ *
+ * @method kingExists
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {PieceColor} color - Kolor króla, którego szukamy
+ * @returns {boolean} True, jeśli król istnieje, False w przeciwnym razie
+ *
+ * @description
+ * Funkcja iteruje przez planszę, aby sprawdzić, czy król danego koloru
+ * znajduje się na planszy. Używana do sprawdzania stanu gry.
+ *
+ * @example
+ * const exists = this.kingExists(board, 'black');
+ */
   private kingExists(board: (ChessPiece | null)[][], color: PieceColor): boolean {
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
@@ -154,7 +220,21 @@ export class ChessAiService {
     }
     return false;
   }
-
+/**
+ * Sprawdza, czy dany ruch jest poprawny.
+ *
+ * @method isValidMove
+ * @param {MoveAttempt} move - Ruch do sprawdzenia
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @returns {boolean} True, jeśli ruch jest poprawny, False w przeciwnym razie
+ *
+ * @description
+ * Funkcja sprawdza, czy ruch jest poprawny, uwzględniając granice planszy
+ * oraz obecność bierki na pozycji początkowej.
+ *
+ * @example
+ * const valid = this.isValidMove(move, board);
+ */
   private isValidMove(move: MoveAttempt, board: (ChessPiece | null)[][]): boolean {
     if (!move || !move.from || !move.to) return false;
 
@@ -164,11 +244,32 @@ export class ChessAiService {
   }
 
 
-
+/**
+ * Sprawdza, czy podana pozycja znajduje się w granicach szachownicy.
+ *
+ * @method isValidPosition
+ * @param {Position} pos - Pozycja do sprawdzenia
+ * @returns {boolean} True, jeśli pozycja jest poprawna, False w przeciwnym razie
+ *
+ * @example
+ * const valid = this.isValidPosition({ row: 3, col: 4 }); // True
+ */
   private isValidPosition(pos: Position): boolean {
     return pos.row >= 0 && pos.row < 8 && pos.col >= 0 && pos.col < 8;
   }
-
+/**
+ * Generuje unikalny klucz dla danej planszy, głębokości i stanu gry.
+ *
+ * @method generateBoardKey
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {number} depth - Głębokość przeszukiwania
+ * @param {boolean} isMaximizingPlayer - Czy obecny gracz maksymalizuje wynik
+ * @param {PieceColor} currentColor - Kolor obecnego gracza
+ * @returns {string} Unikalny klucz reprezentujący stan gry
+ *
+ * @example
+ * const key = this.generateBoardKey(board, 3, true, 'white');
+ */
   private generateBoardKey(
     board: (ChessPiece | null)[][],
     depth: number,
@@ -177,7 +278,21 @@ export class ChessAiService {
   ): string {
     return JSON.stringify(board) + '_' + depth + '_' + isMaximizingPlayer + '_' + currentColor;
   }
-
+/**
+ * Ocena planszy na podstawie materiału i pozycji bierek.
+ *
+ * @method evaluateBoard
+ * @param {(ChessPiece | null)[][]} board - Plansza do oceny
+ * @param {PieceColor} color - Kolor gracza, dla którego oceniamy planszę
+ * @returns {number} Wynik oceny planszy
+ *
+ * @description
+ * Funkcja ocenia planszę, uwzględniając wartość materiału, pozycję bierek
+ * oraz fazę gry (otwarcie, środek gry, końcówka).
+ *
+ * @example
+ * const score = this.evaluateBoard(board, 'white');
+ */
   private evaluateBoard(board: (ChessPiece | null)[][], color: PieceColor): number {
     let materialScore = 0;
     let positionalScore = 0;
@@ -279,7 +394,20 @@ export class ChessAiService {
     // Materiał ma większe znaczenie niż pozycja
     return materialScore + (positionalScore * 0.5);
   }
-
+/**
+ * Określa fazę gry na podstawie liczby bierek na planszy.
+ *
+ * @method determineGamePhase
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @returns {'opening' | 'middlegame' | 'endgame'} Faza gry
+ *
+ * @description
+ * Funkcja analizuje liczbę bierek na planszy i określa, czy gra jest w fazie otwarcia,
+ * środkowej gry czy końcówki. Wykorzystywana do dynamicznej oceny planszy.
+ *
+ * @example
+ * const phase = this.determineGamePhase(board);
+ */
   private determineGamePhase(board: (ChessPiece | null)[][]): 'opening' | 'middlegame' | 'endgame' {
     let pieceCount = 0;
     let developedPieceCount = 0;
@@ -310,7 +438,20 @@ export class ChessAiService {
       return 'endgame';
     }
   }
-
+/**
+ * Oblicza wartość pozycyjną bierki na podstawie jej typu i pozycji.
+ *
+ * @method getPositionalValue
+ * @param {ChessPiece} piece - Bierka, dla której obliczamy wartość pozycyjną
+ * @returns {number} Wartość pozycyjna bierki
+ *
+ * @description
+ * Funkcja zwraca wartość pozycyjną bierki na podstawie predefiniowanych tabel
+ * pozycyjnych, które uwzględniają fazę gry i strategiczne znaczenie pozycji.
+ *
+ * @example
+ * const value = this.getPositionalValue(piece);
+ */
   private getPositionalValue(piece: ChessPiece, row: number, col: number, gamePhase: string): number {
     const r = piece.color === 'white' ? row : 7 - row;
     const positionalValues: { [key: string]: { [key: string]: number[][] } } = {
@@ -404,7 +545,20 @@ export class ChessAiService {
 
     return positionalValues[gamePhase]?.[piece.type]?.[r]?.[col] || 0;
   }
-
+/**
+ * Sprawdza, czy bierka została rozwinięta (czy opuściła swoją początkową pozycję).
+ *
+ * @method isPieceDeveloped
+ * @param {ChessPiece} piece - Bierka, którą sprawdzamy
+ * @returns {boolean} True, jeśli bierka została rozwinięta, False w przeciwnym razie
+ *
+ * @description
+ * Funkcja sprawdza, czy bierka opuściła swoją początkową pozycję, co jest
+ * istotne w ocenie fazy otwarcia i rozwoju bierek.
+ *
+ * @example
+ * const developed = this.isPieceDeveloped(piece);
+ */
   private isPieceDeveloped(piece: ChessPiece, row: number, col: number, color: PieceColor): boolean {
     if (color === 'white') {
       if (piece.type === 'knight' && row < 6) return true;
@@ -418,7 +572,21 @@ export class ChessAiService {
 
     }
   }
-
+/**
+ * Ocena kontroli centrum planszy przez daną bierkę.
+ *
+ * @method evaluateCenterControl
+ * @param {ChessPiece} piece - Bierka, którą oceniamy
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @returns {number} Liczba pól w centrum kontrolowanych przez bierkę
+ *
+ * @description
+ * Funkcja analizuje ruchy bierki i sprawdza, ile pól w centrum planszy
+ * jest przez nią kontrolowanych. Używana w ocenie strategicznej pozycji.
+ *
+ * @example
+ * const control = this.evaluateCenterControl(piece, board);
+ */
   private evaluateCenterControl(piece: ChessPiece, board: (ChessPiece | null)[][], row: number, col: number): number {
     const centerSquares = [{row: 3, col: 3}, {row: 3, col: 4}, {row: 4, col: 3}, {row: 4, col: 4}];
     let centerControl = 0;
@@ -436,7 +604,21 @@ export class ChessAiService {
 
     return centerControl;
   }
-
+/**
+ * Ocena możliwości wykonania roszady przez gracza.
+ *
+ * @method evaluateCastlingOpportunities
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @returns {number} Wynik oceny możliwości roszady
+ *
+ * @description
+ * Funkcja analizuje, czy król i wieże obu graczy znajdują się w swoich
+ * początkowych pozycjach, co pozwala na wykonanie roszady. Dodaje punkty
+ * za możliwość wykonania krótkiej lub długiej roszady.
+ *
+ * @example
+ * const castlingScore = this.evaluateCastlingOpportunities(board);
+ */
   private evaluateCastlingOpportunities(board: (ChessPiece | null)[][]): number {
     let score = 0;
 
@@ -460,12 +642,42 @@ export class ChessAiService {
 
     return score;
   }
-
+/**
+ * Sprawdza, czy bierka znajduje się na swojej początkowej pozycji.
+ *
+ * @method isPieceInOriginalPosition
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {number} row - Wiersz początkowej pozycji
+ * @param {number} col - Kolumna początkowej pozycji
+ * @param {PieceType} type - Typ bierki
+ * @param {PieceColor} color - Kolor bierki
+ * @returns {boolean} True, jeśli bierka znajduje się na swojej początkowej pozycji, False w przeciwnym razie
+ *
+ * @description
+ * Funkcja sprawdza, czy bierka danego typu i koloru znajduje się na swojej
+ * początkowej pozycji na planszy.
+ *
+ * @example
+ * const isOriginal = this.isPieceInOriginalPosition(board, 7, 4, 'king', 'white');
+ */
   private isPieceInOriginalPosition(board: (ChessPiece | null)[][], row: number, col: number, type: string, color: PieceColor): boolean {
     const piece = board[row][col];
     return !!piece && piece.type === type && piece.color === color;
   }
-
+/**
+ * Nakłada karę za zbyt wczesne ruchy królową w fazie otwarcia.
+ *
+ * @method penalizeEarlyQueenMoves
+ * @param {number} queenMoves - Liczba ruchów królową
+ * @returns {number} Kara za wczesne ruchy królową
+ *
+ * @description
+ * Funkcja nakłada karę punktową za zbyt wczesne ruchy królową w fazie otwarcia,
+ * co może prowadzić do utraty tempa i narażenia królowej na ataki.
+ *
+ * @example
+ * const penalty = this.penalizeEarlyQueenMoves(2);
+ */
   private penalizeEarlyQueenMoves(board: (ChessPiece | null)[][]): number {
     let score = 0;
 
@@ -477,7 +689,22 @@ export class ChessAiService {
 
     return score;
   }
-
+/**
+ * Sprawdza, czy dane pole jest bronione przez bierki danego koloru.
+ *
+ * @method isSquareDefended
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {number} row - Wiersz pola
+ * @param {number} col - Kolumna pola
+ * @param {PieceColor} color - Kolor bierek broniących
+ * @returns {boolean} True, jeśli pole jest bronione, False w przeciwnym razie
+ *
+ * @description
+ * Funkcja analizuje ruchy bierek danego koloru i sprawdza, czy pole jest bronione.
+ *
+ * @example
+ * const defended = this.isSquareDefended(board, 4, 4, 'white');
+ */
   private isSquareDefended(board: (ChessPiece | null)[][], row: number, col: number, color: PieceColor): boolean {
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -492,7 +719,21 @@ export class ChessAiService {
     }
     return false;
   }
-
+/**
+ * Buduje mapę ataków przeciwnika na podstawie aktualnej planszy.
+ *
+ * @method buildEnemyAttackMap
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {PieceColor} color - Kolor gracza, dla którego budujemy mapę ataków przeciwnika
+ * @returns {boolean[][]} Dwuwymiarowa tablica reprezentująca pola atakowane przez przeciwnika
+ *
+ * @description
+ * Funkcja analizuje ruchy przeciwnika i zwraca mapę pól, które są atakowane.
+ * Używana do oceny bezpieczeństwa króla i innych bierek.
+ *
+ * @example
+ * const attackMap = this.buildEnemyAttackMap(board, 'white');
+ */
   private buildEnemyAttackMap(board: (ChessPiece | null)[][], color: PieceColor): boolean[][] {
     const attackMap: boolean[][] = Array(8).fill(0).map(() => Array(8).fill(false));
     const enemyColor = color === 'white' ? 'black' : 'white';
@@ -515,7 +756,21 @@ export class ChessAiService {
 
     return attackMap;
   }
-
+/**
+ * Ocena bezpieczeństwa króla na podstawie otoczenia i ataków przeciwnika.
+ *
+ * @method evaluateKingSafety
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {PieceColor} color - Kolor króla, którego bezpieczeństwo oceniamy
+ * @returns {number} Wynik oceny bezpieczeństwa króla
+ *
+ * @description
+ * Funkcja analizuje otoczenie króla, liczbę obrońców oraz potencjalne ataki
+ * przeciwnika, aby ocenić bezpieczeństwo króla.
+ *
+ * @example
+ * const safetyScore = this.evaluateKingSafety(board, 'black');
+ */
   private evaluateKingSafety(board: (ChessPiece | null)[][]): number {
     let score = 0;
     for (const color of ['white', 'black'] as PieceColor[]) {
@@ -556,7 +811,23 @@ export class ChessAiService {
     }
     return score;
   }
-
+/**
+ * Liczy liczbę bierek broniących króla danego koloru.
+ *
+ * @method countDefenders
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {number} kingRow - Wiersz, w którym znajduje się król
+ * @param {number} kingCol - Kolumna, w której znajduje się król
+ * @param {PieceColor} color - Kolor króla
+ * @returns {number} Liczba bierek broniących króla
+ *
+ * @description
+ * Funkcja iteruje przez planszę i liczy bierki danego koloru, które bronią
+ * pola zajmowanego przez króla.
+ *
+ * @example
+ * const defenders = this.countDefenders(board, 7, 4, 'white');
+ */
   private countDefenders(board: (ChessPiece | null)[][], kingRow: number, kingCol: number, color: PieceColor): number {
     let defenders = 0;
     for (let r = 0; r < 8; r++) {
@@ -572,7 +843,23 @@ export class ChessAiService {
     }
     return defenders;
   }
-
+/**
+ * Ocena pozycji wież na otwartych i półotwartych liniach.
+ *
+ * @method evaluateRooksOnOpenFiles
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {object} pawnFiles - Obiekt zawierający informacje o pionach na liniach
+ * @param {number[]} pawnFiles.white - Liczba białych pionów na każdej kolumnie
+ * @param {number[]} pawnFiles.black - Liczba czarnych pionów na każdej kolumnie
+ * @returns {number} Wynik oceny pozycji wież
+ *
+ * @description
+ * Funkcja analizuje pozycje wież na planszy i przyznaje punkty za obecność
+ * na otwartych lub półotwartych liniach, co zwiększa ich aktywność.
+ *
+ * @example
+ * const rookScore = this.evaluateRooksOnOpenFiles(board, { white: [0, 1, 0, 0, 0, 0, 0, 0], black: [0, 0, 0, 0, 0, 0, 1, 0] });
+ */
   private evaluateRooksOnOpenFiles(board: (ChessPiece | null)[][], pawnFiles: { white: number[], black: number[] }): number {
     let score = 0;
 
@@ -603,7 +890,22 @@ export class ChessAiService {
 
     return score;
   }
-
+/**
+ * Dostosowuje ocenę planszy w końcowej fazie gry.
+ *
+ * @method endGameAdjustments
+ * @param {number} score - Aktualny wynik oceny planszy
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {PieceColor} color - Kolor gracza, dla którego dokonujemy dostosowania
+ * @returns {number} Zaktualizowany wynik oceny planszy
+ *
+ * @description
+ * Funkcja wprowadza poprawki do oceny planszy w końcowej fazie gry, uwzględniając
+ * takie czynniki jak aktywność króla i pozycje pionów.
+ *
+ * @example
+ * const adjustedScore = this.endGameAdjustments(score, board, 'black');
+ */
   private endgameAdjustments(board: (ChessPiece | null)[][]): number {
     let score = 0;
 
@@ -639,7 +941,21 @@ export class ChessAiService {
 
     return score;
   }
-
+/**
+ * Oblicza premię za mobilność bierek.
+ *
+ * @method calculateMobilityBonus
+ * @param {ChessPiece} piece - Bierka, dla której obliczamy premię
+ * @param {legalMove[][]} moves - Lista możliwych ruchów bierki
+ * @returns {number} Premia za mobilność
+ *
+ * @description
+ * Funkcja przyznaje punkty za liczbę możliwych ruchów bierki, co odzwierciedla
+ * jej aktywność i potencjał strategiczny.
+ *
+ * @example
+ * const mobilityBonus = this.calculateMobilityBonus(piece, moves);
+ */
   private calculateMobilityBonus(board: (ChessPiece | null)[][], piece: ChessPiece, gamePhase: string): number {
     const moves = this.chessService.calculateLegalMoves(piece, board);
     let mobilityCount = 0;
@@ -665,6 +981,21 @@ export class ChessAiService {
 
     return mobilityCount * mobilityMultiplier * 5 * phaseMultiplier;
   }
+  /**
+ * Generuje wszystkie legalne ruchy dla danego gracza.
+ *
+ * @method getAllLegalMoves
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @param {PieceColor} color - Kolor gracza, dla którego generujemy ruchy
+ * @returns {MoveAttempt[]} Lista wszystkich legalnych ruchów
+ *
+ * @description
+ * Funkcja iteruje przez wszystkie bierki gracza i generuje listę legalnych ruchów,
+ * uwzględniając zasady gry w szachy.
+ *
+ * @example
+ * const legalMoves = this.getAllLegalMoves(board, 'white');
+ */
   private getAllLegalMoves(board: (ChessPiece | null)[][], color: PieceColor): MoveAttempt[] {
     const legalMoves: MoveAttempt[] = [];
     for (let row = 0; row < 8; row++) {
@@ -691,7 +1022,22 @@ export class ChessAiService {
     }
     return legalMoves;
   }
-
+/**
+ * Symuluje wykonanie ruchu na planszy i zwraca nowy stan planszy.
+ *
+ * @method simulateMove
+ * @param {Position} from - Pozycja początkowa ruchu
+ * @param {Position} to - Pozycja docelowa ruchu
+ * @param {(ChessPiece | null)[][]} board - Aktualna plansza
+ * @returns {(ChessPiece | null)[][]} Nowa plansza po wykonaniu ruchu
+ *
+ * @description
+ * Funkcja symuluje wykonanie ruchu na planszy, aktualizując pozycje bierek
+ * oraz inne parametry gry. Nie modyfikuje oryginalnej planszy.
+ *
+ * @example
+ * const newBoard = this.simulateMove({ row: 1, col: 0 }, { row: 3, col: 0 }, board);
+ */
   private simulateMove(
     from: { row: number, col: number },
     to: { row: number, col: number },
