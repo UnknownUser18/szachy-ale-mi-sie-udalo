@@ -175,4 +175,4 @@ Dawid W. - [`dawid_pamietnik.md`](dawid_pamietnik.md) <br>
 Michał W. - [`michal_pamietnik.md`](michal_pamietnik.md) <br>
 Aleksander K. - [`pamietnik_olo.md`](pamietnik_olo.md) <br>
 Kuba Ć. - [`jakub_pamietnik.md`](jakub_pamietnik.md) <br>
-Szymon Ż -
+Szymon Ż - [`pamietnik_żydon.md`](pamietnik_żydon.md) ~~hella chopped~~
