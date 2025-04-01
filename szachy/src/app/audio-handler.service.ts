@@ -11,7 +11,8 @@ export class AudioHandlerService {
     ['mate', '../assets/sfx/mat.mp3'],
     ['draw-repetition', '../assets/sfx/remis.mp3'],
     ['draw-50-moves', '../assets/sfx/remis.mp3'],
-    ['stalemate', '../assets/sfx/remis.mp3']
+    ['stalemate', '../assets/sfx/remis.mp3'],
+    ['ruch', '../assets/sfx/ruch.mp3'],
   ]);
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}

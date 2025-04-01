@@ -1049,6 +1049,7 @@ export class ChessService {
     this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
+    this.AudioService.playSoundForType('ruch');
     this.updateBoard.next(this.board);
   }
 
@@ -1088,6 +1089,7 @@ export class ChessService {
     this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
+    this.AudioService.playSoundForType('ruch');
     this.lowEffortBoards = [];
   }
 
@@ -1118,6 +1120,7 @@ export class ChessService {
     // this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;
+    this.AudioService.playSoundForType('ruch');
     if(piece.type !== "pawn" && numberOfPieces === this.countChessPieces(this.board))
       this.lowEffortBoards.push(this.copyChessBoardLowEffort(this.previousBoard));
     else
