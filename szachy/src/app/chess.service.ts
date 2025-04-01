@@ -243,10 +243,16 @@ export class ChessService {
   public gameClose = new EventEmitter<void>();
   public undoMoveSubject = new Subject();
   public pawnPromotionSubject = new Subject<{position: Position, type: PieceType}>();
+  public currentSpecialForNotationOnly: string = '';
   public aiMoveExecuted = new EventEmitter<{
     from: { row: number; col: number },
     to: { row: number; col: number },
     color: PieceColor
+  }>();
+  public pawnPromoted = new EventEmitter<{
+    position: Position;
+    promotedTo: PieceType;
+    color: PieceColor;
   }>();
 
   /**
@@ -878,6 +884,8 @@ export class ChessService {
       this.executeStandardMove(moveAttempt, piece);
     else
     {
+      this.currentSpecialForNotationOnly = currentLegalMove.special;
+
       const specialExecutes = {
         'enpassant': () => this.executeEnpassant(piece),
         'O-O': () => this.executeCastle(piece, {col: 7, deltaCol: 2, special: 'O-O'}),
@@ -913,10 +921,18 @@ export class ChessService {
     });
 
     dialogRef.afterClosed().subscribe((result: PieceType) => {
-      this.pawnPromotionSubject.next({position: piece.position, type: result})
-      piece.type = result;
-      console.warn(selectedPiece)
-      this.updateBoard.next(this.board);
+      if (result) {
+        piece.type = result;
+        console.warn(selectedPiece)
+        this.updateBoard.next(this.board);
+
+        this.pawnPromotionSubject.next({position: piece.position, type: result})
+        this.pawnPromoted.emit({
+          position: piece.position,
+          promotedTo: result,
+          color: piece.color
+        });
+      }
     });
 
   }
@@ -1095,7 +1111,9 @@ export class ChessService {
     piece.position = { ...moveAttempt.to };
     piece.moveTurn = true;
     piece.hasMoved = true;
-    if(piece.type === 'pawn' && (piece.position.row === 0 || piece.position.row === 7)) this.promotePawn(piece);
+    if(piece.type === 'pawn' && (piece.position.row === 0 || piece.position.row === 7)){
+      this.promotePawn(piece);
+    }
     // this.logChessBoard()
     this.checkEnemyKingInCheck(piece);
     this.canUndo = true;

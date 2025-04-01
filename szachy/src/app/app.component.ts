@@ -15,6 +15,16 @@ import { TimerService } from './timer.service';
 import {UndoMoveComponent} from './undo-move/undo-move.component';
 // import {GameEndComponent} from './game-end/game-end.component';
 
+
+/**
+ * @method pieces
+ * @description Ten kod jest odpowiedzialny za przypisanie odpowiednich obrazków do figur szachowych.
+ * Każda figura ma przypisany odpowiedni obrazek w formacie SVG, który jest używany do wyświetlania figury na szachownicy.
+ * Każdy klucz w obiekcie pieces reprezentuje figurę, a wartość to ścieżka do odpowiedniego obrazka.
+ * @type {Object}
+ * @example
+ * pieces['black_pawn'] // zwraca 'assets/pieces/cp.svg'
+ */
 export let pieces: { [key: string]: string } = {
   'black_pawn': `assets/pieces/cp.svg`,
   'white_pawn': `assets/pieces/bp.svg`,
@@ -66,7 +76,12 @@ export class AppComponent implements OnInit {
       this.gameType = null;
       this.game = null;
   }
-
+  /** @method convert_name
+    * @description Ta metoda zmienia tekst w elemencie h1 na stronie.
+    * Jeśli tekst to "Szachy", zmienia go na "szachy-ale-mi-sie-udalo".
+    * W przeciwnym razie zmienia go na "Szachy".
+    * @returns {void}
+   */
   protected convert_name() : void {
     let h1 : HTMLElement = this.element.nativeElement.querySelector('h1');
     if(h1.textContent! == "Szachy") {
@@ -76,11 +91,27 @@ export class AppComponent implements OnInit {
     }
   }
 
-
+  /** @method selectGame
+   * @description Ta metoda ustawia typ gry na podstawie przekazanego argumentu Game.
+   * @param game
+   * @type {GameType | null}
+   * @returns {void}
+   * @example
+   * selectGame('GraczVsGracz');
+   */
   selectGame(game: GameType | null) : void {
     this.game = null;
     this.gameType = game;
   }
+
+  /** @method setGame
+   * @description Ta metoda ustawia grę na podstawie przekazanego argumentu Game.
+   * @param game
+   * @type {Game}
+   * @returns {void}
+   * @example
+   * setGame('GraczVsAi');
+   */
   setGame(game : Game) : void {
     this.game = game;
     this.timerService.setTime(game.duration)
@@ -88,13 +119,27 @@ export class AppComponent implements OnInit {
     this.timerService.startTimer();
   }
 
-
+  /** @method setMoves
+   * @description Ta metoda ustawia kolejne ruchy na podstawie przekazanego argumentu data.
+   * @type {any}
+   * @returns {void}
+   * @example
+   * setMoves('e4');
+   * @param data
+   */
   setMoves(data : any) : void {
     this.moves = data;
   }
 
+  /** @method setMove
+   * @description Ta metoda ustawia ruch na podstawie przekazanego argumentu data.
+   * @param data
+   * @type {string}
+   * @returns {void}
+   * @example
+   * setMove('e4');
+   */
   setMove(data : string) : void {
-      console.log(data);
     this.moveOccured = data;
   }
 }

@@ -27,9 +27,13 @@ Nasza gra "Szachy" to implementacja gry w szachy przeznaczona do uruchamiania w 
     ```
     npm run build
     ```
-5. Uruchom serwer aplikacji i zainicjalizuj kontroler serwera:
+5. Uruchom serwer aplikacji:
     ```
-    npm start ; node ../backend/controller.js
+    npm start 
+    ```
+6. W osobnym terminalu zainicjuj kontroler serwera
+    ```
+    node ./backend/controller.js
     ```
 ---
 ## Opis funkcjonalności
@@ -112,7 +116,7 @@ W trakcie rozgrywki aplikacja wyświetla zapis partii w **notacji algebraicznej*
 
 **Przykłady:**
 - **Notacja krótka**: `e4 e5 Nf3 Nc6 Bb5`
-- **Notacja długa**: `e2-e4 e7-e5 g1-f3 b8-c6 f1-b5`
+- **Notacja długa**: `Re2-e4 e7-e5 Ng1-f3 b8-c6 f1-b5`
 
 ---
 
@@ -122,7 +126,6 @@ W trakcie rozgrywki aplikacja wyświetla zapis partii w **notacji algebraicznej*
 ### Opis folderów i plików:
 
 ```
-.idea - pliki do edytowania (nieważne dla projektu)
 backend // folder obsługujący tryb gry Gracz vs Gracz w sieci
 | - controler.js - obsługa tworzenia oraz usuwanie hosta (serwera)
 | - index.js - sam serwer (wywoływany przez controller.js) 
@@ -136,11 +139,19 @@ szachy // frontend oraz cała logika szachów
 | - public  // Pliki dostępne publicznie (obrazy, czcionki, ikony)
 | - src  // Główny folder zawierający kod źródłowy
 |   | - app  // Główna część aplikacji – komponenty i logika interfejsu użytkownika
-|   	| - game-selector  // Komponent umożliwiający wybór trybu gry
-|   	| - menu  // Komponent wyświetlający główne menu aplikacji
-|	| - pawn-promotion  // Komponent odpowiedzialny za promocję pionka
-|	| - szachownica  // Komponent reprezentujący planszę szachową
-|	| - zegar  // Komponent do śledzenia czasu gry
-    | - assets  // Pliki statyczne (obrazy, dźwięki, czcionki)
-    | - enviroments
+|	|	| - game-end-dialog // Komponent odpowiedzialny za koniec gry
+|	|	| - game-invite-dialog // Komponent odpowiedzialny za wyzywania gracza w sieci do gry
+|   |	| - game-selector  // Komponent umożliwiający wybór trybu gry
+|   |	| - menu  // Komponent wyświetlający główne menu aplikacji
+|	|	| - nerd-view // Komponent wyświetlający widok dla nerda
+|	|	| - notation // Komponent wyświetlający notację szachową
+|	|	| - pawn-promotion  // Komponent odpowiedzialny za promocję pionka
+|	|	| - podpowiedzi // Komponent odpowiedzialny za podpowiedzi użytkownika w partii
+|	|	| - position-evaluator // Komponent odpowiedzialny za ewaluacje pozycji w partii
+|	|	| - szachownica  // Komponent reprezentujący planszę szachową
+|	|	| - ustawienia // Komponent odpowiedzialny za motyw na stronie
+|	|	| - zegar  // Komponent do śledzenia czasu gry
+|   | - assets  // Pliki statyczne (obrazy, dźwięki, czcionki)
+|   | - enviroments // ustawia port do serwera
+
 ```

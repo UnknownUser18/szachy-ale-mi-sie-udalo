@@ -24,8 +24,10 @@ import {LocalConnectionService} from '../local-connection.service';
 export class NotationComponent implements OnInit, OnDestroy {
   @Input() moves: string[] = [];
   @Input() longmoves: string[] = [];
+  private pawnPromotionSub?: Subscription;
   private gameStartSub: Subscription = new Subscription();
   private aiMoveSub?: Subscription;
+  private lastPromotion : PieceType = 'pawn';
   constructor(private chessService: ChessService, private connection: LocalConnectionService) {
     this.connection.moveExecuted.asObservable().subscribe(move => this.addMove(move));
     this.chessService.undoMoveSubject.asObservable().subscribe(() => this.undoMove())
@@ -48,6 +50,40 @@ export class NotationComponent implements OnInit, OnDestroy {
       const board = this.chessService.board; // UĹĽyj aktualnej szachownicy
       this.addSimulatedMove(from, to, board, color);
     });
+
+    this.pawnPromotionSub = this.chessService.pawnPromoted.subscribe(
+      ({ position, promotedTo, color }) => {
+        this.updateNotationAfterPromotion(position, promotedTo, color);
+      }
+    );
+  }
+
+  private updateNotationAfterPromotion(
+    position: Position,
+    promotedTo: PieceType,
+    color: PieceColor
+  ) {
+    if (this.moves.length === 0) return;
+
+    // Ostatni ruch danego koloru to ten, który wymagał promocji
+    const lastMoveIndex = color === 'white' ? this.moves.length - 1 : this.moves.length - 1;
+    const lastLongMoveIndex = color === 'white' ? this.longmoves.length - 1 : this.longmoves.length - 1;
+
+    // Dodaj oznaczenie promocji (np. "e8=Q")
+    const gameState = this.chessService.isMate('black') || this.chessService.isMate('white');
+    const promotionSymbol = this.PieceName({ type: promotedTo, color } as ChessPiece);
+
+    this.moves[lastMoveIndex] += `=${promotionSymbol}`;
+    this.longmoves[lastLongMoveIndex] += `=${promotionSymbol}`;
+
+    if (gameState === 'mate') {
+      this.longmoves[lastLongMoveIndex] += "#";
+      this.moves[lastMoveIndex] += "#";
+    } else if (gameState === 'check' || this.chessService.isKingInCheck("white") || this.chessService.isKingInCheck("black")) {
+      this.longmoves[lastLongMoveIndex] += "+";
+      this.moves[lastMoveIndex] += "+";
+    }
+
   }
 
   ngOnDestroy() {
@@ -86,7 +122,6 @@ export class NotationComponent implements OnInit, OnDestroy {
   }
 
   addMove(move: MoveAttempt): void {
-
     const from = this.convertPositionToNotation(move.from);
     const to = this.convertPositionToNotation(move.to);
     const piece = this.chessService.getPieceFromPosition(move.to);
@@ -111,8 +146,10 @@ export class NotationComponent implements OnInit, OnDestroy {
       }
 
 
-      if (legalToPosition.special) {
-        moveNotation = this.handleSpecialMove(legalToPosition.special, from, to);
+      if (this.chessService.currentSpecialForNotationOnly != "" ) {
+        moveNotation = this.handleSpecialMove(this.chessService.currentSpecialForNotationOnly, from, to);
+        longmoveNotation = this.handleSpecialMove(this.chessService.currentSpecialForNotationOnly, from, to);
+        this.chessService.currentSpecialForNotationOnly = "";
       } else {
         if (this.isCapture(move)) {
           moveNotation = `${this.PieceName(piece!) || ''}${from}x${to}`;
@@ -121,6 +158,8 @@ export class NotationComponent implements OnInit, OnDestroy {
 
         }
       }
+
+
 
 
       const movingColor = piece?.color;
@@ -170,17 +209,19 @@ export class NotationComponent implements OnInit, OnDestroy {
     return pairs;
   }
 
-  private handleSpecialMove(specialMove: SpecialMove, from: string, to: string): string {
+  private handleSpecialMove(specialMove: string, from: string, to: string): string {
     switch (specialMove) {
       case 'O-O':
-        return '0-0';
+        return 'O-O';
       case 'O-O-O':
-        return '0-0-0';
+        return 'O-O-O';
       case 'enpassant':
         return `${from}x${to}`;
+
       default:
-        return `${from}:${to}`;
+        return `${from}-${to}`;
     }
+
   }
 
 
@@ -206,21 +247,29 @@ export class NotationComponent implements OnInit, OnDestroy {
   ) {
     const fromNotation = this.convertPositionToNotation(from);
     const toNotation = this.convertPositionToNotation(to);
-    const piece = board[from.row][from.col];
+    const piece = board[to.row][to.col];
     const from_col = fromNotation[0];
     let moveNotation = (board[to.row][to.col] ? `${from_col}x${toNotation}` : toNotation);
     let longmoveNotation = (board[to.row][to.col] ? `${fromNotation}x${toNotation}` : `${fromNotation}-${toNotation}`);
-    if ( (this.chessService.isMate('white') || this.chessService.isMate('black') )  == 'mate') {
+
+    // Sprawdź stan gry po ruchu
+    const opponentColor = color === 'white' ? 'black' : 'white';
+    let isMate = this.chessService.isMate("white") || this.chessService.isMate("black");
+    let isCheck = this.chessService.isKingInCheck("white") || this.chessService.isKingInCheck("black");
+
+
+    const gameState = this.chessService.isMate('black') || this.chessService.isMate('white');
+
+    if (gameState === 'mate') {
+
       longmoveNotation += "#";
       moveNotation += '#';
-    } else if ((this.chessService.isMate('white') || this.chessService.isMate('black') ) == 'check' ) {
+    } else if (gameState === 'check' || this.chessService.isKingInCheck("white") ||  this.chessService.isKingInCheck("black")) {
       longmoveNotation += "+";
       moveNotation += '+';
-    }
 
     this.moves.push(moveNotation);
-    this.longmoves.push(longmoveNotation)
+    this.longmoves.push(longmoveNotation);
   }
-
-
+  }
 }
